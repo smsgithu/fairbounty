@@ -143,6 +143,7 @@ export default function FairBounty() {
   const [submissionText, setSubmissionText] = useState("");
   const [animateIn, setAnimateIn] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   const theme = WALLET_THEMES[walletType] || WALLET_THEMES.default;
 
@@ -178,48 +179,18 @@ export default function FairBounty() {
   const canClaim = (bounty) => fairScore >= bounty.minTier;
 
   const handleSubmit = (bountyId) => {
-    if (!submissionText.trim()) return;
-    const multiplier = FairScoreAPI.getXpMultiplier(fairScore);
-    const xpEarned = Math.floor(25 * multiplier);
-    setXp((prev) => prev + xpEarned);
-    setBounties((prev) => prev.map((b) => b.id === bountyId ? { ...b, submissions: b.submissions + 1 } : b));
-    notify(`+${xpEarned} XP (${multiplier}x Tier ${fairScore} bonus)! Submission received.`);
-    setSubmissionText("");
-    setView("dashboard");
+    setShowDemoModal(true);
+    return;
   };
 
   const handleVote = (bountyId) => {
-    const weight = FairScoreAPI.getVoteWeight(fairScore);
-    const xpEarned = Math.floor(5 * FairScoreAPI.getXpMultiplier(fairScore));
-    setBounties((prev) => prev.map((b) => b.id === bountyId ? { ...b, votes: b.votes + 1, totalVoteWeight: b.totalVoteWeight + weight } : b));
-    setXp((prev) => prev + xpEarned);
-    notify(`+${xpEarned} XP! Vote cast (weight: ${weight}x from Tier ${fairScore}).`);
+    setShowDemoModal(true);
+    return;
   };
 
   const handlePostBounty = () => {
-    if (!postForm.title || !postForm.reward || !postForm.description) {
-      notify("Fill in all required fields.");
-      return;
-    }
-    const newBounty = {
-      id: bounties.length + 1,
-      title: postForm.title,
-      project: "Your Project",
-      reward: Number(postForm.reward),
-      currency: postForm.currency,
-      minTier: postForm.minTier,
-      tags: postForm.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      submissions: 0,
-      deadline: postForm.deadline || "2026-03-30",
-      description: postForm.description,
-      status: "open",
-      votes: 0,
-      totalVoteWeight: 0,
-    };
-    setBounties((prev) => [newBounty, ...prev]);
-    setPostForm({ title: "", description: "", reward: "", currency: "USDC", minTier: 1, tags: "", deadline: "" });
-    notify("Bounty posted! -50 USDC listing fee applied.");
-    setView("dashboard");
+    setShowDemoModal(true);
+    return;
   };
 
   const referralLink = `https://fairbounty.xyz/ref/${wallet?.slice(0, 8) || "anon"}`;
@@ -293,6 +264,35 @@ export default function FairBounty() {
     </div>
   );
 
+  // Demo modal overlay
+  const DemoModal = () => showDemoModal ? (
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "20px",
+    }} onClick={() => setShowDemoModal(false)}>
+      <div style={{
+        ...cardStyle, maxWidth: "420px", width: "100%", padding: "32px",
+        textAlign: "center", border: `1px solid ${theme.primary}40`,
+        animation: "slideIn 0.2s ease",
+      }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ fontSize: "40px", marginBottom: "16px" }}>🚧</div>
+        <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Demo Mode</h3>
+        <p style={{ fontSize: "13px", color: "#999", lineHeight: "1.7", marginBottom: "20px" }}>
+          This action isn't available yet — FairBounty is currently in demo mode for the{" "}
+          <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a> competition.
+          Wallet connection and browsing work, but submissions, voting, posting, and referrals are coming soon.
+        </p>
+        <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+          <button style={btnPrimary} onClick={() => setShowDemoModal(false)}>Got it</button>
+          <a href="https://x.com/fairbounty" target="_blank" rel="noopener noreferrer"
+            style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>Follow @fairbounty</a>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   // Nav bar component
   const NavBar = ({ showBack, backTo, backLabel }) => (
     <div style={{
@@ -308,6 +308,7 @@ export default function FairBounty() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }} onClick={() => setView("landing")}>
           <Logo size={28} />
           <span style={{ fontSize: "16px", fontWeight: "700" }}>FairBounty</span>
+          <span style={{ fontSize: "9px", fontWeight: "700", color: "#0a0a0f", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
         </div>
       </div>
       <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
@@ -392,6 +393,7 @@ export default function FairBounty() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <Logo size={32} />
                 <span style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "-0.5px" }}>FairBounty</span>
+                <span style={{ fontSize: "9px", fontWeight: "700", color: "#0a0a0f", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
               </div>
               <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
                 <button style={{ ...btnOutline, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("about")}>About</button>
@@ -704,9 +706,7 @@ export default function FairBounty() {
               );
             })}
           </div>
-          <div style={{ marginTop: "24px", textAlign: "center", fontSize: "13px", color: "#9999A8", fontWeight: "500" }}>
-            Each wallet gets a unique color theme 🎨
-          </div>
+
         </div>
         <style>{globalStyles}</style>
       </div>
@@ -728,6 +728,7 @@ export default function FairBounty() {
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel="Bounties" />
+          <DemoModal />
 
           <div style={{ ...cardStyle, ...fadeIn }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
@@ -956,6 +957,7 @@ export default function FairBounty() {
         )}
 
         <NavBar />
+        <DemoModal />
         <DemoBanner />
 
         {/* Referral */}
@@ -967,7 +969,7 @@ export default function FairBounty() {
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <code style={{ fontSize: "12px", padding: "6px 12px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary }}>{referralLink}</code>
-              <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => { navigator.clipboard?.writeText(referralLink); notify("Link copied!"); }}>Copy</button>
+              <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowDemoModal(true)}>Copy</button>
             </div>
           </div>
         )}
@@ -1045,7 +1047,7 @@ export default function FairBounty() {
               ))}
             </select>
             {wallet && (
-              <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("post")}>+ Post Bounty</button>
+              <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setShowDemoModal(true)}>+ Post Bounty</button>
             )}
           </div>
         </div>
