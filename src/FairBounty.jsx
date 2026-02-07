@@ -280,6 +280,19 @@ export default function FairBounty() {
     select option { background: #0a0a0f; color: #E8E8ED; }
   `;
 
+  // Demo banner
+  const DemoBanner = () => (
+    <div style={{
+      background: `linear-gradient(90deg, ${theme.primary}15, ${theme.accent}15)`,
+      border: `1px solid ${theme.primary}25`, borderRadius: "8px",
+      padding: "10px 16px", marginBottom: "12px", textAlign: "center",
+      fontSize: "12px", color: "#999",
+    }}>
+      🚧 <span style={{ color: theme.primary, fontWeight: "600" }}>Demo Mode</span> — Bounties shown are examples. FairScore data is simulated. Built for the{" "}
+      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a> competition.
+    </div>
+  );
+
   // Nav bar component
   const NavBar = ({ showBack, backTo, backLabel }) => (
     <div style={{
@@ -370,6 +383,7 @@ export default function FairBounty() {
           }} />
 
           <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px", textAlign: "center" }}>
+            <DemoBanner />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "80px", ...fadeIn }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <Logo size={32} />
@@ -938,6 +952,7 @@ export default function FairBounty() {
         )}
 
         <NavBar />
+        <DemoBanner />
 
         {/* Referral */}
         {showReferral && wallet && fairScore >= 2 && (
