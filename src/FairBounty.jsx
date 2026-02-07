@@ -322,6 +322,10 @@ export default function FairBounty() {
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
             <span style={{ color: "#ccc" }}>{wallet}</span>
             <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} XP</span>
+            <button onClick={() => { setWallet(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setView("landing"); }}
+              style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
+              title="Disconnect wallet"
+            >✕</button>
           </div>
         ) : (
           <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("connect")}>Connect</button>
