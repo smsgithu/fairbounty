@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { getWallets } from "@wallet-standard/app";
 
 // ============================================================
 // FAIRBOUNTY — Reputation-Gated Bounty Platform
@@ -161,19 +162,12 @@ export default function FairBounty() {
   const isIOS = useMemo(() => /iPhone|iPad|iPod/i.test(navigator.userAgent), []);
   const isMobile = useMemo(() => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent), []);
 
-  // Initialize wallet detection from window providers
+  // Initialize wallet-standard detection (same as SMSai)
   useEffect(() => {
-    const detect = () => {
-      const found = [];
-      if (window.phantom?.solana) found.push({ name: "Phantom" });
-      if (window.solflare) found.push({ name: "Solflare" });
-      if (window.backpack) found.push({ name: "Backpack" });
-      if (window.glow) found.push({ name: "Glow" });
-      if (window.jupiter) found.push({ name: "Jupiter" });
-      setStandardWallets(found);
-    };
-    detect();
-    setTimeout(detect, 1000);
+    const { get, on } = getWallets();
+    setStandardWallets(get());
+    const removeListener = on("register", () => setStandardWallets(get()));
+    return () => removeListener();
   }, []);
 
   // Wallet options matching SMSai pattern
@@ -1381,11 +1375,17 @@ export default function FairBounty() {
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>🔗 Referral Link</h3>
                   {fairScore >= 2 ? (
                     <div>
-                      <code style={{ display: "block", fontSize: "12px", padding: "10px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary, marginBottom: "10px", wordBreak: "break-all" }}>{customReferral}</code>
-                      <button onClick={() => setShowDemoModal(true)}
-                        style={{ ...btnPrimary, display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", padding: "8px 18px" }}>
-                        Share on 𝕏 →
-                      </button>
+                      <p style={{ fontSize: "12px", color: "#888", marginBottom: "10px" }}>Share FairBounty and earn XP when friends sign up.</p>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => setShowDemoModal(true)}
+                          style={{ ...btnOutline, fontSize: "12px", padding: "8px 18px" }}>
+                          📋 Copy Referral Link
+                        </button>
+                        <button onClick={() => setShowDemoModal(true)}
+                          style={{ ...btnPrimary, fontSize: "12px", padding: "8px 18px" }}>
+                          Share on 𝕏 →
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div style={{ padding: "12px", background: "#1a1a0a", border: "1px solid #F59E0B30", borderRadius: "6px", textAlign: "center", fontSize: "12px", color: "#F59E0B" }}>🔒 Referrals require Tier 2+</div>
@@ -1742,8 +1742,8 @@ export default function FairBounty() {
               <div style={{ fontSize: "12px", color: "#888" }}>Share your link. +{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore))} XP for each signup (Tier {fairScore} bonus).</div>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <code style={{ fontSize: "12px", padding: "6px 12px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary }}>{referralLink}</code>
-              <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowDemoModal(true)}>Copy</button>
+              <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowDemoModal(true)}>📋 Copy Link</button>
+              <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowDemoModal(true)}>Share on 𝕏</button>
             </div>
           </div>
         )}
