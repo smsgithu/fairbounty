@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getWallets } from "@wallet-standard/app";
 
 // ============================================================
 // FAIRBOUNTY — Reputation-Gated Bounty Platform
@@ -146,6 +145,7 @@ export default function FairBounty() {
   const [loading, setLoading] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [standardWallets, setStandardWallets] = useState([]);
+  const [fullAddress, setFullAddress] = useState(null);
   const [profile, setProfile] = useState(null);
   const [profileForm, setProfileForm] = useState({
     displayName: "", xHandle: "", bio: "", contact: "", email: "",
@@ -161,12 +161,19 @@ export default function FairBounty() {
   const isIOS = useMemo(() => /iPhone|iPad|iPod/i.test(navigator.userAgent), []);
   const isMobile = useMemo(() => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent), []);
 
-  // Initialize wallet-standard detection (same as SMSai)
+  // Initialize wallet detection from window providers
   useEffect(() => {
-    const { get, on } = getWallets();
-    setStandardWallets(get());
-    const removeListener = on("register", () => setStandardWallets(get()));
-    return () => removeListener();
+    const detect = () => {
+      const found = [];
+      if (window.phantom?.solana) found.push({ name: "Phantom" });
+      if (window.solflare) found.push({ name: "Solflare" });
+      if (window.backpack) found.push({ name: "Backpack" });
+      if (window.glow) found.push({ name: "Glow" });
+      if (window.jupiter) found.push({ name: "Jupiter" });
+      setStandardWallets(found);
+    };
+    detect();
+    setTimeout(detect, 1000);
   }, []);
 
   // Wallet options matching SMSai pattern
@@ -282,6 +289,7 @@ export default function FairBounty() {
           ? pubkey.slice(0, 6) + "..." + pubkey.slice(-4)
           : pubkey;
         setWallet(displayAddr);
+        setFullAddress(pubkey);
 
         const data = await FairScoreAPI.getScore(displayAddr);
         if (data) {
@@ -290,6 +298,28 @@ export default function FairBounty() {
           setXp(Math.floor(data.score / 2));
           notify(`Connected via ${WALLET_THEMES[type]?.name || opt.name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
         }
+
+        // Restore saved profile for this wallet
+        try {
+          const saved = localStorage.getItem(`fb_profile_${pubkey}`);
+          if (saved) {
+            const p = JSON.parse(saved);
+            setProfile(p);
+            setProfileForm({
+              displayName: p.displayName || "", xHandle: p.xHandle || "", bio: p.bio || "",
+              contact: p.contact || "", email: p.email || "", pfpUrl: p.pfpUrl || "",
+              linkedin: p.linkedin || "", github: p.github || "", website: p.website || "",
+              telegram: p.telegram || "", discord: p.discord || "", lookingFor: p.lookingFor || "",
+              worksAt: p.worksAt || "", location: p.location || "", skills: p.skills || [],
+            });
+            const savedBookmarks = localStorage.getItem(`fb_bookmarks_${pubkey}`);
+            if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
+            setLoading(false);
+            setView("dashboard");
+            return;
+          }
+        } catch (e) { /* localStorage not available */ }
+
         setLoading(false);
         setView("profile-setup");
         return;
@@ -347,7 +377,7 @@ export default function FairBounty() {
       return;
     }
     const handle = profileForm.xHandle.replace(/^@/, "");
-    setProfile({
+    const profileData = {
       displayName: profileForm.displayName.trim(),
       xHandle: handle,
       bio: profileForm.bio.trim(),
@@ -364,7 +394,16 @@ export default function FairBounty() {
       location: profileForm.location.trim(),
       skills: profileForm.skills || [],
       joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
-    });
+    };
+    setProfile(profileData);
+
+    // Persist to localStorage
+    if (fullAddress) {
+      try {
+        localStorage.setItem(`fb_profile_${fullAddress}`, JSON.stringify(profileData));
+      } catch (e) { /* storage full or unavailable */ }
+    }
+
     notify(`Welcome, ${profileForm.displayName}! Profile saved.`);
     setView("dashboard");
   };
@@ -379,9 +418,13 @@ export default function FairBounty() {
   };
 
   const toggleBookmark = (bountyId) => {
-    setBookmarks((prev) =>
-      prev.includes(bountyId) ? prev.filter((id) => id !== bountyId) : [...prev, bountyId]
-    );
+    setBookmarks((prev) => {
+      const updated = prev.includes(bountyId) ? prev.filter((id) => id !== bountyId) : [...prev, bountyId];
+      if (fullAddress) {
+        try { localStorage.setItem(`fb_bookmarks_${fullAddress}`, JSON.stringify(updated)); } catch (e) {}
+      }
+      return updated;
+    });
   };
 
   const canClaim = (bounty) => fairScore >= bounty.minTier;
@@ -534,7 +577,7 @@ export default function FairBounty() {
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
             <span style={{ color: "#ccc" }}>{profile ? profile.displayName : wallet}</span>
             <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} XP</span>
-            <button onClick={(e) => { e.stopPropagation(); setWallet(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] }); setBookmarks([]); setView("landing"); }}
+            <button onClick={(e) => { e.stopPropagation(); setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] }); setBookmarks([]); setView("landing"); }}
               style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
               title="Disconnect wallet"
             >✕</button>
@@ -1339,10 +1382,10 @@ export default function FairBounty() {
                   {fairScore >= 2 ? (
                     <div>
                       <code style={{ display: "block", fontSize: "12px", padding: "10px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary, marginBottom: "10px", wordBreak: "break-all" }}>{customReferral}</code>
-                      <a href={`https://x.com/intent/tweet?text=${xShareText}`} target="_blank" rel="noopener noreferrer"
-                        style={{ ...btnPrimary, display: "inline-flex", alignItems: "center", gap: "6px", textDecoration: "none", fontSize: "12px", padding: "8px 18px" }}>
+                      <button onClick={() => setShowDemoModal(true)}
+                        style={{ ...btnPrimary, display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", padding: "8px 18px" }}>
                         Share on 𝕏 →
-                      </a>
+                      </button>
                     </div>
                   ) : (
                     <div style={{ padding: "12px", background: "#1a1a0a", border: "1px solid #F59E0B30", borderRadius: "6px", textAlign: "center", fontSize: "12px", color: "#F59E0B" }}>🔒 Referrals require Tier 2+</div>
