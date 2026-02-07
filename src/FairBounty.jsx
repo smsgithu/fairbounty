@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { getWallets } from "@wallet-standard/app";
 
 // ============================================================
 // FAIRBOUNTY — Reputation-Gated Bounty Platform
@@ -144,8 +145,69 @@ export default function FairBounty() {
   const [animateIn, setAnimateIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [standardWallets, setStandardWallets] = useState([]);
   const [profile, setProfile] = useState(null);
-  const [profileForm, setProfileForm] = useState({ displayName: "", xHandle: "", bio: "", contact: "" });
+  const [profileForm, setProfileForm] = useState({
+    displayName: "", xHandle: "", bio: "", contact: "", email: "",
+    pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "",
+    lookingFor: "", worksAt: "", location: "",
+    skills: [],
+  });
+  const [bookmarks, setBookmarks] = useState([]);
+  const [profileTab, setProfileTab] = useState("overview");
+  const [setupTab, setSetupTab] = useState("Basics");
+
+  // Detect iOS for deep links
+  const isIOS = useMemo(() => /iPhone|iPad|iPod/i.test(navigator.userAgent), []);
+  const isMobile = useMemo(() => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent), []);
+
+  // Initialize wallet-standard detection (same as SMSai)
+  useEffect(() => {
+    const { get, on } = getWallets();
+    setStandardWallets(get());
+    const removeListener = on("register", () => setStandardWallets(get()));
+    return () => removeListener();
+  }, []);
+
+  // Wallet options matching SMSai pattern
+  const walletOptions = useMemo(() => [
+    {
+      id: "jupiter", name: "Jupiter", useStandard: true,
+      mobileLink: isIOS
+        ? "jupiter://browse/https://fairbounty.vercel.app"
+        : "intent://browse/https://fairbounty.vercel.app#Intent;scheme=jupiter;package=ag.jup.jupiter.android;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dag.jup.jupiter.android;end",
+      downloadUrl: "https://chromewebstore.google.com/detail/jupiter-wallet/iledlaeogohbilgbfhmbgkgmpplbfboh",
+    },
+    {
+      id: "phantom", name: "Phantom", window: "solana", check: (w) => w?.isPhantom,
+      mobileLink: `https://phantom.app/ul/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      downloadUrl: "https://phantom.app/",
+    },
+    {
+      id: "solflare", name: "Solflare", window: "solflare", check: (w) => !!w,
+      mobileLink: `https://solflare.com/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      downloadUrl: "https://solflare.com/",
+    },
+    {
+      id: "backpack", name: "Backpack", window: "backpack", check: (w) => w?.isBackpack || (w && typeof w.connect === "function"),
+      mobileLink: `https://backpack.app/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      downloadUrl: "https://backpack.app/",
+    },
+    {
+      id: "glow", name: "Glow", window: "glow", check: (w) => !!w,
+      downloadUrl: "https://glow.app/",
+    },
+  ], [isIOS]);
+
+  const SKILL_CATEGORIES = {
+    Development: ["Rust", "TypeScript", "React", "Solidity", "Anchor", "Node.js", "Python", "Frontend", "Backend", "Full-Stack", "Smart Contracts"],
+    Design: ["UI/UX", "Graphic Design", "Figma", "Branding", "Web Design", "Motion Graphics"],
+    Community: ["Community Manager", "Moderator", "Ambassador", "Events", "Partnerships"],
+    Content: ["Writing", "Video", "Social Media", "Documentation", "Education", "Threads"],
+    Growth: ["Marketing", "SEO", "Analytics", "Business Development", "Growth Hacking"],
+    Security: ["Auditing", "Pen Testing", "Code Review", "Security Research"],
+    Other: ["Product Management", "Project Management", "Data Analysis", "Research", "Consulting"],
+  };
 
   const theme = WALLET_THEMES[walletType] || WALLET_THEMES.default;
 
@@ -163,24 +225,125 @@ export default function FairBounty() {
   const connectWallet = async (type) => {
     setWalletType(type);
     setLoading(true);
-    const mockAddress = "F" + Array.from({ length: 8 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]).join("") + "...";
-    setWallet(mockAddress);
 
-    // Fetch FairScore from API
-    const data = await FairScoreAPI.getScore(mockAddress);
-    if (data) {
-      setFairScore(data.tier);
-      setScoreData(data);
-      setXp(Math.floor(data.score / 2));
-      notify(`Connected via ${WALLET_THEMES[type].name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
+    const opt = walletOptions.find((w) => w.id === type);
+    if (!opt) { setLoading(false); return; }
+
+    try {
+      let pubkey = null;
+
+      // 1. Try wallet-standard (Jupiter, etc)
+      if (opt.useStandard) {
+        const stdWallet = standardWallets.find((w) =>
+          w.name?.toLowerCase().includes(opt.name.toLowerCase())
+        );
+        if (stdWallet) {
+          const connectFeature = stdWallet.features?.["standard:connect"];
+          if (connectFeature) {
+            const result = await connectFeature.connect();
+            const account = result?.accounts?.[0] || stdWallet.accounts?.[0];
+            if (account?.address) {
+              pubkey = account.address;
+            } else if (account?.publicKey) {
+              // publicKey is a Uint8Array, encode as base58
+              pubkey = encodeBase58(account.publicKey);
+            }
+          }
+        }
+      }
+
+      // 2. Try window provider (Phantom, Solflare, Backpack, Glow)
+      if (!pubkey && opt.window) {
+        const provider = window[opt.window];
+        if (provider && (!opt.check || opt.check(provider))) {
+          const resp = await provider.connect();
+          pubkey = resp?.publicKey?.toString() || provider.publicKey?.toString();
+        }
+      }
+
+      // 3. Mobile deep link fallback
+      if (!pubkey && isMobile && opt.mobileLink) {
+        window.location.href = opt.mobileLink;
+        setLoading(false);
+        return;
+      }
+
+      // 4. Desktop — wallet not installed, open download
+      if (!pubkey && !isMobile && opt.downloadUrl) {
+        notify(`${opt.name} not detected. Opening download page...`);
+        window.open(opt.downloadUrl, "_blank");
+        setLoading(false);
+        return;
+      }
+
+      // Got a real public key — finish connect
+      if (pubkey) {
+        const displayAddr = pubkey.length > 20
+          ? pubkey.slice(0, 6) + "..." + pubkey.slice(-4)
+          : pubkey;
+        setWallet(displayAddr);
+
+        const data = await FairScoreAPI.getScore(displayAddr);
+        if (data) {
+          setFairScore(data.tier);
+          setScoreData(data);
+          setXp(Math.floor(data.score / 2));
+          notify(`Connected via ${WALLET_THEMES[type]?.name || opt.name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
+        }
+        setLoading(false);
+        setView("profile-setup");
+        return;
+      }
+
+      // No wallet found — demo fallback
+      notify("No wallet detected — using demo mode.");
+      const demoAddr = "F" + Array.from({ length: 8 }, () =>
+        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]
+      ).join("") + "...";
+      setWallet(demoAddr);
+      const data = await FairScoreAPI.getScore(demoAddr);
+      if (data) {
+        setFairScore(data.tier);
+        setScoreData(data);
+        setXp(Math.floor(data.score / 2));
+      }
+      setLoading(false);
+      setView("profile-setup");
+
+    } catch (err) {
+      console.log("Wallet connect error:", err.message);
+      notify("Connection failed — using demo mode.");
+      const demoAddr = "F" + Array.from({ length: 8 }, () =>
+        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]
+      ).join("") + "...";
+      setWallet(demoAddr);
+      const data = await FairScoreAPI.getScore(demoAddr);
+      if (data) {
+        setFairScore(data.tier);
+        setScoreData(data);
+        setXp(Math.floor(data.score / 2));
+      }
+      setLoading(false);
+      setView("profile-setup");
     }
-    setLoading(false);
-    setView("profile-setup");
+  };
+
+  // Simple base58 encoder for Uint8Array public keys
+  const encodeBase58 = (bytes) => {
+    const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    let result = "";
+    let num = BigInt("0x" + Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join(""));
+    while (num > 0n) {
+      result = ALPHABET[Number(num % 58n)] + result;
+      num = num / 58n;
+    }
+    for (const b of bytes) { if (b === 0) result = "1" + result; else break; }
+    return result;
   };
 
   const handleProfileSave = () => {
-    if (!profileForm.displayName.trim() || !profileForm.xHandle.trim()) {
-      notify("Display name and X handle are required.");
+    if (!profileForm.displayName.trim()) {
+      notify("Display name is required.");
       return;
     }
     const handle = profileForm.xHandle.replace(/^@/, "");
@@ -189,10 +352,36 @@ export default function FairBounty() {
       xHandle: handle,
       bio: profileForm.bio.trim(),
       contact: profileForm.contact.trim(),
+      email: profileForm.email.trim(),
+      pfpUrl: profileForm.pfpUrl.trim(),
+      linkedin: profileForm.linkedin.trim(),
+      github: profileForm.github.trim(),
+      website: profileForm.website.trim(),
+      telegram: profileForm.telegram.trim(),
+      discord: profileForm.discord.trim(),
+      lookingFor: profileForm.lookingFor,
+      worksAt: profileForm.worksAt.trim(),
+      location: profileForm.location.trim(),
+      skills: profileForm.skills || [],
       joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
     });
-    notify(`Welcome, ${profileForm.displayName}! Profile created.`);
+    notify(`Welcome, ${profileForm.displayName}! Profile saved.`);
     setView("dashboard");
+  };
+
+  const toggleSkill = (skill) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      skills: prev.skills.includes(skill)
+        ? prev.skills.filter((s) => s !== skill)
+        : [...prev.skills, skill],
+    }));
+  };
+
+  const toggleBookmark = (bountyId) => {
+    setBookmarks((prev) =>
+      prev.includes(bountyId) ? prev.filter((id) => id !== bountyId) : [...prev, bountyId]
+    );
   };
 
   const canClaim = (bounty) => fairScore >= bounty.minTier;
@@ -345,7 +534,7 @@ export default function FairBounty() {
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
             <span style={{ color: "#ccc" }}>{profile ? profile.displayName : wallet}</span>
             <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} XP</span>
-            <button onClick={(e) => { e.stopPropagation(); setWallet(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "" }); setView("landing"); }}
+            <button onClick={(e) => { e.stopPropagation(); setWallet(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] }); setBookmarks([]); setView("landing"); }}
               style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
               title="Disconnect wallet"
             >✕</button>
@@ -692,13 +881,15 @@ export default function FairBounty() {
   // WALLET CONNECT
   // ============================================================
   if (view === "connect") {
-    const wallets = [
-      { id: "solflare", icon: "🔥" },
-      { id: "jupiter", icon: "🪐" },
-      { id: "phantom", icon: "👻" },
-      { id: "backpack", icon: "🎒" },
-      { id: "glow", icon: "✨" },
-    ];
+    const walletIcons = { jupiter: "🪐", phantom: "👻", solflare: "🔥", backpack: "🎒", glow: "✨" };
+
+    // Check which wallets are detected
+    const isWalletDetected = (opt) => {
+      if (opt.useStandard) return standardWallets.some((w) => w.name?.toLowerCase().includes(opt.name.toLowerCase()));
+      if (opt.window) { const p = window[opt.window]; return p && (!opt.check || opt.check(p)); }
+      return false;
+    };
+
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
@@ -707,23 +898,32 @@ export default function FairBounty() {
           <h2 style={{ fontSize: "28px", fontWeight: "800", marginBottom: "8px" }}>Connect Wallet</h2>
           <p style={{ color: "#888", fontSize: "14px", marginBottom: "32px" }}>Choose your Solana wallet. Your FairScore will be fetched automatically.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {wallets.map((w) => {
-              const wTheme = WALLET_THEMES[w.id];
+            {loading && (
+              <div style={{ textAlign: "center", padding: "20px", color: theme.primary, fontSize: "14px" }}>
+                <div style={{ fontSize: "28px", marginBottom: "8px", animation: "pulse 1s ease-in-out infinite" }}>⏳</div>
+                Connecting wallet...
+              </div>
+            )}
+            {walletOptions.map((opt) => {
+              const wTheme = WALLET_THEMES[opt.id] || WALLET_THEMES.default;
+              const detected = isWalletDetected(opt);
               return (
-                <button key={w.id} onClick={() => connectWallet(w.id)}
+                <button key={opt.id} onClick={() => !loading && connectWallet(opt.id)} disabled={loading}
                   style={{
                     display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px",
                     background: `linear-gradient(135deg, ${wTheme.bg}, #0a0a0f)`,
                     border: `1px solid ${wTheme.primary}30`, borderRadius: "12px", color: "#E8E8ED",
-                    fontFamily: "inherit", cursor: "pointer", fontSize: "15px", fontWeight: "600",
-                    transition: "all 0.2s ease", textAlign: "left",
+                    fontFamily: "inherit", cursor: loading ? "wait" : "pointer", fontSize: "15px", fontWeight: "600",
+                    transition: "all 0.2s ease", textAlign: "left", opacity: loading ? 0.5 : 1,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = wTheme.primary; e.currentTarget.style.transform = "translateX(4px)"; e.currentTarget.style.boxShadow = `0 0 20px ${wTheme.primary}20`; }}
+                  onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.borderColor = wTheme.primary; e.currentTarget.style.transform = "translateX(4px)"; e.currentTarget.style.boxShadow = `0 0 20px ${wTheme.primary}20`; } }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${wTheme.primary}30`; e.currentTarget.style.transform = "translateX(0)"; e.currentTarget.style.boxShadow = "none"; }}
                 >
-                  <span style={{ fontSize: "24px" }}>{w.icon}</span>
-                  <span>{wTheme.name}</span>
-                  <span style={{ marginLeft: "auto", fontSize: "11px", padding: "4px 10px", background: `${wTheme.primary}20`, color: wTheme.primary, borderRadius: "100px" }}>Solana</span>
+                  <span style={{ fontSize: "24px" }}>{walletIcons[opt.id] || "💳"}</span>
+                  <span>{opt.name}</span>
+                  <span style={{ marginLeft: "auto", fontSize: "10px", padding: "4px 10px", background: detected ? `${wTheme.primary}25` : "#ffffff08", color: detected ? wTheme.primary : "#666", borderRadius: "100px", fontWeight: "600" }}>
+                    {detected ? "✓ Detected" : "Solana"}
+                  </span>
                 </button>
               );
             })}
@@ -736,73 +936,222 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // PROFILE SETUP — After wallet connect
+  // ============================================================
+  // PROFILE SETUP — After wallet connect (tabbed form)
   // ============================================================
   if (view === "profile-setup") {
+    const setupTabs = ["Basics", "Socials", "Skills"];
+
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "500px", margin: "0 auto", padding: "40px 20px" }}>
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "540px", margin: "0 auto", padding: "40px 20px" }}>
           <div style={fadeIn}>
-            <div style={{ textAlign: "center", marginBottom: "32px" }}>
-              <div style={{ fontSize: "48px", marginBottom: "12px" }}>{TIER_CONFIG[fairScore]?.emoji}</div>
-              <h2 style={{ fontSize: "28px", fontWeight: "800", marginBottom: "4px" }}>Welcome to FairBounty</h2>
-              <p style={{ color: "#888", fontSize: "14px" }}>
-                You're <span style={{ color: TIER_CONFIG[fairScore]?.color, fontWeight: "700" }}>Tier {fairScore} — {TIER_CONFIG[fairScore]?.label}</span>. Set up your profile to get started.
+            {/* Header */}
+            <div style={{ textAlign: "center", marginBottom: "28px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "8px" }}>{TIER_CONFIG[fairScore]?.emoji}</div>
+              <h2 style={{ fontSize: "26px", fontWeight: "800", marginBottom: "4px" }}>Set Up Your Profile</h2>
+              <p style={{ color: "#888", fontSize: "13px" }}>
+                You're <span style={{ color: TIER_CONFIG[fairScore]?.color, fontWeight: "700" }}>Tier {fairScore} — {TIER_CONFIG[fairScore]?.label}</span>
               </p>
             </div>
 
-            {/* Wallet + Score Summary */}
-            <div style={{ ...cardStyle, marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+            {/* Wallet summary */}
+            <div style={{ ...cardStyle, marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", padding: "14px 18px" }}>
               <div>
-                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Wallet</div>
+                <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Wallet</div>
                 <div style={{ fontSize: "13px", color: theme.primary, fontWeight: "600", marginTop: "2px" }}>{wallet}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>FairScore</div>
+                <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>FairScore</div>
                 <div style={{ fontSize: "13px", color: TIER_CONFIG[fairScore]?.color, fontWeight: "600", marginTop: "2px" }}>{scoreData?.score} pts</div>
               </div>
             </div>
 
-            <div style={{ ...cardStyle }}>
-              <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "20px" }}>Create Your Profile</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Display Name *</label>
-                  <input style={inputStyle} value={profileForm.displayName} onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })} placeholder="e.g. CryptoBuilder" />
-                </div>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>X / Twitter Handle *</label>
-                  <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#666", fontSize: "14px" }}>@</span>
-                    <input style={{ ...inputStyle, paddingLeft: "30px" }} value={profileForm.xHandle} onChange={(e) => setProfileForm({ ...profileForm, xHandle: e.target.value.replace(/^@/, "") })} placeholder="yourhandle" />
+            {/* Tabs */}
+            <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "#0a0a0f", borderRadius: "10px", padding: "4px" }}>
+              {setupTabs.map((t) => (
+                <button key={t} onClick={() => setSetupTab(t)}
+                  style={{
+                    flex: 1, padding: "10px", fontSize: "13px", fontWeight: "600",
+                    background: setupTab === t ? `${theme.primary}20` : "transparent",
+                    border: setupTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent",
+                    borderRadius: "8px", color: setupTab === t ? theme.primary : "#888",
+                    cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease",
+                  }}>{t}</button>
+              ))}
+            </div>
+
+            <div style={cardStyle}>
+              {/* BASICS TAB */}
+              {setupTab === "Basics" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {/* PFP Upload */}
+                  <div style={{ textAlign: "center" }}>
+                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "8px" }}>Profile Picture</label>
+                    <div style={{
+                      width: "88px", height: "88px", borderRadius: "50%", margin: "0 auto 12px",
+                      background: profileForm.pfpUrl ? `url(${profileForm.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
+                      border: `3px solid ${theme.primary}40`, display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "32px", color: theme.primary, cursor: "pointer", position: "relative", overflow: "hidden",
+                    }} onClick={() => document.getElementById("pfp-upload")?.click()}>
+                      {!profileForm.pfpUrl && "👤"}
+                      {profileForm.pfpUrl && (
+                        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s" }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
+                          <span style={{ fontSize: "14px", color: "#fff" }}>Change</span>
+                        </div>
+                      )}
+                    </div>
+                    <input id="pfp-upload" type="file" accept="image/*" style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 2 * 1024 * 1024) { notify("Image must be under 2MB"); return; }
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setProfileForm((prev) => ({ ...prev, pfpUrl: ev.target.result }));
+                          reader.readAsDataURL(file);
+                        }
+                      }} />
+                    <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 16px", marginBottom: "8px" }}
+                      onClick={() => document.getElementById("pfp-upload")?.click()}>
+                      Upload Image
+                    </button>
+                    <div style={{ fontSize: "10px", color: "#555", marginBottom: "6px" }}>or paste a URL below</div>
+                    <input style={{ ...inputStyle, fontSize: "12px" }} value={profileForm.pfpUrl?.startsWith("data:") ? "" : profileForm.pfpUrl}
+                      onChange={(e) => setProfileForm({ ...profileForm, pfpUrl: e.target.value })}
+                      placeholder="https://example.com/your-image.png" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Display Name *</label>
+                    <input style={inputStyle} value={profileForm.displayName} onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })} placeholder="e.g. CryptoBuilder" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Email *</label>
+                    <input style={inputStyle} type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="you@example.com" />
+                    <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>Used for notifications and newsletters. Never shared publicly.</div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Bio</label>
+                    <textarea style={{ ...inputStyle, minHeight: "70px", resize: "vertical" }} value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Solana builder, DeFi enthusiast..." />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Location</label>
+                      <input style={inputStyle} value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} placeholder="e.g. United States" />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Works at</label>
+                      <input style={inputStyle} value={profileForm.worksAt} onChange={(e) => setProfileForm({ ...profileForm, worksAt: e.target.value })} placeholder="e.g. Marinade Finance" />
+                    </div>
+                  </div>
+
+                  <div style={{ padding: "10px 14px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}15`, borderRadius: "8px", fontSize: "11px", color: "#888", lineHeight: "1.6" }}>
+                    🔒 Your information is stored securely and never shared with third parties. Email is used only for platform notifications. Contact info is only visible on your public profile if you choose to add it.
                   </div>
                 </div>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Bio</label>
-                  <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }} value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Solana builder, DeFi enthusiast, open source contributor..." />
+              )}
+
+              {/* SOCIALS TAB */}
+              {setupTab === "Socials" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                  <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>Social Profiles</div>
+                  {[
+                    { key: "xHandle", label: "X / Twitter", prefix: "@", placeholder: "yourhandle", icon: "𝕏" },
+                    { key: "discord", label: "Discord", prefix: "", placeholder: "username", icon: "💬" },
+                    { key: "telegram", label: "Telegram", prefix: "@", placeholder: "yourhandle", icon: "✈️" },
+                    { key: "github", label: "GitHub", prefix: "", placeholder: "github.com/you", icon: "🐙" },
+                    { key: "linkedin", label: "LinkedIn", prefix: "", placeholder: "linkedin.com/in/you", icon: "💼" },
+                    { key: "website", label: "Website / Portfolio", prefix: "", placeholder: "https://yoursite.com", icon: "🌐" },
+                  ].map((s) => (
+                    <div key={s.key} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontSize: "18px", width: "24px", textAlign: "center" }}>{s.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ fontSize: "11px", color: "#666", display: "block", marginBottom: "4px" }}>{s.label}</label>
+                        <div style={{ position: "relative" }}>
+                          {s.prefix && <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#555", fontSize: "13px" }}>{s.prefix}</span>}
+                          <input style={{ ...inputStyle, fontSize: "13px", padding: "10px 14px", paddingLeft: s.prefix ? "26px" : "14px" }}
+                            value={profileForm[s.key]} onChange={(e) => setProfileForm({ ...profileForm, [s.key]: e.target.value.replace(/^@/, "") })} placeholder={s.placeholder} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div style={{ borderTop: `1px solid ${theme.primary}15`, paddingTop: "16px", marginTop: "4px" }}>
+                    <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "14px" }}>Contact Info</div>
+                    {[
+                      { key: "contact", label: "Phone / WhatsApp", prefix: "", placeholder: "+1 (555) 123-4567", icon: "📱" },
+                      { key: "email", label: "Public Email", prefix: "", placeholder: "contact@you.com", icon: "📧", note: "Separate from your account email — this one is visible on your profile" },
+                    ].map((s) => (
+                      <div key={s.key} style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "14px" }}>
+                        <span style={{ fontSize: "18px", width: "24px", textAlign: "center", marginTop: "6px" }}>{s.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ fontSize: "11px", color: "#666", display: "block", marginBottom: "4px" }}>{s.label}</label>
+                          <input style={{ ...inputStyle, fontSize: "13px", padding: "10px 14px" }}
+                            value={profileForm[s.key]} onChange={(e) => setProfileForm({ ...profileForm, [s.key]: e.target.value })} placeholder={s.placeholder} />
+                          {s.note && <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{s.note}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Contact (Discord, Telegram, or Email)</label>
-                  <input style={inputStyle} value={profileForm.contact} onChange={(e) => setProfileForm({ ...profileForm, contact: e.target.value })} placeholder="e.g. discord: builder#1234" />
+              )}
+
+              {/* SKILLS TAB */}
+              {setupTab === "Skills" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {profileForm.skills.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: "12px", color: "#888", marginBottom: "8px" }}>Selected ({profileForm.skills.length})</div>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {profileForm.skills.map((s) => (
+                          <button key={s} onClick={() => toggleSkill(s)} style={{
+                            padding: "6px 14px", background: `${theme.primary}20`, border: `1px solid ${theme.primary}40`,
+                            borderRadius: "100px", fontSize: "12px", color: theme.primary, cursor: "pointer",
+                            fontFamily: "inherit", fontWeight: "600", transition: "all 0.15s ease",
+                          }}>{s} ✕</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {Object.entries(SKILL_CATEGORIES).map(([cat, skills]) => (
+                    <div key={cat}>
+                      <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat}</div>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {skills.map((s) => {
+                          const selected = profileForm.skills.includes(s);
+                          return (
+                            <button key={s} onClick={() => toggleSkill(s)} style={{
+                              padding: "5px 12px", background: selected ? `${theme.primary}20` : "#0a0a0f",
+                              border: `1px solid ${selected ? theme.primary + "40" : theme.primary + "15"}`,
+                              borderRadius: "100px", fontSize: "11px", color: selected ? theme.primary : "#999",
+                              cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s ease",
+                            }}>{s}</button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <button style={{ ...btnPrimary, marginTop: "8px" }} onClick={handleProfileSave}>
-                  Create Profile & Enter →
-                </button>
-                <button style={{ ...btnOutline, fontSize: "12px" }} onClick={() => {
-                  setProfile({
-                    displayName: profileForm.displayName.trim() || wallet?.slice(0, 10) || "Anon",
-                    xHandle: profileForm.xHandle.replace(/^@/, "").trim() || "",
-                    bio: profileForm.bio.trim() || "",
-                    contact: profileForm.contact.trim() || "",
-                    joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
-                  });
-                  setView("dashboard");
-                }}>
-                  Skip for now
-                </button>
-              </div>
+              )}
             </div>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
+              <button style={{ ...btnPrimary, flex: 1 }} onClick={handleProfileSave}>
+                Save Profile & Enter →
+              </button>
+            </div>
+            <button style={{ ...btnOutline, width: "100%", marginTop: "8px", fontSize: "12px" }} onClick={() => {
+              setProfile({
+                displayName: profileForm.displayName.trim() || wallet?.slice(0, 10) || "Anon",
+                xHandle: profileForm.xHandle.replace(/^@/, "").trim() || "",
+                bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "",
+                website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "",
+                skills: [], joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+              });
+              setView("dashboard");
+            }}>Skip for now</button>
           </div>
         </div>
         <style>{globalStyles}</style>
@@ -811,12 +1160,23 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // PROFILE VIEW
+  // PROFILE VIEW (tabbed: Overview, Skills, Bookmarks)
   // ============================================================
   if (view === "profile" && wallet) {
     const tier = TIER_CONFIG[fairScore];
     const customReferral = `https://fairbounty.vercel.app/ref/${profile?.xHandle || wallet?.slice(0, 8)}`;
-    const xShareText = encodeURIComponent(`I'm a ${tier?.label} (Tier ${fairScore}) on @FairBounty — reputation-gated bounties on Solana powered by @fairscalexyz 🚀\n\nCheck your FairScore: ${customReferral}`);
+    const xShareText = encodeURIComponent(`I'm a ${tier?.label} (Tier ${fairScore}) on @FairBounty — reputation-gated bounties on Solana powered by @fairscalexyz\n\nCheck your FairScore: ${customReferral}`);
+    const bookmarkedBounties = bounties.filter((b) => bookmarks.includes(b.id));
+    const socials = [
+      { key: "xHandle", icon: "𝕏", url: (v) => `https://x.com/${v}`, label: (v) => `@${v}` },
+      { key: "linkedin", icon: "💼", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: (v) => "LinkedIn" },
+      { key: "github", icon: "🐙", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: (v) => "GitHub" },
+      { key: "website", icon: "🌐", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: (v) => "Website" },
+      { key: "telegram", icon: "✈️", url: (v) => `https://t.me/${v}`, label: (v) => `@${v}` },
+      { key: "discord", icon: "💬", url: (v) => null, label: (v) => v },
+      { key: "contact", icon: "📱", url: (v) => null, label: (v) => v },
+      { key: "email", icon: "📧", url: (v) => `mailto:${v}`, label: (v) => v },
+    ].filter((s) => profile?.[s.key]);
 
     return (
       <div style={pageStyle}>
@@ -826,108 +1186,247 @@ export default function FairBounty() {
           <DemoModal />
 
           <div style={fadeIn}>
-            {/* Profile Header */}
-            <div style={{ ...cardStyle, marginBottom: "20px", textAlign: "center", padding: "32px" }}>
-              <div style={{ fontSize: "56px", marginBottom: "8px" }}>{tier?.emoji}</div>
-              <h2 style={{ fontSize: "24px", fontWeight: "900", marginBottom: "4px" }}>{profile?.displayName || "Anonymous"}</h2>
-              {profile?.xHandle && (
-                <a href={`https://x.com/${profile.xHandle}`} target="_blank" rel="noopener noreferrer"
-                  style={{ color: theme.primary, textDecoration: "none", fontSize: "14px", fontWeight: "600" }}>
-                  @{profile.xHandle} ↗
-                </a>
-              )}
-              {profile?.bio && (
-                <p style={{ color: "#999", fontSize: "13px", marginTop: "12px", lineHeight: "1.6", maxWidth: "400px", margin: "12px auto 0" }}>{profile.bio}</p>
-              )}
-              {profile?.contact && (
-                <div style={{ marginTop: "12px", fontSize: "12px", color: "#666" }}>📬 {profile.contact}</div>
-              )}
-              <div style={{ fontSize: "11px", color: "#555", marginTop: "8px" }}>Joined {profile?.joinedDate || "Feb 2026"}</div>
+            {/* Profile Header Card */}
+            <div style={{ ...cardStyle, marginBottom: "20px", padding: "28px" }}>
+              <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
+                {/* PFP */}
+                <div style={{
+                  width: "80px", height: "80px", borderRadius: "50%", flexShrink: 0,
+                  background: profile?.pfpUrl ? `url(${profile.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
+                  border: `3px solid ${tier?.color || theme.primary}`, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "32px",
+                }}>
+                  {!profile?.pfpUrl && tier?.emoji}
+                </div>
+                <div style={{ flex: 1, minWidth: "200px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
+                    <div>
+                      <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "2px" }}>{profile?.displayName || "Anonymous"}</h2>
+                      {profile?.xHandle && (
+                        <a href={`https://x.com/${profile.xHandle}`} target="_blank" rel="noopener noreferrer"
+                          style={{ color: theme.primary, textDecoration: "none", fontSize: "13px" }}>@{profile.xHandle}</a>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }} onClick={() => {
+                        setProfileForm({
+                          displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "",
+                          contact: profile?.contact || "", email: profile?.email || "", pfpUrl: profile?.pfpUrl || "",
+                          linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "",
+                          telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "",
+                          worksAt: profile?.worksAt || "", location: profile?.location || "", skills: profile?.skills || [],
+                        });
+                        setView("profile-setup");
+                      }}>Edit Profile</button>
+                    </div>
+                  </div>
+                  {profile?.bio && <p style={{ color: "#999", fontSize: "13px", lineHeight: "1.6", marginTop: "8px" }}>{profile.bio}</p>}
+
+                  {/* Details row */}
+                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "10px", fontSize: "12px", color: "#888" }}>
+                    {profile?.worksAt && <span>🏢 {profile.worksAt}</span>}
+                    {profile?.location && <span>📍 {profile.location}</span>}
+                  </div>
+
+                  {/* Socials row */}
+                  {socials.length > 0 && (
+                    <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
+                      {socials.map((s) => {
+                        const val = profile[s.key];
+                        const href = s.url(val);
+                        return href ? (
+                          <a key={s.key} href={href} target="_blank" rel="noopener noreferrer"
+                            style={{ fontSize: "16px", textDecoration: "none", opacity: 0.7, transition: "opacity 0.2s" }}
+                            onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.7}
+                            title={s.label(val)}>{s.icon}</a>
+                        ) : (
+                          <span key={s.key} style={{ fontSize: "16px", opacity: 0.7 }} title={s.label(val)}>{s.icon}</span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats row at bottom of card */}
+              <div style={{ display: "flex", gap: "24px", marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15`, flexWrap: "wrap" }}>
+                {[
+                  { value: `Tier ${fairScore}`, label: tier?.label, color: tier?.color },
+                  { value: `${xp}`, label: "XP", color: theme.primary },
+                  { value: "0", label: "Earned", color: "#888" },
+                  { value: "0", label: "Submissions", color: "#888" },
+                  { value: "0", label: "Won", color: "#888" },
+                ].map((s) => (
+                  <div key={s.label} style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "16px", fontWeight: "800", color: s.color }}>{s.value}</div>
+                    <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.3px" }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Stats Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "12px", marginBottom: "20px" }}>
-              {[
-                { label: "FairScore", value: `Tier ${fairScore}`, sub: tier?.label, color: tier?.color },
-                { label: "Score", value: scoreData?.score || 0, sub: "points", color: theme.primary },
-                { label: "XP", value: xp, sub: `${tier?.xpMultiplier}x multiplier`, color: theme.primary },
-                { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", sub: `+${tier?.rewardBonus}% bonus`, color: theme.accent },
-                { label: "Vote Weight", value: `${tier?.voteWeight}x`, sub: "per vote", color: "#888" },
-                { label: "Risk Level", value: riskData.level, sub: "", color: riskData.color },
-              ].map((s) => (
-                <div key={s.label} style={{ ...cardStyle, padding: "16px", textAlign: "center" }}>
-                  <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{s.label}</div>
-                  <div style={{ fontSize: "18px", fontWeight: "800", color: s.color }}>{s.value}</div>
-                  {s.sub && <div style={{ fontSize: "10px", color: "#555", marginTop: "2px" }}>{s.sub}</div>}
-                </div>
+            {/* Profile Tabs */}
+            <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: "#0a0a0f", borderRadius: "10px", padding: "4px" }}>
+              {["overview", "skills", "bookmarks"].map((t) => (
+                <button key={t} onClick={() => setProfileTab(t)}
+                  style={{
+                    flex: 1, padding: "10px", fontSize: "12px", fontWeight: "600", textTransform: "capitalize",
+                    background: profileTab === t ? `${theme.primary}20` : "transparent",
+                    border: profileTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent",
+                    borderRadius: "8px", color: profileTab === t ? theme.primary : "#888",
+                    cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease",
+                  }}>
+                  {t === "bookmarks" ? `📌 Bookmarks (${bookmarks.length})` : t === "skills" ? `🛠 Skills` : `📊 Overview`}
+                </button>
               ))}
             </div>
 
-            {/* On-Chain Data */}
-            {scoreData && (
-              <div style={{ ...cardStyle, marginBottom: "20px" }}>
-                <h3 style={{ fontSize: "14px", fontWeight: "700", marginBottom: "12px" }}>📊 On-Chain Activity</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            {/* OVERVIEW TAB */}
+            {profileTab === "overview" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* FairScore disclaimer */}
+                <div style={{
+                  padding: "10px 14px", background: "#1a1a0a", border: "1px solid #F59E0B25",
+                  borderRadius: "8px", fontSize: "11px", color: "#F59E0B", lineHeight: "1.6", textAlign: "center",
+                }}>
+                  ⚠️ FairScore data is currently simulated for demo purposes. Real scores will be fetched from the <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B", textDecoration: "underline" }}>FairScale API</a> once integrated.
+                </div>
+                {/* On-chain stats */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
                   {[
-                    { label: "Wallet Age", value: `${scoreData.walletAge} days` },
-                    { label: "Transactions", value: scoreData.txCount.toLocaleString() },
-                    { label: "Protocols Used", value: scoreData.protocolsUsed },
-                    { label: "NFT Holdings", value: scoreData.nftHoldings },
-                  ].map((d) => (
-                    <div key={d.label} style={{ padding: "10px 12px", background: "#0a0a0f", borderRadius: "6px" }}>
-                      <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{d.label}</div>
-                      <div style={{ fontSize: "14px", fontWeight: "600" }}>{d.value}</div>
+                    { label: "FairScore", value: scoreData?.score || 0, color: tier?.color },
+                    { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", color: theme.accent },
+                    { label: "Vote Weight", value: `${tier?.voteWeight}x`, color: "#888" },
+                    { label: "XP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary },
+                    { label: "Reward Bonus", value: `+${tier?.rewardBonus}%`, color: theme.primary },
+                    { label: "Risk Level", value: riskData.level, color: riskData.color },
+                  ].map((s) => (
+                    <div key={s.label} style={{ ...cardStyle, padding: "14px", textAlign: "center" }}>
+                      <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: "4px" }}>{s.label}</div>
+                      <div style={{ fontSize: "16px", fontWeight: "800", color: s.color }}>{s.value}</div>
                     </div>
                   ))}
                 </div>
-                {scoreData.defiActivity && (
-                  <div style={{ marginTop: "12px", padding: "8px 12px", background: `${theme.primary}10`, borderRadius: "6px", fontSize: "12px", color: theme.primary }}>
-                    ✅ Active DeFi participant
+
+                {/* On-chain activity */}
+                {scoreData && (
+                  <div style={cardStyle}>
+                    <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>On-Chain Activity</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      {[
+                        { label: "Wallet Age", value: `${scoreData.walletAge} days` },
+                        { label: "Transactions", value: scoreData.txCount.toLocaleString() },
+                        { label: "Protocols", value: scoreData.protocolsUsed },
+                        { label: "NFTs", value: scoreData.nftHoldings },
+                      ].map((d) => (
+                        <div key={d.label} style={{ padding: "10px", background: "#0a0a0f", borderRadius: "6px" }}>
+                          <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.label}</div>
+                          <div style={{ fontSize: "14px", fontWeight: "600" }}>{d.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {scoreData.defiActivity && (
+                      <div style={{ marginTop: "8px", padding: "8px 10px", background: `${theme.primary}10`, borderRadius: "6px", fontSize: "12px", color: theme.primary }}>
+                        ✅ Active DeFi participant
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Referral */}
+                <div style={cardStyle}>
+                  <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>🔗 Referral Link</h3>
+                  {fairScore >= 2 ? (
+                    <div>
+                      <code style={{ display: "block", fontSize: "12px", padding: "10px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary, marginBottom: "10px", wordBreak: "break-all" }}>{customReferral}</code>
+                      <a href={`https://x.com/intent/tweet?text=${xShareText}`} target="_blank" rel="noopener noreferrer"
+                        style={{ ...btnPrimary, display: "inline-flex", alignItems: "center", gap: "6px", textDecoration: "none", fontSize: "12px", padding: "8px 18px" }}>
+                        Share on 𝕏 →
+                      </a>
+                    </div>
+                  ) : (
+                    <div style={{ padding: "12px", background: "#1a1a0a", border: "1px solid #F59E0B30", borderRadius: "6px", textAlign: "center", fontSize: "12px", color: "#F59E0B" }}>🔒 Referrals require Tier 2+</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* SKILLS TAB */}
+            {profileTab === "skills" && (
+              <div style={cardStyle}>
+                {profile?.skills?.length > 0 ? (
+                  <div>
+                    {(() => {
+                      const grouped = {};
+                      profile.skills.forEach((s) => {
+                        const cat = Object.entries(SKILL_CATEGORIES).find(([, skills]) => skills.includes(s));
+                        const catName = cat ? cat[0] : "Other";
+                        if (!grouped[catName]) grouped[catName] = [];
+                        grouped[catName].push(s);
+                      });
+                      return Object.entries(grouped).map(([cat, skills]) => (
+                        <div key={cat} style={{ marginBottom: "16px" }}>
+                          <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat}</div>
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            {skills.map((s) => (
+                              <span key={s} style={{
+                                padding: "5px 14px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}25`,
+                                borderRadius: "100px", fontSize: "12px", color: theme.primary,
+                              }}>{s}</span>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: "center", padding: "24px", color: "#666", fontSize: "13px" }}>
+                    No skills added yet.{" "}
+                    <button style={{ color: theme.primary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", textDecoration: "underline" }}
+                      onClick={() => {
+                        setProfileForm({ ...profileForm, displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "", skills: profile?.skills || [], email: profile?.email || "", pfpUrl: profile?.pfpUrl || "", linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "", telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "", worksAt: profile?.worksAt || "", location: profile?.location || "", contact: profile?.contact || "" });
+                        setView("profile-setup");
+                      }}>Add skills</button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Referral Card with X Share */}
-            <div style={{ ...cardStyle, marginBottom: "20px" }}>
-              <h3 style={{ fontSize: "14px", fontWeight: "700", marginBottom: "12px" }}>🔗 Your Referral Link</h3>
-              {fairScore >= 2 ? (
-                <div>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
-                    <code style={{ flex: 1, fontSize: "12px", padding: "10px 14px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary, overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {customReferral}
-                    </code>
-                    <button style={{ ...btnOutline, fontSize: "11px", padding: "8px 14px", whiteSpace: "nowrap" }} onClick={() => setShowDemoModal(true)}>Copy</button>
+            {/* BOOKMARKS TAB */}
+            {profileTab === "bookmarks" && (
+              <div>
+                {bookmarkedBounties.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {bookmarkedBounties.map((b) => {
+                      const bTier = TIER_CONFIG[b.minTier];
+                      return (
+                        <div key={b.id} style={{ ...cardStyle, cursor: "pointer", padding: "16px" }}
+                          onClick={() => { setSelectedBounty(b); setView("bounty"); }}
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = theme.primary}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${theme.primary}30`}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                            <div>
+                              <div style={{ fontSize: "10px", color: "#666" }}>{b.project}</div>
+                              <div style={{ fontSize: "14px", fontWeight: "700" }}>{b.title}</div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <div style={{ fontSize: "15px", fontWeight: "800", color: theme.primary }}>{b.reward} {b.currency}</div>
+                              <div style={{ fontSize: "10px", color: bTier.color }}>{bTier.emoji} Tier {b.minTier}+</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <a href={`https://x.com/intent/tweet?text=${xShareText}`} target="_blank" rel="noopener noreferrer"
-                    style={{
-                      ...btnPrimary, display: "inline-flex", alignItems: "center", gap: "8px",
-                      textDecoration: "none", fontSize: "13px", padding: "10px 20px",
-                    }}>
-                    Share on X →
-                  </a>
-                  <p style={{ fontSize: "11px", color: "#666", marginTop: "8px" }}>
-                    Earn +{Math.floor(50 * (tier?.xpMultiplier || 1))} XP for each signup through your link.
-                  </p>
-                </div>
-              ) : (
-                <div style={{ padding: "16px", background: "#1a1a0a", border: "1px solid #F59E0B30", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ fontSize: "13px", color: "#F59E0B" }}>🔒 Referrals require Tier 2+</div>
-                  <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>Build more on-chain reputation to unlock referrals.</div>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div style={{ ...cardStyle, textAlign: "center", padding: "32px", color: "#666", fontSize: "13px" }}>
+                    📌 No bookmarked bounties yet. Tap the bookmark icon on any bounty to save it here.
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Edit Profile */}
-            <button style={{ ...btnOutline, width: "100%", fontSize: "13px" }} onClick={() => {
-              setProfileForm({
-                displayName: profile?.displayName || "",
-                xHandle: profile?.xHandle || "",
-                bio: profile?.bio || "",
-                contact: profile?.contact || "",
-              });
-              setView("profile-setup");
-            }}>Edit Profile</button>
+            <div style={{ marginTop: "16px", fontSize: "11px", color: "#555", textAlign: "center" }}>Joined {profile?.joinedDate || "Feb 2026"}</div>
           </div>
 
           <Footer />
@@ -1012,6 +1511,14 @@ export default function FairBounty() {
                   onMouseLeave={(e) => e.target.style.background = "transparent"}
                 >
                   ▲ Upvote ({b.votes}) · Your weight: {voteWeight}x
+                </button>
+              )}
+              {wallet && (
+                <button style={btnOutline} onClick={() => toggleBookmark(b.id)}
+                  onMouseEnter={(e) => e.target.style.background = `${theme.primary}10`}
+                  onMouseLeave={(e) => e.target.style.background = "transparent"}
+                >
+                  {bookmarks.includes(b.id) ? "📌 Bookmarked" : "🔖 Bookmark"}
                 </button>
               )}
             </div>
@@ -1249,6 +1756,9 @@ export default function FairBounty() {
                 {scoreData.defiActivity && <span style={{ color: theme.primary }}>✅ DeFi Active</span>}
               </div>
             )}
+            <div style={{ marginTop: "10px", fontSize: "10px", color: "#666", textAlign: "center", fontStyle: "italic" }}>
+              ⚠️ Scores simulated for demo — real data via FairScale API coming soon
+            </div>
           </div>
         )}
 
@@ -1307,10 +1817,17 @@ export default function FairBounty() {
                     <div style={{ fontSize: "11px", color: tier.color, marginTop: "4px" }}>{tier.emoji} Tier {b.minTier}+</div>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "11px", color: "#666" }}>
+                <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "11px", color: "#666", alignItems: "center" }}>
                   <span>📝 {b.submissions} submissions</span>
                   <span>▲ {b.votes} votes ({b.totalVoteWeight} weighted)</span>
                   <span>⏰ {b.deadline}</span>
+                  {wallet && (
+                    <button onClick={(e) => { e.stopPropagation(); toggleBookmark(b.id); }}
+                      style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "0", fontFamily: "inherit" }}
+                      title={bookmarks.includes(b.id) ? "Remove bookmark" : "Bookmark"}>
+                      {bookmarks.includes(b.id) ? "📌" : "🔖"}
+                    </button>
+                  )}
                 </div>
               </div>
             );
