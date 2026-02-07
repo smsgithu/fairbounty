@@ -144,6 +144,8 @@ export default function FairBounty() {
   const [animateIn, setAnimateIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [profileForm, setProfileForm] = useState({ displayName: "", xHandle: "", bio: "", contact: "" });
 
   const theme = WALLET_THEMES[walletType] || WALLET_THEMES.default;
 
@@ -173,6 +175,23 @@ export default function FairBounty() {
       notify(`Connected via ${WALLET_THEMES[type].name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
     }
     setLoading(false);
+    setView("profile-setup");
+  };
+
+  const handleProfileSave = () => {
+    if (!profileForm.displayName.trim() || !profileForm.xHandle.trim()) {
+      notify("Display name and X handle are required.");
+      return;
+    }
+    const handle = profileForm.xHandle.replace(/^@/, "");
+    setProfile({
+      displayName: profileForm.displayName.trim(),
+      xHandle: handle,
+      bio: profileForm.bio.trim(),
+      contact: profileForm.contact.trim(),
+      joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+    });
+    notify(`Welcome, ${profileForm.displayName}! Profile created.`);
     setView("dashboard");
   };
 
@@ -193,7 +212,7 @@ export default function FairBounty() {
     return;
   };
 
-  const referralLink = `https://fairbounty.xyz/ref/${wallet?.slice(0, 8) || "anon"}`;
+  const referralLink = `https://fairbounty.vercel.app/ref/${profile?.xHandle || wallet?.slice(0, 8) || "anon"}`;
   const filteredBounties = filterTier > 0 ? bounties.filter((b) => b.minTier === filterTier) : bounties;
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
@@ -314,16 +333,19 @@ export default function FairBounty() {
       <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
         <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("about")}>About</button>
         <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("leaderboard")}>🏆</button>
+        {wallet && profile && (
+          <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("profile")}>👤</button>
+        )}
         {wallet ? (
           <div style={{
             display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px",
             background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`,
-            borderRadius: "8px", fontSize: "12px",
-          }}>
+            borderRadius: "8px", fontSize: "12px", cursor: profile ? "pointer" : "default",
+          }} onClick={() => profile && setView("profile")}>
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-            <span style={{ color: "#ccc" }}>{wallet}</span>
+            <span style={{ color: "#ccc" }}>{profile ? profile.displayName : wallet}</span>
             <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} XP</span>
-            <button onClick={() => { setWallet(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setView("landing"); }}
+            <button onClick={(e) => { e.stopPropagation(); setWallet(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "" }); setView("landing"); }}
               style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
               title="Disconnect wallet"
             >✕</button>
@@ -714,6 +736,208 @@ export default function FairBounty() {
   }
 
   // ============================================================
+  // PROFILE SETUP — After wallet connect
+  // ============================================================
+  if (view === "profile-setup") {
+    return (
+      <div style={pageStyle}>
+        <div style={gridOverlay} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "500px", margin: "0 auto", padding: "40px 20px" }}>
+          <div style={fadeIn}>
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              <div style={{ fontSize: "48px", marginBottom: "12px" }}>{TIER_CONFIG[fairScore]?.emoji}</div>
+              <h2 style={{ fontSize: "28px", fontWeight: "800", marginBottom: "4px" }}>Welcome to FairBounty</h2>
+              <p style={{ color: "#888", fontSize: "14px" }}>
+                You're <span style={{ color: TIER_CONFIG[fairScore]?.color, fontWeight: "700" }}>Tier {fairScore} — {TIER_CONFIG[fairScore]?.label}</span>. Set up your profile to get started.
+              </p>
+            </div>
+
+            {/* Wallet + Score Summary */}
+            <div style={{ ...cardStyle, marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+              <div>
+                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Wallet</div>
+                <div style={{ fontSize: "13px", color: theme.primary, fontWeight: "600", marginTop: "2px" }}>{wallet}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>FairScore</div>
+                <div style={{ fontSize: "13px", color: TIER_CONFIG[fairScore]?.color, fontWeight: "600", marginTop: "2px" }}>{scoreData?.score} pts</div>
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "20px" }}>Create Your Profile</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Display Name *</label>
+                  <input style={inputStyle} value={profileForm.displayName} onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })} placeholder="e.g. CryptoBuilder" />
+                </div>
+                <div>
+                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>X / Twitter Handle *</label>
+                  <div style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#666", fontSize: "14px" }}>@</span>
+                    <input style={{ ...inputStyle, paddingLeft: "30px" }} value={profileForm.xHandle} onChange={(e) => setProfileForm({ ...profileForm, xHandle: e.target.value.replace(/^@/, "") })} placeholder="yourhandle" />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Bio</label>
+                  <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }} value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Solana builder, DeFi enthusiast, open source contributor..." />
+                </div>
+                <div>
+                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Contact (Discord, Telegram, or Email)</label>
+                  <input style={inputStyle} value={profileForm.contact} onChange={(e) => setProfileForm({ ...profileForm, contact: e.target.value })} placeholder="e.g. discord: builder#1234" />
+                </div>
+                <button style={{ ...btnPrimary, marginTop: "8px" }} onClick={handleProfileSave}>
+                  Create Profile & Enter →
+                </button>
+                <button style={{ ...btnOutline, fontSize: "12px" }} onClick={() => {
+                  setProfile({
+                    displayName: profileForm.displayName.trim() || wallet?.slice(0, 10) || "Anon",
+                    xHandle: profileForm.xHandle.replace(/^@/, "").trim() || "",
+                    bio: profileForm.bio.trim() || "",
+                    contact: profileForm.contact.trim() || "",
+                    joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+                  });
+                  setView("dashboard");
+                }}>
+                  Skip for now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <style>{globalStyles}</style>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // PROFILE VIEW
+  // ============================================================
+  if (view === "profile" && wallet) {
+    const tier = TIER_CONFIG[fairScore];
+    const customReferral = `https://fairbounty.vercel.app/ref/${profile?.xHandle || wallet?.slice(0, 8)}`;
+    const xShareText = encodeURIComponent(`I'm a ${tier?.label} (Tier ${fairScore}) on @FairBounty — reputation-gated bounties on Solana powered by @fairscalexyz 🚀\n\nCheck your FairScore: ${customReferral}`);
+
+    return (
+      <div style={pageStyle}>
+        <div style={gridOverlay} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "650px", margin: "0 auto", padding: "20px" }}>
+          <NavBar showBack backTo="dashboard" backLabel="Bounties" />
+          <DemoModal />
+
+          <div style={fadeIn}>
+            {/* Profile Header */}
+            <div style={{ ...cardStyle, marginBottom: "20px", textAlign: "center", padding: "32px" }}>
+              <div style={{ fontSize: "56px", marginBottom: "8px" }}>{tier?.emoji}</div>
+              <h2 style={{ fontSize: "24px", fontWeight: "900", marginBottom: "4px" }}>{profile?.displayName || "Anonymous"}</h2>
+              {profile?.xHandle && (
+                <a href={`https://x.com/${profile.xHandle}`} target="_blank" rel="noopener noreferrer"
+                  style={{ color: theme.primary, textDecoration: "none", fontSize: "14px", fontWeight: "600" }}>
+                  @{profile.xHandle} ↗
+                </a>
+              )}
+              {profile?.bio && (
+                <p style={{ color: "#999", fontSize: "13px", marginTop: "12px", lineHeight: "1.6", maxWidth: "400px", margin: "12px auto 0" }}>{profile.bio}</p>
+              )}
+              {profile?.contact && (
+                <div style={{ marginTop: "12px", fontSize: "12px", color: "#666" }}>📬 {profile.contact}</div>
+              )}
+              <div style={{ fontSize: "11px", color: "#555", marginTop: "8px" }}>Joined {profile?.joinedDate || "Feb 2026"}</div>
+            </div>
+
+            {/* Stats Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+              {[
+                { label: "FairScore", value: `Tier ${fairScore}`, sub: tier?.label, color: tier?.color },
+                { label: "Score", value: scoreData?.score || 0, sub: "points", color: theme.primary },
+                { label: "XP", value: xp, sub: `${tier?.xpMultiplier}x multiplier`, color: theme.primary },
+                { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", sub: `+${tier?.rewardBonus}% bonus`, color: theme.accent },
+                { label: "Vote Weight", value: `${tier?.voteWeight}x`, sub: "per vote", color: "#888" },
+                { label: "Risk Level", value: riskData.level, sub: "", color: riskData.color },
+              ].map((s) => (
+                <div key={s.label} style={{ ...cardStyle, padding: "16px", textAlign: "center" }}>
+                  <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{s.label}</div>
+                  <div style={{ fontSize: "18px", fontWeight: "800", color: s.color }}>{s.value}</div>
+                  {s.sub && <div style={{ fontSize: "10px", color: "#555", marginTop: "2px" }}>{s.sub}</div>}
+                </div>
+              ))}
+            </div>
+
+            {/* On-Chain Data */}
+            {scoreData && (
+              <div style={{ ...cardStyle, marginBottom: "20px" }}>
+                <h3 style={{ fontSize: "14px", fontWeight: "700", marginBottom: "12px" }}>📊 On-Chain Activity</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  {[
+                    { label: "Wallet Age", value: `${scoreData.walletAge} days` },
+                    { label: "Transactions", value: scoreData.txCount.toLocaleString() },
+                    { label: "Protocols Used", value: scoreData.protocolsUsed },
+                    { label: "NFT Holdings", value: scoreData.nftHoldings },
+                  ].map((d) => (
+                    <div key={d.label} style={{ padding: "10px 12px", background: "#0a0a0f", borderRadius: "6px" }}>
+                      <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{d.label}</div>
+                      <div style={{ fontSize: "14px", fontWeight: "600" }}>{d.value}</div>
+                    </div>
+                  ))}
+                </div>
+                {scoreData.defiActivity && (
+                  <div style={{ marginTop: "12px", padding: "8px 12px", background: `${theme.primary}10`, borderRadius: "6px", fontSize: "12px", color: theme.primary }}>
+                    ✅ Active DeFi participant
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Referral Card with X Share */}
+            <div style={{ ...cardStyle, marginBottom: "20px" }}>
+              <h3 style={{ fontSize: "14px", fontWeight: "700", marginBottom: "12px" }}>🔗 Your Referral Link</h3>
+              {fairScore >= 2 ? (
+                <div>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
+                    <code style={{ flex: 1, fontSize: "12px", padding: "10px 14px", background: "#0a0a0f", borderRadius: "6px", color: theme.primary, overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {customReferral}
+                    </code>
+                    <button style={{ ...btnOutline, fontSize: "11px", padding: "8px 14px", whiteSpace: "nowrap" }} onClick={() => setShowDemoModal(true)}>Copy</button>
+                  </div>
+                  <a href={`https://x.com/intent/tweet?text=${xShareText}`} target="_blank" rel="noopener noreferrer"
+                    style={{
+                      ...btnPrimary, display: "inline-flex", alignItems: "center", gap: "8px",
+                      textDecoration: "none", fontSize: "13px", padding: "10px 20px",
+                    }}>
+                    Share on X →
+                  </a>
+                  <p style={{ fontSize: "11px", color: "#666", marginTop: "8px" }}>
+                    Earn +{Math.floor(50 * (tier?.xpMultiplier || 1))} XP for each signup through your link.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ padding: "16px", background: "#1a1a0a", border: "1px solid #F59E0B30", borderRadius: "8px", textAlign: "center" }}>
+                  <div style={{ fontSize: "13px", color: "#F59E0B" }}>🔒 Referrals require Tier 2+</div>
+                  <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>Build more on-chain reputation to unlock referrals.</div>
+                </div>
+              )}
+            </div>
+
+            {/* Edit Profile */}
+            <button style={{ ...btnOutline, width: "100%", fontSize: "13px" }} onClick={() => {
+              setProfileForm({
+                displayName: profile?.displayName || "",
+                xHandle: profile?.xHandle || "",
+                bio: profile?.bio || "",
+                contact: profile?.contact || "",
+              });
+              setView("profile-setup");
+            }}>Edit Profile</button>
+          </div>
+
+          <Footer />
+        </div>
+        <style>{globalStyles}</style>
+      </div>
+    );
+  }
+
+  // ============================================================
   // BOUNTY DETAIL
   // ============================================================
   if (view === "bounty" && selectedBounty) {
@@ -892,7 +1116,7 @@ export default function FairBounty() {
       { rank: 3, name: "RustWizard.sol", tier: 4, xp: 1650, bounties: 10, earned: "$21,000" },
       { rank: 4, name: "DeFiHacker.sol", tier: 3, xp: 980, bounties: 7, earned: "$9,100" },
       { rank: 5, name: "NFTArtisan.sol", tier: 3, xp: 750, bounties: 5, earned: "$4,800" },
-      ...(wallet ? [{ rank: 6, name: wallet, tier: fairScore, xp, bounties: 0, earned: "$0" }] : []),
+      ...(wallet ? [{ rank: 6, name: profile?.displayName || wallet, tier: fairScore, xp, bounties: 0, earned: "$0", xHandle: profile?.xHandle }] : []),
     ];
     return (
       <div style={pageStyle}>
@@ -905,7 +1129,7 @@ export default function FairBounty() {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {leaders.map((l) => {
                 const t = TIER_CONFIG[l.tier];
-                const isYou = l.name === wallet;
+                const isYou = l.name === (profile?.displayName || wallet);
                 return (
                   <div key={l.rank} style={{
                     ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px",
