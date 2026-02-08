@@ -122,7 +122,7 @@ const FairScoreAPI = {
     return TIER_CONFIG[tier]?.voteWeight || 1;
   },
 
-  // Get XP multiplier for tier
+  // Get BXP multiplier for tier
   getXpMultiplier(tier) {
     return TIER_CONFIG[tier]?.xpMultiplier || 1.0;
   },
@@ -573,7 +573,7 @@ export default function FairBounty() {
           }} onClick={() => profile && setView("profile")}>
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
             <span style={{ color: "#ccc" }}>{profile ? profile.displayName : wallet}</span>
-            <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} XP</span>
+            <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} BXP</span>
             <button onClick={(e) => { e.stopPropagation(); setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] }); setBookmarks([]); setView("landing"); }}
               style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
               title="Disconnect wallet"
@@ -719,7 +719,7 @@ export default function FairBounty() {
                   { icon: "⚖️", title: "Community Review", desc: "Submissions are upvoted/downvoted by the community. Higher-tier wallets carry more influence. Client picks the winner from top-voted work." },
                   { icon: "💎", title: "Dynamic Rewards", desc: "Earn bonus rewards on completed bounties. Up to +25% bonus USDC for Tier 5 Legends." },
                   { icon: "🛡️", title: "Risk Management", desc: "Every wallet gets a risk assessment based on FairScore. Projects can filter low-reputation submissions." },
-                  { icon: "⚡", title: "XP Multipliers", desc: "Higher tiers earn XP faster. Tier 5 earns 3x XP per action. Build reputation to build reputation." },
+                  { icon: "⚡", title: "BXP Multipliers", desc: "Higher tiers earn BXP faster. Tier 5 earns 3x BXP per action. Build reputation to build reputation." },
                   { icon: "🔗", title: "Referral Gating", desc: "Only Tier 2+ wallets can generate referral links, preventing bot-driven referral spam." },
                 ].map((item) => (
                   <div key={item.title} style={{ ...cardStyle, padding: "24px" }}>
@@ -738,7 +738,7 @@ export default function FairBounty() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${theme.primary}20` }}>
-                      {["Tier", "Max Bounty", "XP Multiplier", "Reward Bonus"].map((h) => (
+                      {["Tier", "Max Bounty", "BXP Multiplier", "Reward Bonus"].map((h) => (
                         <th key={h} style={{ padding: "10px 8px", textAlign: "left", color: "#888", fontWeight: "600", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
                       ))}
                     </tr>
@@ -837,7 +837,7 @@ export default function FairBounty() {
           "Community Review — Submissions are upvoted/downvoted Reddit-style. Higher tiers have more influence. Client picks winner from top-voted work.",
           "Dynamic Rewards — Tier-based bonus rewards up to +25% on completed bounties.",
           "Risk Assessment — Every wallet gets a risk score. Projects see trustworthiness at a glance.",
-          "XP Multipliers — Higher tiers earn XP 1x–3x faster, accelerating reputation growth.",
+          "BXP Multipliers — Higher tiers earn BXP 1x–3x faster, accelerating reputation growth.",
           "Referral Gating — Only Tier 2+ can refer, preventing bot-driven growth.",
         ],
       },
@@ -853,7 +853,7 @@ export default function FairBounty() {
         title: "🚀 Growth Strategy",
         items: [
           "First 100 users — Direct outreach to Solana developer communities on X, Discord, and Telegram. Seed bounties from existing projects.",
-          "First 1,000 — Referral program with XP rewards. Partner with Superteam, Solana Foundation, and hackathon organizers.",
+          "First 1,000 — Referral program with BXP rewards. Partner with Superteam, Solana Foundation, and hackathon organizers.",
           "First 10,000 — Expand to multi-chain via FairScale's cross-chain reputation. Integrate with DAOs for governance-linked bounties.",
           "Ongoing — Content marketing (build-in-public threads), ecosystem partnerships, and community-driven bounty curation.",
         ],
@@ -863,7 +863,7 @@ export default function FairBounty() {
         items: [
           "Frontend — React + Vite + Tailwind, deployed on Vercel.",
           "Backend — Node.js serverless functions for bounty management.",
-          "Database — PostgreSQL (Neon) for bounties, submissions, XP, and user data.",
+          "Database — PostgreSQL (Neon) for bounties, submissions, BXP, and user data.",
           "Auth — Solana wallet-based (Phantom, Solflare, Jupiter, Backpack, Glow).",
           "FairScore — Real-time API integration via FairScale REST API.",
           "Scalability — Stateless architecture, CDN-delivered frontend, auto-scaling serverless backend.",
@@ -946,8 +946,14 @@ export default function FairBounty() {
       },
       {
         num: "05", icon: "💰", title: "Submit & Earn",
-        desc: "Complete bounty work and submit. If selected, you earn the bounty reward PLUS a tier-based bonus. Higher tiers earn up to 25% extra. You also earn XP with a tier-based multiplier.",
-        details: ["Base reward paid in USDC", "Tier bonus: up to +25% extra reward", "XP earned with tier multiplier (up to 3x)", "Completed bounties build your on-chain reputation"],
+        desc: "Complete the bounty and submit your work. The community votes on submissions, and the client picks the winner from the top-ranked. If you win, you earn the bounty reward PLUS a tier-based bonus.",
+        details: [
+          "💡 Example: You're Tier 3 (Builder). You win a $500 USDC bounty.",
+          "Base reward: $500 USDC",
+          "Tier 3 bonus (+10%): +$50 → You receive $550 USDC",
+          "BXP earned: 25 base × 1.5x multiplier = 37 BXP",
+          "Completed bounties also build your on-chain reputation for future tiers",
+        ],
       },
       {
         num: "06", icon: "📈", title: "Level Up",
@@ -960,8 +966,8 @@ export default function FairBounty() {
       1: { xp: "1x", vote: "1x", bonus: "+0%", tip: "🌱 Just getting started. Connect your wallet and explore smaller bounties to begin building reputation." },
       2: { xp: "1.25x", vote: "2x", bonus: "+5%", tip: "🔍 You've been active on-chain. You can now access mid-range bounties, generate referral links, and your submission reviews carry 2x weight." },
       3: { xp: "1.5x", vote: "3x", bonus: "+10%", tip: "🔨 Established builder. Access bounties up to $1,000, earn 10% bonus rewards, and your 3x review weight helps surface the best submissions." },
-      4: { xp: "2x", vote: "5x", bonus: "+15%", tip: "⭐ Veteran status. You've proven yourself on-chain. $5K bounties, 15% bonus, 5x review power, and 2x XP acceleration." },
-      5: { xp: "3x", vote: "8x", bonus: "+25%", tip: "👑 Legendary reputation. Unlimited bounty access, 25% bonus rewards, 8x review weight, 3x XP. You're the top of the ecosystem." },
+      4: { xp: "2x", vote: "5x", bonus: "+15%", tip: "⭐ Veteran status. You've proven yourself on-chain. $5K bounties, 15% bonus, 5x review power, and 2x BXP acceleration." },
+      5: { xp: "3x", vote: "8x", bonus: "+25%", tip: "👑 Legendary reputation. Unlimited bounty access, 25% bonus rewards, 8x review weight, 3x BXP. You're the top of the ecosystem." },
     };
 
     return (
@@ -1084,7 +1090,7 @@ export default function FairBounty() {
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
                           {[
                             { label: "Review Weight", value: td.vote, icon: "⚖️" },
-                            { label: "XP Multiplier", value: td.xp, icon: "⚡" },
+                            { label: "BXP Multiplier", value: td.xp, icon: "⚡" },
                             { label: "Reward Bonus", value: td.bonus, icon: "💎" },
                           ].map((stat) => (
                             <div key={stat.label} style={{
@@ -1530,7 +1536,7 @@ export default function FairBounty() {
               <div style={{ display: "flex", gap: "24px", marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15`, flexWrap: "wrap" }}>
                 {[
                   { value: `Tier ${fairScore}`, label: tier?.label, color: tier?.color },
-                  { value: `${xp}`, label: "XP", color: theme.primary },
+                  { value: `${xp}`, label: "BXP", color: theme.primary },
                   { value: "0", label: "Earned", color: "#888" },
                   { value: "0", label: "Submissions", color: "#888" },
                   { value: "0", label: "Won", color: "#888" },
@@ -1574,7 +1580,7 @@ export default function FairBounty() {
                   {[
                     { label: "FairScore", value: scoreData?.score || 0, color: tier?.color },
                     { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", color: theme.accent },
-                    { label: "XP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary },
+                    { label: "BXP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary },
                     { label: "Reward Bonus", value: `+${tier?.rewardBonus}%`, color: theme.primary },
                     { label: "Risk Level", value: riskData.level, color: riskData.color },
                   ].map((s) => (
@@ -1615,7 +1621,7 @@ export default function FairBounty() {
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>🔗 Referral Link</h3>
                   {fairScore >= 2 ? (
                     <div>
-                      <p style={{ fontSize: "12px", color: "#888", marginBottom: "10px" }}>Share FairBounty and earn XP when friends sign up.</p>
+                      <p style={{ fontSize: "12px", color: "#888", marginBottom: "10px" }}>Share FairBounty and earn BXP when friends sign up.</p>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button onClick={() => setShowDemoModal(true)}
                           style={{ ...btnOutline, fontSize: "12px", padding: "8px 18px" }}>
@@ -1801,13 +1807,13 @@ export default function FairBounty() {
                 <div>
                   <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "4px" }}>Submit Work</h3>
                   <p style={{ fontSize: "11px", color: "#888", marginBottom: "12px" }}>
-                    XP multiplier: {FairScoreAPI.getXpMultiplier(fairScore)}x · Reward bonus: +{rewardBonus}%
+                    BXP multiplier: {FairScoreAPI.getXpMultiplier(fairScore)}x · Reward bonus: +{rewardBonus}%
                   </p>
                   <textarea value={submissionText} onChange={(e) => setSubmissionText(e.target.value)}
                     placeholder="Describe your submission, include links to your work..."
                     style={{ ...inputStyle, minHeight: "120px", resize: "vertical", marginBottom: "12px" }} />
                   <button style={btnPrimary} onClick={() => handleSubmit(b.id)}>
-                    Submit (+{Math.floor(25 * FairScoreAPI.getXpMultiplier(fairScore))} XP)
+                    Submit (+{Math.floor(25 * FairScoreAPI.getXpMultiplier(fairScore))} BXP)
                   </button>
                 </div>
               ) : (
@@ -1926,7 +1932,7 @@ export default function FairBounty() {
                       <div style={{ fontSize: "11px", color: t.color }}>{t.emoji} {t.label} · {l.bounties} bounties · {l.earned} earned</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontWeight: "700", fontSize: "14px", color: theme.primary }}>{l.xp} XP</div>
+                      <div style={{ fontWeight: "700", fontSize: "14px", color: theme.primary }}>{l.xp} BXP</div>
                       <div style={{ fontSize: "10px", color: "#666" }}>{t.xpMultiplier}x multiplier</div>
                     </div>
                   </div>
@@ -1968,8 +1974,8 @@ export default function FairBounty() {
         {showReferral && wallet && fairScore >= 2 && (
           <div style={{ ...cardStyle, marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
             <div>
-              <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px" }}>🔗 Refer Friends → Earn XP</div>
-              <div style={{ fontSize: "12px", color: "#888" }}>Share your link. +{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore))} XP for each signup (Tier {fairScore} bonus).</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px" }}>🔗 Refer Friends → Earn BXP</div>
+              <div style={{ fontSize: "12px", color: "#888" }}>Share your link. +{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore))} BXP for each signup (Tier {fairScore} bonus).</div>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowDemoModal(true)}>📋 Copy Link</button>
@@ -1998,7 +2004,7 @@ export default function FairBounty() {
                 </div>
               </div>
               <div style={{ padding: "8px" }}>
-                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Platform XP</div>
+                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Platform BXP</div>
                 <div style={{ fontSize: "20px", fontWeight: "900", color: theme.primary }}>{xp}</div>
                 <div style={{ marginTop: "6px", height: "4px", background: "#1a1a2a", borderRadius: "2px", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${Math.min(100, (xp % 200) / 2)}%`, background: `linear-gradient(90deg, ${theme.primary}, ${theme.accent})`, borderRadius: "2px", transition: "width 0.5s ease" }} />
