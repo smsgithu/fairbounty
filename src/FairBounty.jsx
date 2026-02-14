@@ -71,34 +71,56 @@ const Logo = ({ size = 28 }) => (
 );
 
 // ============================================================
-// FairScore API Integration
-// In production, this calls the real FairScale API at
-// https://swagger.api.fairscale.xyz/
+// FairScore API Integration — LIVE via FairScale API
+// Proxied through /api/fairscore to keep API key server-side
+// Docs: https://docs.fairscale.xyz
 // ============================================================
+
+// Map FairScale tier names to our 1-5 tier system
+const FAIRSCALE_TIER_MAP = {
+  unranked: 1,
+  bronze: 2,
+  silver: 3,
+  gold: 4,
+  platinum: 5,
+};
+
 const FairScoreAPI = {
-  // Fetch reputation tier for a wallet address
-  // Production: GET /api/v1/score/{walletAddress}
+  // Fetch reputation data for a wallet address via our serverless proxy
   async getScore(walletAddress) {
     try {
-      // --- PRODUCTION CODE (uncomment when API key is configured) ---
-      // const response = await fetch(`https://api.fairscale.xyz/v1/score/${walletAddress}`, {
-      //   headers: { 'Authorization': `Bearer ${FAIRSCALE_API_KEY}` }
-      // });
-      // const data = await response.json();
-      // return { tier: data.tier, score: data.score, history: data.history };
-      // --- END PRODUCTION CODE ---
+      const response = await fetch(`/api/fairscore?wallet=${encodeURIComponent(walletAddress)}`);
 
-      // Demo mode: simulate API response
-      await new Promise((r) => setTimeout(r, 800));
-      const tier = Math.ceil(Math.random() * 5);
+      if (!response.ok) {
+        console.error("FairScore proxy error:", response.status);
+        return null;
+      }
+
+      const data = await response.json();
+
+      // Map FairScale response to our internal format
+      const tier = FAIRSCALE_TIER_MAP[data.tier] || 1;
+
       return {
         tier,
-        score: tier * 180 + Math.floor(Math.random() * 100),
-        walletAge: Math.floor(Math.random() * 730) + 30,
-        txCount: tier * 200 + Math.floor(Math.random() * 500),
-        protocolsUsed: tier * 3 + Math.floor(Math.random() * 5),
-        nftHoldings: Math.floor(Math.random() * 50),
-        defiActivity: tier > 2,
+        score: Math.round(data.fairscore || 0),
+        fairscoreBase: data.fairscore_base || 0,
+        socialScore: data.social_score || 0,
+        fairscaleTier: data.tier || "unranked",
+        badges: data.badges || [],
+        actions: data.actions || [],
+        // Map features to our display fields
+        walletAge: data.features?.wallet_age_score || 0,
+        txCount: data.features?.tx_count || 0,
+        protocolsUsed: data.features?.platform_diversity || 0,
+        activeDays: data.features?.active_days || 0,
+        nativesolPercentile: data.features?.native_sol_percentile || 0,
+        lstPercentile: data.features?.lst_percentile_score || 0,
+        stablePercentile: data.features?.stable_percentile_score || 0,
+        convictionRatio: data.features?.conviction_ratio || 0,
+        noInstantDumps: data.features?.no_instant_dumps || 0,
+        netSolFlow30d: data.features?.net_sol_flow_30d || 0,
+        _raw: data, // Keep raw response for debugging
       };
     } catch (err) {
       console.error("FairScore API error:", err);
@@ -287,12 +309,12 @@ export default function FairBounty() {
         setWallet(displayAddr);
         setFullAddress(pubkey);
 
-        const data = await FairScoreAPI.getScore(displayAddr);
+        const data = await FairScoreAPI.getScore(pubkey);
         if (data) {
           setFairScore(data.tier);
           setScoreData(data);
           setXp(Math.floor(data.score / 2));
-          notify(`Connected via ${WALLET_THEMES[type]?.name || opt.name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
+          notify(`Connected via ${WALLET_THEMES[type]?.name || opt.name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label}) — ${data.fairscaleTier}`);
         }
 
         // Restore saved profile for this wallet
@@ -506,7 +528,8 @@ export default function FairBounty() {
       padding: "10px 16px", marginBottom: "12px", textAlign: "center",
       fontSize: "12px", color: "#999",
     }}>
-      🚧 <span style={{ color: theme.primary, fontWeight: "600" }}>Demo Mode</span> — Bounties shown are examples. FairScore data is simulated. Built for the{" "}
+      🚧 <span style={{ color: theme.primary, fontWeight: "600" }}>Demo Mode</span> — Bounties shown are examples. FairScore data is <span style={{ color: "#22C55E", fontWeight: "600" }}>live</span> via the{" "}
+      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale API</a>. Built for the{" "}
       <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a> competition.
     </div>
   );
@@ -617,7 +640,7 @@ export default function FairBounty() {
             animation: "spin 1s linear infinite", margin: "0 auto 16px",
           }} />
           <div style={{ color: theme.primary, fontSize: "14px", fontWeight: "600" }}>Fetching FairScore...</div>
-          <div style={{ color: "#666", fontSize: "12px", marginTop: "4px" }}>Analyzing on-chain reputation</div>
+          <div style={{ color: "#666", fontSize: "12px", marginTop: "4px" }}>Querying FairScale API</div>
         </div>
         <style>{globalStyles}</style>
       </div>
@@ -924,28 +947,22 @@ export default function FairBounty() {
 
     const howSteps = [
       {
-        num: "01", icon: "🌐", title: "Get Your FairScore",
-        desc: "Visit FairScale and connect your Solana wallet. FairScale analyzes your on-chain history — wallet age, transaction count, protocols used, DeFi activity, NFT holdings — and assigns you a reputation tier (1–5).",
-        action: "Go to fairscale.xyz →", actionUrl: "https://fairscale.xyz",
-        details: ["Wallet age & transaction history", "DeFi protocol interactions", "NFT holdings & activity", "Cross-protocol reputation signals"],
+        num: "01", icon: "🔗", title: "Connect Your Wallet",
+        desc: "Connect your Solana wallet to FairBounty. We automatically fetch your FairScore from the FairScale API — no extra steps. Your on-chain history determines your tier (1–5), which unlocks bounties, perks, and earning potential.",
+        details: ["Jupiter, Phantom, Solflare, Backpack, Glow supported", "FairScore fetched automatically on connect", "Set up your profile — display name, skills, socials", "Your profile persists across sessions"],
       },
       {
-        num: "02", icon: "🔗", title: "Connect to FairBounty",
-        desc: "Connect the same wallet to FairBounty. We fetch your FairScore automatically and unlock bounties matching your tier. No sign-up forms, no KYC — your wallet IS your identity.",
-        details: ["Jupiter, Phantom, Solflare, Backpack, Glow supported", "FairScore fetched in real-time from FairScale API", "Set up your profile — display name, skills, socials", "Your profile persists across sessions"],
-      },
-      {
-        num: "03", icon: "🎯", title: "Find & Claim Bounties",
+        num: "02", icon: "🎯", title: "Find & Claim Bounties",
         desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger, more valuable bounties.",
         details: ["Filter bounties by tier, tags, reward amount", "Bookmark bounties to save for later", "See how many submissions each bounty has", "Locked bounties show what tier you need"],
       },
       {
-        num: "04", icon: "⚖️", title: "Community Reviews Submissions",
+        num: "03", icon: "⚖️", title: "Community Reviews Submissions",
         desc: "Once contributors submit work, the community votes on submissions Reddit-style — upvote good work, downvote low effort. Your tier determines how much your vote counts. The client then picks the winner from the top-voted submissions. This keeps things fair: the community surfaces the best work, and the client makes the final call.",
         details: ["Upvote/downvote submissions like Reddit", "Higher-tier wallets have more voting influence", "Client picks the winner from top-ranked submissions", "No single person controls the outcome"],
       },
       {
-        num: "05", icon: "💰", title: "Submit & Earn",
+        num: "04", icon: "💰", title: "Submit & Earn",
         desc: "Complete the bounty and submit your work. The community votes on submissions, and the client picks the winner from the top-ranked. If you win, you earn the bounty reward PLUS a tier-based bonus.",
         details: [
           "💡 Example: You're Tier 3 (Builder). You win a $500 USDC bounty.",
@@ -956,7 +973,7 @@ export default function FairBounty() {
         ],
       },
       {
-        num: "06", icon: "📈", title: "Level Up",
+        num: "05", icon: "📈", title: "Level Up",
         desc: "As you use more Solana protocols, hold NFTs, participate in DeFi, and complete bounties — your on-chain activity grows. FairScale tracks this and your FairScore tier increases over time, unlocking higher bounties.",
         details: ["Use more DeFi protocols (Jupiter, Raydium, Marinade...)", "Hold and trade NFTs", "Increase transaction volume", "Maintain consistent on-chain activity", "Complete bounties to build reputation"],
       },
@@ -1568,12 +1585,12 @@ export default function FairBounty() {
             {/* OVERVIEW TAB */}
             {profileTab === "overview" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {/* FairScore disclaimer */}
+                {/* FairScore source */}
                 <div style={{
-                  padding: "10px 14px", background: "#1a1a0a", border: "1px solid #F59E0B25",
-                  borderRadius: "8px", fontSize: "11px", color: "#F59E0B", lineHeight: "1.6", textAlign: "center",
+                  padding: "10px 14px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}20`,
+                  borderRadius: "8px", fontSize: "11px", color: theme.primary, lineHeight: "1.6", textAlign: "center",
                 }}>
-                  ⚠️ FairScore data is currently simulated for demo purposes. Real scores will be fetched from the <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B", textDecoration: "underline" }}>FairScale API</a> once integrated.
+                  ✅ Live FairScore data from <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "underline" }}>FairScale API</a> — your on-chain reputation, verified in real-time.
                 </div>
                 {/* On-chain stats */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
@@ -1597,10 +1614,14 @@ export default function FairBounty() {
                     <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>On-Chain Activity</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                       {[
-                        { label: "Wallet Age", value: `${scoreData.walletAge} days` },
-                        { label: "Transactions", value: scoreData.txCount.toLocaleString() },
-                        { label: "Protocols", value: scoreData.protocolsUsed },
-                        { label: "NFTs", value: scoreData.nftHoldings },
+                        { label: "FairScale Tier", value: scoreData.fairscaleTier },
+                        { label: "FairScore", value: scoreData.score },
+                        { label: "Base Score", value: scoreData.fairscoreBase },
+                        { label: "Social Score", value: scoreData.socialScore },
+                        { label: "Transactions", value: scoreData.txCount },
+                        { label: "Active Days", value: scoreData.activeDays },
+                        { label: "Platforms", value: scoreData.protocolsUsed },
+                        { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` },
                       ].map((d) => (
                         <div key={d.label} style={{ padding: "10px", background: "#0a0a0f", borderRadius: "6px" }}>
                           <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.label}</div>
@@ -1608,9 +1629,37 @@ export default function FairBounty() {
                         </div>
                       ))}
                     </div>
-                    {scoreData.defiActivity && (
-                      <div style={{ marginTop: "8px", padding: "8px 10px", background: `${theme.primary}10`, borderRadius: "6px", fontSize: "12px", color: theme.primary }}>
-                        ✅ Active DeFi participant
+                    {/* Badges */}
+                    {scoreData.badges && scoreData.badges.length > 0 && (
+                      <div style={{ marginTop: "12px" }}>
+                        <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>Badges</div>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                          {scoreData.badges.map((badge) => (
+                            <span key={badge.id} style={{
+                              padding: "4px 12px", fontSize: "11px", borderRadius: "100px", fontWeight: "600",
+                              background: badge.tier === "gold" ? "#F59E0B15" : badge.tier === "silver" ? "#9CA3AF15" : `${theme.primary}15`,
+                              color: badge.tier === "gold" ? "#F59E0B" : badge.tier === "silver" ? "#9CA3AF" : theme.primary,
+                              border: `1px solid ${badge.tier === "gold" ? "#F59E0B30" : badge.tier === "silver" ? "#9CA3AF30" : theme.primary + "30"}`,
+                            }} title={badge.description}>
+                              {badge.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Actions — what FairScale recommends to improve score */}
+                    {scoreData.actions && scoreData.actions.length > 0 && (
+                      <div style={{ marginTop: "12px" }}>
+                        <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>Improve Your Score</div>
+                        {scoreData.actions.map((action) => (
+                          <div key={action.id} style={{
+                            padding: "8px 12px", marginBottom: "6px", background: "#0a0a0f", borderRadius: "6px",
+                            borderLeft: `2px solid ${action.priority === "high" ? "#EF4444" : action.priority === "medium" ? "#F59E0B" : theme.primary}40`,
+                            fontSize: "12px", color: "#999",
+                          }}>
+                            <span style={{ fontWeight: "600", color: "#ccc" }}>{action.label}</span> — {action.cta}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -2027,17 +2076,31 @@ export default function FairBounty() {
 
             {/* On-chain stats from FairScore */}
             {scoreData && (
-              <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15`, display: "flex", gap: "24px", flexWrap: "wrap", fontSize: "11px", color: "#888" }}>
-                <span>🕐 Wallet age: {scoreData.walletAge} days</span>
-                <span>📊 Transactions: {scoreData.txCount}</span>
-                <span>🔗 Protocols: {scoreData.protocolsUsed}</span>
-                <span>🖼️ NFTs: {scoreData.nftHoldings}</span>
-                {scoreData.defiActivity && <span style={{ color: theme.primary }}>✅ DeFi Active</span>}
+              <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15` }}>
+                <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", fontSize: "11px", color: "#888", marginBottom: "10px" }}>
+                  <span>🏆 FairScale: <span style={{ color: theme.primary, fontWeight: "600" }}>{scoreData.fairscaleTier}</span></span>
+                  <span>📊 Score: {scoreData.score} (base: {scoreData.fairscoreBase})</span>
+                  <span>🔗 Platforms: {scoreData.protocolsUsed}</span>
+                  <span>📈 Active days: {scoreData.activeDays}</span>
+                  <span>💰 Txns: {scoreData.txCount}</span>
+                </div>
+                {/* Badges */}
+                {scoreData.badges && scoreData.badges.length > 0 && (
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    {scoreData.badges.map((badge) => (
+                      <span key={badge.id} style={{
+                        padding: "3px 10px", fontSize: "10px", borderRadius: "100px", fontWeight: "600",
+                        background: badge.tier === "gold" ? "#F59E0B15" : badge.tier === "silver" ? "#9CA3AF15" : badge.tier === "platinum" ? "#818CF815" : `${theme.primary}15`,
+                        color: badge.tier === "gold" ? "#F59E0B" : badge.tier === "silver" ? "#9CA3AF" : badge.tier === "platinum" ? "#818CF8" : theme.primary,
+                        border: `1px solid ${badge.tier === "gold" ? "#F59E0B30" : badge.tier === "silver" ? "#9CA3AF30" : badge.tier === "platinum" ? "#818CF830" : theme.primary + "30"}`,
+                      }} title={badge.description}>
+                        {badge.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-            <div style={{ marginTop: "10px", fontSize: "10px", color: "#666", textAlign: "center", fontStyle: "italic" }}>
-              ⚠️ Scores simulated for demo — real data via FairScale API coming soon
-            </div>
           </div>
         )}
 
