@@ -199,6 +199,16 @@ export default function FairBounty() {
   const [setupTab, setSetupTab] = useState("Basics");
   const [activeStep, setActiveStep] = useState(0);
   const [activeTier, setActiveTier] = useState(null);
+  const [bountyApplications, setBountyApplications] = useState(() => {
+    try {
+      const saved = localStorage.getItem("fb_bounty_applications");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [bountyForm, setBountyForm] = useState({
+    projectName: "", title: "", description: "", reward: "", currency: "USDC",
+    minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "",
+  });
   const [connectedWallets, setConnectedWallets] = useState(() => {
     try {
       const saved = localStorage.getItem("fb_connected_wallets");
@@ -639,9 +649,9 @@ export default function FairBounty() {
       padding: "10px 16px", marginBottom: "12px", textAlign: "center",
       fontSize: "12px", color: "#999",
     }}>
-      🚧 <span style={{ color: theme.primary, fontWeight: "600" }}>Demo Mode</span> — Bounties shown are examples. FairScore data is <span style={{ color: "#22C55E", fontWeight: "600" }}>live</span> via the{" "}
-      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale API</a>. Built for the{" "}
-      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a> competition.
+      <span style={{ color: "#22C55E", fontWeight: "600" }}>✅ Live:</span> FairScore, BXP, referrals, wallet count{" · "}
+      <span style={{ color: "#F59E0B", fontWeight: "600" }}>⏳ Demo:</span> Bounty listings are examples{" · "}
+      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>Powered by FairScale</a>
     </div>
   );
 
@@ -692,12 +702,26 @@ export default function FairBounty() {
           <span style={{ fontSize: "9px", fontWeight: "700", color: "#0a0a0f", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
         </div>
       </div>
-      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-        <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("about")}>About</button>
-        <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("how-it-works")}>How It Works</button>
-        <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("leaderboard")}>🏆</button>
+      <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+        {[
+          { label: "Bounties", view: wallet && profile ? "dashboard" : "landing" },
+          { label: "Post a Bounty", view: "post-bounty" },
+          { label: "How It Works", view: "how-it-works" },
+          { label: "About", view: "about" },
+          { label: "🏆", view: "leaderboard" },
+        ].map((tab) => (
+          <button key={tab.label} style={{
+            ...btnOutline, fontSize: "11px", padding: "6px 12px",
+            background: view === tab.view ? `${theme.primary}20` : "transparent",
+            borderColor: view === tab.view ? theme.primary : `${theme.primary}50`,
+          }} onClick={() => setView(tab.view)}>{tab.label}</button>
+        ))}
         {wallet && profile && (
-          <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setView("profile")}>👤</button>
+          <button style={{
+            ...btnOutline, fontSize: "11px", padding: "6px 12px",
+            background: view === "profile" ? `${theme.primary}20` : "transparent",
+            borderColor: view === "profile" ? theme.primary : `${theme.primary}50`,
+          }} onClick={() => setView("profile")}>👤</button>
         )}
         {wallet ? (
           <div style={{
@@ -1077,13 +1101,13 @@ export default function FairBounty() {
       },
       {
         num: "04", icon: "💰", title: "Submit & Earn",
-        desc: "Complete the bounty and submit your work. The community votes on submissions, and the client picks the winner from the top-ranked. If you win, you earn the bounty reward PLUS a tier-based bonus.",
+        desc: "Complete bounties, refer friends, and build your BXP (Bounty Experience). BXP tracks your total platform activity — the more you contribute, the more you earn.",
         details: [
-          "💡 Example: You're Tier 3 (Builder). You win a $500 USDC bounty.",
-          "Base reward: $500 USDC",
-          "Tier 3 bonus (+10%): +$50 → You receive $550 USDC",
-          "BXP earned: 25 base × 1.5x multiplier = 37 BXP",
-          "Completed bounties also build your on-chain reputation for future tiers",
+          "🎁 Welcome bonus: 100 BXP × tier multiplier (first profile setup)",
+          "🔗 Referrals: 50 BXP × tier multiplier (you AND your friend both earn)",
+          "📝 Submissions: 25 BXP × tier multiplier (per bounty submission)",
+          "🏆 Wins: 100 BXP × tier multiplier (plus the bounty reward + tier bonus)",
+          "💡 Example: Tier 3 (Builder, 1.5x) wins $500 USDC → $550 payout + 150 BXP",
         ],
       },
       {
@@ -2152,6 +2176,207 @@ export default function FairBounty() {
   }
 
   // ============================================================
+  // POST A BOUNTY — Client intake form
+  // ============================================================
+  if (view === "post-bounty") {
+    const handleBountySubmit = () => {
+      if (!wallet || !profile) {
+        notify("Please connect your wallet and set up a profile first.");
+        setView("connect");
+        return;
+      }
+      if (!bountyForm.projectName.trim() || !bountyForm.title.trim() || !bountyForm.description.trim() || !bountyForm.reward) {
+        notify("Please fill in all required fields.");
+        return;
+      }
+      const application = {
+        ...bountyForm,
+        id: `app_${Date.now()}`,
+        wallet: fullAddress,
+        displayName: profile.displayName,
+        fairScore: fairScore,
+        fairscaleTier: scoreData?.fairscaleTier || "unknown",
+        score: scoreData?.score || 0,
+        submittedAt: new Date().toISOString(),
+        status: "pending",
+      };
+      const updated = [...bountyApplications, application];
+      setBountyApplications(updated);
+      try { localStorage.setItem("fb_bounty_applications", JSON.stringify(updated)); } catch (e) {}
+      setBountyForm({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
+      notify("Bounty application submitted! We'll review and get back to you.");
+      setView("dashboard");
+    };
+
+    const categories = ["Development", "Design", "Content", "Marketing", "Security Audit", "Community", "Research", "Other"];
+
+    return (
+      <div style={pageStyle}>
+        <div style={gridOverlay} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "680px", margin: "0 auto", padding: "20px" }}>
+          {notification && (
+            <div style={{
+              position: "fixed", top: "20px", right: "20px", zIndex: 100, padding: "12px 20px",
+              background: `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
+              border: `1px solid ${theme.primary}40`, borderRadius: "8px", fontSize: "13px",
+              color: theme.primary, fontWeight: "600", backdropFilter: "blur(10px)", animation: "slideIn 0.3s ease",
+            }}>
+              {notification}
+            </div>
+          )}
+          <NavBar />
+          <DemoBanner />
+
+          <div style={{ ...fadeIn, marginTop: "20px" }}>
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              <h1 style={{ fontSize: "28px", fontWeight: "900", marginBottom: "8px" }}>Post a Bounty</h1>
+              <p style={{ fontSize: "14px", color: "#888", lineHeight: "1.6" }}>
+                List your project's work on FairBounty. Submissions are gated by on-chain reputation
+                via <span style={{ color: theme.primary }}>FairScale</span>, so you only get quality contributors.
+              </p>
+            </div>
+
+            {!wallet || !profile ? (
+              <div style={{ ...cardStyle, padding: "32px", textAlign: "center" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>Connect & Create Profile First</h3>
+                <p style={{ fontSize: "13px", color: "#888", marginBottom: "20px" }}>
+                  You need a wallet and FairScore profile to post bounties. This helps us verify your on-chain reputation.
+                </p>
+                <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet →</button>
+              </div>
+            ) : (
+              <div style={{ ...cardStyle, padding: "28px" }}>
+                {/* Poster identity */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px",
+                  padding: "14px", background: `${theme.primary}08`, borderRadius: "8px", border: `1px solid ${theme.primary}15`,
+                }}>
+                  <span style={{ fontSize: "24px" }}>{TIER_CONFIG[fairScore]?.emoji}</span>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: "700" }}>{profile.displayName}</div>
+                    <div style={{ fontSize: "11px", color: "#888" }}>
+                      Tier {fairScore} ({TIER_CONFIG[fairScore]?.label}) · FairScore: {scoreData?.score || 0} · {scoreData?.fairscaleTier || "unranked"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form fields */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Project / Company Name *</label>
+                    <input style={inputStyle} placeholder="e.g. Jupiter, Marinade, your DAO..." value={bountyForm.projectName}
+                      onChange={(e) => setBountyForm({ ...bountyForm, projectName: e.target.value })} />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Bounty Title *</label>
+                    <input style={inputStyle} placeholder="e.g. Build a staking dashboard UI" value={bountyForm.title}
+                      onChange={(e) => setBountyForm({ ...bountyForm, title: e.target.value })} />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Description *</label>
+                    <textarea style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
+                      placeholder="Describe the work needed, deliverables, requirements, and any technical specs..."
+                      value={bountyForm.description}
+                      onChange={(e) => setBountyForm({ ...bountyForm, description: e.target.value })} />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Reward Amount *</label>
+                      <input style={inputStyle} type="number" placeholder="500" value={bountyForm.reward}
+                        onChange={(e) => setBountyForm({ ...bountyForm, reward: e.target.value })} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Currency</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.currency}
+                        onChange={(e) => setBountyForm({ ...bountyForm, currency: e.target.value })}>
+                        <option value="USDC">USDC</option>
+                        <option value="SOL">SOL</option>
+                        <option value="USDT">USDT</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Category</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.category}
+                        onChange={(e) => setBountyForm({ ...bountyForm, category: e.target.value })}>
+                        <option value="">Select...</option>
+                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Minimum Tier Required</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.minTier}
+                        onChange={(e) => setBountyForm({ ...bountyForm, minTier: Number(e.target.value) })}>
+                        {Object.entries(TIER_CONFIG).map(([k, v]) => (
+                          <option key={k} value={k}>{v.emoji} Tier {k} — {v.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Deadline</label>
+                    <input style={inputStyle} type="date" value={bountyForm.deadline}
+                      onChange={(e) => setBountyForm({ ...bountyForm, deadline: e.target.value })} />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Best Way to Reach You</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.contactMethod}
+                        onChange={(e) => setBountyForm({ ...bountyForm, contactMethod: e.target.value })}>
+                        <option value="">Select...</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="x">X / Twitter DM</option>
+                        <option value="email">Email</option>
+                        <option value="discord">Discord</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Contact Handle / Address</label>
+                      <input style={inputStyle} placeholder="@yourhandle or email" value={bountyForm.contactValue}
+                        onChange={(e) => setBountyForm({ ...bountyForm, contactValue: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing info */}
+                <div style={{
+                  marginTop: "20px", padding: "14px", background: `${theme.primary}08`,
+                  borderRadius: "8px", border: `1px solid ${theme.primary}15`, fontSize: "12px", color: "#888",
+                }}>
+                  <div style={{ fontWeight: "700", color: "#ccc", marginBottom: "6px" }}>How it works:</div>
+                  <div style={{ lineHeight: "1.8" }}>
+                    → We review your application within 24 hours<br />
+                    → Approved bounties go live on the board<br />
+                    → Contributors submit work, community votes on best submissions<br />
+                    → You pick the winner and release payment<br />
+                    → <span style={{ color: theme.primary }}>Listing fee: 50 USDC</span> · <span style={{ color: theme.primary }}>Commission: 5% of reward</span>
+                  </div>
+                </div>
+
+                <button style={{ ...btnPrimary, width: "100%", marginTop: "20px", padding: "14px", fontSize: "15px" }}
+                  onClick={handleBountySubmit}>
+                  Submit Bounty Application →
+                </button>
+              </div>
+            )}
+          </div>
+
+          <Footer />
+        </div>
+        <style>{globalStyles}</style>
+      </div>
+    );
+  }
+
+  // ============================================================
   // DASHBOARD
   // ============================================================
   return (
@@ -2299,8 +2524,8 @@ export default function FairBounty() {
           marginBottom: "20px", flexWrap: "wrap", gap: "12px", ...fadeIn, transitionDelay: "0.2s",
         }}>
           <div>
-            <h2 style={{ fontSize: "20px", fontWeight: "800" }}>Bounty Board</h2>
-            <p style={{ fontSize: "12px", color: "#888" }}>{filteredBounties.length} bounties available</p>
+            <h2 style={{ fontSize: "20px", fontWeight: "800" }}>Example Bounties</h2>
+            <p style={{ fontSize: "12px", color: "#888" }}>{filteredBounties.length} sample bounties — real ones coming soon</p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowReferral(!showReferral)}>🔗 Refer</button>
@@ -2312,7 +2537,7 @@ export default function FairBounty() {
               ))}
             </select>
             {wallet && (
-              <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setShowDemoModal(true)}>+ Post Bounty</button>
+              <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("post-bounty")}>+ Post Bounty</button>
             )}
           </div>
         </div>
