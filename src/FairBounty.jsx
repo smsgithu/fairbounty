@@ -185,6 +185,7 @@ export default function FairBounty() {
   const [animateIn, setAnimateIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [standardWallets, setStandardWallets] = useState([]);
   const [fullAddress, setFullAddress] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -544,6 +545,13 @@ export default function FairBounty() {
 
     const bonusText = bonusMessages.length > 0 ? ` ${bonusMessages.join(" · ")}` : "";
     notify(`Welcome, ${profileForm.displayName}!${bonusText}`);
+
+    // Show BXP welcome guide if first time
+    const seenWelcome = localStorage.getItem(`fb_seen_welcome_${fullAddress}`);
+    if (!seenWelcome) {
+      setShowWelcomeModal(true);
+    }
+
     setView("dashboard");
   };
 
@@ -680,6 +688,111 @@ export default function FairBounty() {
           <a href="https://x.com/fairbounty" target="_blank" rel="noopener noreferrer"
             style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>Follow @fairbounty</a>
         </div>
+      </div>
+    </div>
+  ) : null;
+
+  // BXP Welcome Modal — shows on first connect
+  const WelcomeModal = () => showWelcomeModal ? (
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "20px", overflowY: "auto",
+    }}>
+      <div style={{
+        ...cardStyle, maxWidth: "520px", width: "100%", padding: "36px",
+        border: `1px solid ${theme.primary}40`, animation: "slideIn 0.3s ease",
+      }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <div style={{ fontSize: "48px", marginBottom: "12px" }}>⭐</div>
+          <h2 style={{ fontSize: "24px", fontWeight: "900", marginBottom: "6px" }}>
+            Welcome to FairBounty!
+          </h2>
+          <p style={{ fontSize: "13px", color: "#888" }}>Here's how BXP works and what you can do</p>
+        </div>
+
+        {/* What is BXP */}
+        <div style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, marginBottom: "8px" }}>What is BXP?</h3>
+          <p style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.7" }}>
+            BXP (Bounty Experience) measures your activity on FairBounty. It's earned through actions on the platform and multiplied by your FairScore tier. The more on-chain reputation you have, the faster you earn.
+          </p>
+        </div>
+
+        {/* How to earn */}
+        <div style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, marginBottom: "10px" }}>How to Earn BXP</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {[
+              { icon: "🎁", action: "Profile Setup", amount: "100 BXP", note: "one-time welcome bonus", color: "#22C55E" },
+              { icon: "🔗", action: "Refer a Friend", amount: "50 BXP", note: "you AND your friend both earn", color: "#3B82F6" },
+              { icon: "📝", action: "Submit Work", amount: "25 BXP", note: "per bounty submission", color: "#8B5CF6" },
+              { icon: "🏆", action: "Win a Bounty", amount: "100 BXP", note: "plus the reward payout", color: "#F59E0B" },
+            ].map((item) => (
+              <div key={item.action} style={{
+                display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px",
+                background: "#0a0a0f", borderRadius: "8px", border: `1px solid ${item.color}20`,
+              }}>
+                <span style={{ fontSize: "20px" }}>{item.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: "13px", fontWeight: "600" }}>{item.action}</span>
+                  <span style={{ fontSize: "11px", color: "#666", marginLeft: "6px" }}>— {item.note}</span>
+                </div>
+                <span style={{ fontSize: "13px", fontWeight: "700", color: item.color }}>{item.amount}</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: "11px", color: "#666", marginTop: "8px", textAlign: "center" }}>
+            All BXP amounts are multiplied by your tier: Tier 1 = 1x, Tier 2 = 1.25x, Tier 3 = 1.5x, Tier 4 = 2x, Tier 5 = 3x
+          </p>
+        </div>
+
+        {/* Your status */}
+        {fairScore && (
+          <div style={{
+            padding: "14px", background: `${theme.primary}10`, borderRadius: "8px",
+            border: `1px solid ${theme.primary}20`, marginBottom: "20px", textAlign: "center",
+          }}>
+            <span style={{ fontSize: "20px" }}>{TIER_CONFIG[fairScore]?.emoji}</span>
+            <span style={{ fontSize: "14px", fontWeight: "700", marginLeft: "8px" }}>
+              You're Tier {fairScore} ({TIER_CONFIG[fairScore]?.label})
+            </span>
+            <span style={{ fontSize: "12px", color: "#888", marginLeft: "8px" }}>
+              {TIER_CONFIG[fairScore]?.xpMultiplier}x BXP multiplier active
+            </span>
+          </div>
+        )}
+
+        {/* Quick start */}
+        <div style={{ marginBottom: "24px" }}>
+          <h3 style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, marginBottom: "8px" }}>Quick Start</h3>
+          <div style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.8" }}>
+            1. ✅ <span style={{ color: "#22C55E" }}>Profile created — 100 BXP earned!</span><br />
+            2. 🔗 Share your referral link to earn 50 BXP per signup<br />
+            3. 📋 Browse example bounties to see what's coming<br />
+            4. 📈 Build on-chain activity to raise your FairScore tier
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+          <button style={{ ...btnPrimary, padding: "12px 28px", fontSize: "14px" }} onClick={() => {
+            setShowWelcomeModal(false);
+            try { localStorage.setItem(`fb_seen_welcome_${fullAddress}`, "1"); } catch (e) {}
+          }}>
+            Let's Go →
+          </button>
+        </div>
+        <button onClick={() => {
+          setShowWelcomeModal(false);
+          try { localStorage.setItem(`fb_seen_welcome_${fullAddress}`, "1"); } catch (e) {}
+        }} style={{
+          background: "none", border: "none", color: "#555", cursor: "pointer",
+          fontSize: "12px", fontFamily: "inherit", marginTop: "12px", width: "100%", textAlign: "center",
+        }}>
+          Don't show this again
+        </button>
       </div>
     </div>
   ) : null;
@@ -2030,27 +2143,20 @@ export default function FairBounty() {
             </div>
 
             {wallet ? (
-              eligible ? (
-                <div>
-                  <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "4px" }}>Submit Work</h3>
-                  <p style={{ fontSize: "11px", color: "#888", marginBottom: "12px" }}>
-                    BXP multiplier: {FairScoreAPI.getXpMultiplier(fairScore)}x · Reward bonus: +{rewardBonus}%
-                  </p>
-                  <textarea value={submissionText} onChange={(e) => setSubmissionText(e.target.value)}
-                    placeholder="Describe your submission, include links to your work..."
-                    style={{ ...inputStyle, minHeight: "120px", resize: "vertical", marginBottom: "12px" }} />
-                  <button style={btnPrimary} onClick={() => handleSubmit(b.id)}>
-                    Submit (+{Math.floor(25 * FairScoreAPI.getXpMultiplier(fairScore))} BXP)
-                  </button>
+              <div style={{
+                padding: "24px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}20`,
+                borderRadius: "10px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: "32px", marginBottom: "12px" }}>🚧</div>
+                <div style={{ fontSize: "15px", fontWeight: "700", marginBottom: "6px" }}>Submissions Coming Soon</div>
+                <div style={{ fontSize: "12px", color: "#888", lineHeight: "1.6" }}>
+                  This is an example bounty. Real bounty submissions will open once the platform launches.
+                  {eligible && <span style={{ color: theme.primary }}> Your Tier {fairScore} qualifies for this bounty!</span>}
+                  {!eligible && <span style={{ color: "#ff4040" }}> This bounty requires Tier {b.minTier}+.</span>}
                 </div>
-              ) : (
-                <div style={{ padding: "20px", background: "#1a0a0a", border: "1px solid #ff004030", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ fontSize: "14px", color: "#ff4040", fontWeight: "600", marginBottom: "4px" }}>🔒 Tier {b.minTier}+ Required</div>
-                  <div style={{ fontSize: "12px", color: "#888" }}>Your FairScore is Tier {fairScore}. Build more on-chain reputation to unlock this bounty.</div>
-                </div>
-              )
+              </div>
             ) : (
-              <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet to Submit</button>
+              <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet to View</button>
             )}
           </div>
 
@@ -2396,6 +2502,7 @@ export default function FairBounty() {
 
         <NavBar />
         <DemoModal />
+        <WelcomeModal />
         <DemoBanner />
 
         {/* Referral */}
