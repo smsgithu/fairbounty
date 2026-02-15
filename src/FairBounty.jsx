@@ -867,7 +867,7 @@ export default function FairBounty() {
       fontSize: "12px", color: "#666", paddingBottom: "24px",
     }}>
       <div style={{ display: "flex", gap: "16px" }}>
-        <a href="https://x.com/fairscalexyz" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>@fairscalexyz</a>
+        <a href="https://x.com/solanamadesimp" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>@solanamadesimp</a>
         <a href="https://t.me/+WQlko_c5blJhN2E0" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>Telegram</a>
         <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>FairScale</a>
       </div>
@@ -875,8 +875,14 @@ export default function FairBounty() {
         <Logo size={16} />
         <span>FairBounty © 2026 · Powered by{" "}
         <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a>
-        {" "}reputation infrastructure</span>
+        </span>
       </div>
+      <a href="https://smsai.vercel.app" target="_blank" rel="noopener noreferrer" style={{
+        color: "#555", textDecoration: "none", fontSize: "11px", letterSpacing: "0.3px",
+        display: "flex", alignItems: "center", gap: "4px",
+      }}>
+        A <span style={{ color: theme.primary, fontWeight: "600" }}>Solana Made Simple</span> product
+      </a>
     </div>
   );
 
