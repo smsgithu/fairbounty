@@ -970,9 +970,9 @@ export default function FairBounty() {
             {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
-                { value: "$12,775", label: "Total Bounties" },
-                { value: "6", label: "Active Bounties" },
-                { value: connectedWallets.length.toString(), label: "Connected Wallets" },
+                { value: connectedWallets.length.toString(), label: "Connected Wallets", live: true },
+                { value: "0", label: "Bounties Posted", live: true },
+                { value: "0", label: "Submissions", live: true },
               ].map((stat) => (
                 <div key={stat.label} style={{ ...cardStyle, padding: "24px", textAlign: "center" }}>
                   <div style={{ fontSize: "28px", fontWeight: "800", color: theme.primary, marginBottom: "4px" }}>{stat.value}</div>
@@ -1028,24 +1028,6 @@ export default function FairBounty() {
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            {/* Revenue Model */}
-            <div style={{ marginTop: "60px", ...cardStyle, padding: "32px", textAlign: "left", ...fadeIn, transitionDelay: "0.7s" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "700", marginBottom: "16px" }}>💰 Revenue Model</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px" }}>
-                {[
-                  { title: "Listing Fees", desc: "Projects pay a flat rate to post bounties", amount: "50 USDC/bounty" },
-                  { title: "Commission", desc: "Small cut of completed bounty payouts", amount: "5% of rewards" },
-                  { title: "Data Insights", desc: "Anonymized ecosystem reputation analytics", amount: "Enterprise tier" },
-                ].map((r) => (
-                  <div key={r.title} style={{ padding: "16px", background: "#0a0a0f", borderRadius: "8px", border: `1px solid ${theme.primary}15` }}>
-                    <div style={{ fontWeight: "700", fontSize: "14px", marginBottom: "4px" }}>{r.title}</div>
-                    <div style={{ fontSize: "12px", color: "#888", marginBottom: "8px" }}>{r.desc}</div>
-                    <div style={{ fontSize: "13px", color: theme.primary, fontWeight: "600" }}>{r.amount}</div>
-                  </div>
-                ))}
               </div>
             </div>
 
