@@ -1069,7 +1069,7 @@ export default function FairBounty() {
               </div>
             </div>
 
-            {/* Built on FairScale */}
+            {/* Built on FairScale + SMS branding */}
             <div style={{
               marginTop: "60px", padding: "24px 32px",
               background: `linear-gradient(135deg, ${theme.primary}10, ${theme.accent}10)`,
@@ -1079,14 +1079,14 @@ export default function FairBounty() {
             }}>
               <div>
                 <Logo size={40} />
-                <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px", marginTop: "8px" }}>Built on FairScale</div>
-                <div style={{ fontSize: "12px", color: "#999" }}>Reputation infrastructure for the Solana ecosystem</div>
+                <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px", marginTop: "8px" }}>FairBounty</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>Reputation-gated bounties powered by FairScale</div>
               </div>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
                 {[
-                  { href: "https://fairscale.xyz", label: "fairscale.xyz ↗" },
-                  { href: "https://x.com/fairscalexyz", label: "@fairscalexyz ↗" },
-                  { href: "https://t.me/+WQlko_c5blJhN2E0", label: "Telegram ↗" },
+                  { href: "https://fairscale.xyz", label: "FairScale ↗" },
+                  { href: "https://smsai.fun", label: "smsai.fun ↗" },
+                  { href: "https://x.com/smsonx", label: "@smsonx ↗" },
                 ].map((l) => (
                   <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer"
                     style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px", textDecoration: "none" }}>{l.label}</a>
@@ -1094,12 +1094,7 @@ export default function FairBounty() {
               </div>
             </div>
 
-            <div style={{ marginTop: "60px", paddingBottom: "40px", fontSize: "12px", color: "#666", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-              <Logo size={16} />
-              <span>FairBounty © 2026 · Powered by{" "}
-              <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a>
-              {" "}reputation infrastructure</span>
-            </div>
+            <Footer />
           </div>
         </div>
         <style>{globalStyles}</style>
