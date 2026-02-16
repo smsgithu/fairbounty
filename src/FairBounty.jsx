@@ -1344,9 +1344,9 @@ export default function FairBounty() {
               </div>
 
               {/* How to increase */}
-              <div style={{ ...cardStyle, padding: "24px" }}>
-                <h3 style={{ fontSize: "15px", fontWeight: "600", marginBottom: "16px", letterSpacing: "-0.02em" }}>How to increase your tier</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "10px" }}>
+              <div style={{ ...cardStyle, padding: "28px" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "20px", letterSpacing: "-0.02em" }}>How to increase your tier</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                   {[
                     { icon: "🔄", title: "Use DeFi", desc: "Swap, stake, and provide liquidity across protocols" },
                     { icon: "📊", title: "Stay Active", desc: "Consistent on-chain activity over time" },
@@ -1355,30 +1355,16 @@ export default function FairBounty() {
                     { icon: "🌐", title: "Diversify", desc: "Spread activity across multiple protocols" },
                     { icon: "🔗", title: "Connect Socials", desc: "Link your X account to boost social score" },
                   ].map((item) => (
-                    <div key={item.title} style={{ padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: "10px" }}>
-                      <div style={{ fontSize: "18px", marginBottom: "6px" }}>{item.icon}</div>
-                      <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "4px" }}>{item.title}</div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", lineHeight: "1.5" }}>{item.desc}</div>
+                    <div key={item.title} style={{ padding: "18px", background: "rgba(255,255,255,0.03)", borderRadius: "12px", border: `1px solid ${theme.primary}10` }}>
+                      <div style={{ fontSize: "22px", marginBottom: "8px" }}>{item.icon}</div>
+                      <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>{item.title}</div>
+                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", lineHeight: "1.5" }}>{item.desc}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* CTA */}
-            <div style={{
-              textAlign: "center", padding: "40px 32px",
-              background: `linear-gradient(135deg, ${theme.primary}10, ${theme.accent}10)`,
-              border: `1px solid ${theme.primary}25`, borderRadius: "16px", marginBottom: "20px",
-            }}>
-              <h2 style={{ fontSize: "24px", fontWeight: "900", marginBottom: "8px" }}>Ready to Start?</h2>
-              <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Get your FairScore, connect your wallet, and start earning.</p>
-              <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-                <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer"
-                  style={{ ...btnPrimary, textDecoration: "none" }}>Get Your FairScore ↗</a>
-                <button style={btnOutline} onClick={() => setView("connect")}>Connect Wallet →</button>
-              </div>
-            </div>
           </div>
 
           <Footer />
@@ -1825,12 +1811,12 @@ export default function FairBounty() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                       {[
                         { label: "FairScale Tier", value: scoreData.fairscaleTier },
-                        { label: "FairScore", value: scoreData.score },
-                        { label: "Base Score", value: scoreData.fairscoreBase },
-                        { label: "Social Score", value: scoreData.socialScore },
-                        { label: "Transactions", value: scoreData.txCount },
-                        { label: "Active Days", value: scoreData.activeDays },
-                        { label: "Platforms", value: scoreData.protocolsUsed },
+                        { label: "FairScore", value: Math.round(scoreData.score * 10) / 10 },
+                        { label: "Base Score", value: Math.round(scoreData.fairscoreBase * 10) / 10 },
+                        { label: "Social Score", value: Math.round(scoreData.socialScore * 10) / 10 },
+                        { label: "Transactions", value: Math.round(scoreData.txCount) },
+                        { label: "Active Days", value: Math.round(scoreData.activeDays) },
+                        { label: "Platforms", value: Math.round(scoreData.protocolsUsed) },
                         { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` },
                       ].map((d) => (
                         <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
@@ -2551,10 +2537,10 @@ export default function FairBounty() {
               <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15` }}>
                 <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", fontSize: "11px", color: "#888", marginBottom: "10px" }}>
                   <span>🏆 FairScale: <span style={{ color: theme.primary, fontWeight: "600" }}>{scoreData.fairscaleTier}</span></span>
-                  <span>📊 Score: {scoreData.score} (base: {scoreData.fairscoreBase})</span>
-                  <span>🔗 Platforms: {scoreData.protocolsUsed}</span>
-                  <span>📈 Active days: {scoreData.activeDays}</span>
-                  <span>💰 Txns: {scoreData.txCount}</span>
+                  <span>📊 Score: {Math.round(scoreData.score * 10) / 10} (base: {Math.round(scoreData.fairscoreBase * 10) / 10})</span>
+                  <span>🔗 Platforms: {Math.round(scoreData.protocolsUsed)}</span>
+                  <span>📈 Active days: {Math.round(scoreData.activeDays)}</span>
+                  <span>💰 Txns: {Math.round(scoreData.txCount)}</span>
                 </div>
                 {/* Badges */}
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
