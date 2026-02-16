@@ -596,70 +596,97 @@ export default function FairBounty() {
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
 
-  // Shared styles
+  // Shared styles — liquid glass / modern minimal
   const pageStyle = {
     minHeight: "100vh",
-    background: `linear-gradient(135deg, ${theme.bg} 0%, #0a0a0f 50%, #0d0d14 100%)`,
+    background: `linear-gradient(160deg, #050508 0%, ${theme.bg}40 30%, #08080c 60%, #0a0a10 100%)`,
     color: "#E8E8ED",
-    fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', monospace",
+    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
     position: "relative",
     overflow: "hidden",
+    WebkitFontSmoothing: "antialiased",
   };
   const gridOverlay = {
     position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundImage: `linear-gradient(${theme.primary}08 1px, transparent 1px), linear-gradient(90deg, ${theme.primary}08 1px, transparent 1px)`,
-    backgroundSize: "40px 40px", pointerEvents: "none", zIndex: 0,
+    backgroundImage: `radial-gradient(circle at 20% 50%, ${theme.primary}06 0%, transparent 50%), radial-gradient(circle at 80% 20%, ${theme.accent}04 0%, transparent 40%)`,
+    pointerEvents: "none", zIndex: 0,
   };
   const cardStyle = {
-    background: `linear-gradient(145deg, ${theme.bg}CC, #0a0a0fDD)`,
-    border: `1px solid ${theme.primary}30`, borderRadius: "12px", padding: "20px",
-    backdropFilter: "blur(10px)", transition: "all 0.3s ease",
+    background: `rgba(255,255,255,0.03)`,
+    border: `1px solid rgba(255,255,255,0.06)`,
+    borderRadius: "16px", padding: "20px",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+    boxShadow: `0 0 0 0.5px rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.3)`,
+  };
+  const glassCard = {
+    ...cardStyle,
+    background: `linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))`,
+    border: `1px solid rgba(255,255,255,0.08)`,
+    boxShadow: `0 0 0 0.5px rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`,
   };
   const btnPrimary = {
     background: `linear-gradient(135deg, ${theme.primary}, ${theme.accent})`,
-    border: "none", borderRadius: "8px", padding: "12px 24px", color: "#0a0a0f",
-    fontWeight: "bold", fontFamily: "inherit", cursor: "pointer", fontSize: "14px",
-    transition: "all 0.2s ease",
+    border: "none", borderRadius: "12px", padding: "12px 28px", color: "#0a0a0f",
+    fontWeight: "600", fontFamily: "inherit", cursor: "pointer", fontSize: "14px",
+    transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+    boxShadow: `0 2px 12px ${theme.primary}30`,
+    letterSpacing: "-0.01em",
   };
   const btnOutline = {
-    background: "transparent", border: `1px solid ${theme.primary}50`, borderRadius: "8px",
-    padding: "10px 20px", color: theme.primary, fontFamily: "inherit", cursor: "pointer",
-    fontSize: "13px", transition: "all 0.2s ease",
+    background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: "12px",
+    padding: "10px 20px", color: "#ccc", fontFamily: "inherit", cursor: "pointer",
+    fontSize: "13px", transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+    fontWeight: "500", letterSpacing: "-0.01em",
+    backdropFilter: "blur(10px)",
   };
   const inputStyle = {
-    background: "#0a0a0f", border: `1px solid ${theme.primary}30`, borderRadius: "8px",
-    padding: "12px 16px", color: "#E8E8ED", fontFamily: "inherit", fontSize: "14px",
+    background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.08)`, borderRadius: "12px",
+    padding: "14px 18px", color: "#E8E8ED", fontFamily: "inherit", fontSize: "14px",
     width: "100%", boxSizing: "border-box", outline: "none",
+    transition: "border-color 0.2s ease",
+    letterSpacing: "-0.01em",
   };
   const fadeIn = animateIn
-    ? { opacity: 1, transform: "translateY(0)", transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }
-    : { opacity: 0, transform: "translateY(20px)" };
+    ? { opacity: 1, transform: "translateY(0)", transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)" }
+    : { opacity: 0, transform: "translateY(16px)" };
 
   const globalStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800;900&display=swap');
-    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-30px); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes glow { 0%, 100% { box-shadow: 0 0 20px ${theme.primary}10; } 50% { box-shadow: 0 0 40px ${theme.primary}20; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    ::selection { background: ${theme.primary}40; color: white; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0a0a0f; }
-    ::-webkit-scrollbar-thumb { background: ${theme.primary}40; border-radius: 3px; }
-    select option { background: #0a0a0f; color: #E8E8ED; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+    ::selection { background: ${theme.primary}30; color: white; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    select option { background: #111; color: #E8E8ED; }
+    input:focus, textarea:focus, select:focus { border-color: ${theme.primary}60 !important; }
+    a { transition: opacity 0.2s ease; }
+    a:hover { opacity: 0.8; }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
   `;
 
   // Demo banner
   const DemoBanner = () => (
     <div style={{
-      background: `linear-gradient(90deg, ${theme.primary}15, ${theme.accent}15)`,
-      border: `1px solid ${theme.primary}25`, borderRadius: "8px",
-      padding: "10px 16px", marginBottom: "12px", textAlign: "center",
-      fontSize: "12px", color: "#999",
+      background: "rgba(255,255,255,0.03)",
+      border: `1px solid rgba(255,255,255,0.06)`, borderRadius: "12px",
+      padding: "10px 16px", marginBottom: "16px", textAlign: "center",
+      fontSize: "12px", color: "rgba(255,255,255,0.4)",
+      backdropFilter: "blur(10px)", letterSpacing: "-0.01em",
     }}>
-      <span style={{ color: "#22C55E", fontWeight: "600" }}>✅ Live:</span> FairScore, BXP, referrals, wallet count{" · "}
-      <span style={{ color: "#F59E0B", fontWeight: "600" }}>⏳ Demo:</span> Bounty listings are examples{" · "}
-      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>Powered by FairScale</a>
+      <span style={{ color: "#22C55E", fontWeight: "500" }}>✅ Live:</span> FairScore · BXP · Referrals · Wallet Count{" "}
+      <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>{" "}
+      <span style={{ color: "#F59E0B", fontWeight: "500" }}>⏳ Demo:</span> Bounty listings are examples{" "}
+      <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>{" "}
+      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontWeight: "500" }}>Powered by FairScale</a>
     </div>
   );
 
@@ -667,26 +694,24 @@ export default function FairBounty() {
   const DemoModal = () => showDemoModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
-      background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+      background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: "20px",
     }} onClick={() => setShowDemoModal(false)}>
       <div style={{
-        ...cardStyle, maxWidth: "420px", width: "100%", padding: "32px",
-        textAlign: "center", border: `1px solid ${theme.primary}40`,
-        animation: "slideIn 0.2s ease",
+        ...glassCard, maxWidth: "420px", width: "100%", padding: "36px",
+        textAlign: "center", animation: "slideIn 0.3s ease",
       }} onClick={(e) => e.stopPropagation()}>
         <div style={{ fontSize: "40px", marginBottom: "16px" }}>🚧</div>
-        <h3 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Demo Mode</h3>
-        <p style={{ fontSize: "13px", color: "#999", lineHeight: "1.7", marginBottom: "20px" }}>
-          This action isn't available yet — FairBounty is currently in demo mode for the{" "}
-          <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a> competition.
-          Wallet connection and browsing work, but submissions, voting, posting, and referrals are coming soon.
+        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Demo Mode</h3>
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "24px" }}>
+          This action isn't available yet. Wallet connection, FairScore, BXP, and referrals are live.
+          Bounty submissions and voting are coming soon.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           <button style={btnPrimary} onClick={() => setShowDemoModal(false)}>Got it</button>
-          <a href="https://x.com/fairbounty" target="_blank" rel="noopener noreferrer"
-            style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>Follow @fairbounty</a>
+          <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer"
+            style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>Follow @smsonx</a>
         </div>
       </div>
     </div>
@@ -696,20 +721,20 @@ export default function FairBounty() {
   const WelcomeModal = () => showWelcomeModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
-      background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
+      background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: "20px", overflowY: "auto",
     }}>
       <div style={{
-        ...cardStyle, maxWidth: "520px", width: "100%", padding: "36px",
-        border: `1px solid ${theme.primary}40`, animation: "slideIn 0.3s ease",
+        ...glassCard, maxWidth: "520px", width: "100%", padding: "40px",
+        animation: "slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
       }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <div style={{ fontSize: "48px", marginBottom: "12px" }}>⭐</div>
-          <h2 style={{ fontSize: "24px", fontWeight: "900", marginBottom: "6px" }}>
-            Welcome to FairBounty!
+          <h2 style={{ fontSize: "24px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.04em" }}>
+            Welcome to FairBounty
           </h2>
-          <p style={{ fontSize: "13px", color: "#888" }}>Here's how BXP works and what you can do</p>
+          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Here's how BXP works</p>
         </div>
 
         {/* What is BXP */}
@@ -809,13 +834,13 @@ export default function FairBounty() {
             ← {backLabel || "Back"}
           </button>
         )}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }} onClick={() => setView("landing")}>
-          <Logo size={28} />
-          <span style={{ fontSize: "16px", fontWeight: "700" }}>FairBounty</span>
-          <span style={{ fontSize: "9px", fontWeight: "700", color: "#0a0a0f", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} onClick={() => setView("landing")}>
+          <Logo size={24} />
+          <span style={{ fontSize: "15px", fontWeight: "600", letterSpacing: "-0.03em" }}>FairBounty</span>
+          <span style={{ fontSize: "8px", fontWeight: "600", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px", letterSpacing: "0.05em", textTransform: "uppercase" }}>Beta</span>
         </div>
       </div>
-      <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" }}>
         {[
           { label: "Bounties", view: wallet && profile ? "dashboard" : "landing" },
           { label: "Post a Bounty", view: "post-bounty" },
@@ -824,30 +849,35 @@ export default function FairBounty() {
           { label: "🏆", view: "leaderboard" },
         ].map((tab) => (
           <button key={tab.label} style={{
-            ...btnOutline, fontSize: "11px", padding: "6px 12px",
-            background: view === tab.view ? `${theme.primary}20` : "transparent",
-            borderColor: view === tab.view ? theme.primary : `${theme.primary}50`,
+            background: view === tab.view ? `rgba(255,255,255,0.08)` : "transparent",
+            border: "none", borderRadius: "10px",
+            padding: "7px 14px", color: view === tab.view ? "#fff" : "rgba(255,255,255,0.45)",
+            fontFamily: "inherit", cursor: "pointer", fontSize: "12px", fontWeight: "500",
+            transition: "all 0.2s ease", letterSpacing: "-0.01em",
           }} onClick={() => setView(tab.view)}>{tab.label}</button>
         ))}
         {wallet && profile && (
           <button style={{
-            ...btnOutline, fontSize: "11px", padding: "6px 12px",
-            background: view === "profile" ? `${theme.primary}20` : "transparent",
-            borderColor: view === "profile" ? theme.primary : `${theme.primary}50`,
+            background: view === "profile" ? `rgba(255,255,255,0.08)` : "transparent",
+            border: "none", borderRadius: "10px", padding: "7px 12px",
+            color: view === "profile" ? "#fff" : "rgba(255,255,255,0.45)",
+            fontFamily: "inherit", cursor: "pointer", fontSize: "12px",
+            transition: "all 0.2s ease",
           }} onClick={() => setView("profile")}>👤</button>
         )}
         {wallet ? (
           <div style={{
-            display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px",
-            background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`,
-            borderRadius: "8px", fontSize: "12px", cursor: profile ? "pointer" : "default",
+            display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px",
+            background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.08)`,
+            borderRadius: "12px", fontSize: "12px", cursor: profile ? "pointer" : "default",
+            backdropFilter: "blur(10px)", marginLeft: "4px",
           }} onClick={() => profile && setView("profile")}>
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-            <span style={{ color: "#ccc" }}>{profile ? profile.displayName : wallet}</span>
+            <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: "500" }}>{profile ? profile.displayName : wallet}</span>
             {fullAddress && PLATFORM_BADGES[fullAddress] && (
-              <span style={{ fontSize: "9px", fontWeight: "700", color: "#FFD700", background: "#FFD70015", border: "1px solid #FFD70040", padding: "1px 6px", borderRadius: "100px" }}>★ Founder</span>
+              <span style={{ fontSize: "9px", fontWeight: "600", color: "#FFD700", background: "rgba(255,215,0,0.1)", padding: "2px 8px", borderRadius: "100px" }}>★ Founder</span>
             )}
-            <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} BXP</span>
+            <span style={{ color: theme.primary, fontWeight: "600", fontSize: "11px" }}>{xp} BXP</span>
             <button onClick={(e) => { e.stopPropagation(); setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] }); setBookmarks([]); setView("landing"); }}
               style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
               title="Disconnect wallet"
@@ -862,27 +892,27 @@ export default function FairBounty() {
 
   const Footer = () => (
     <div style={{
-      marginTop: "40px", paddingTop: "24px", borderTop: `1px solid ${theme.primary}15`,
-      display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "12px",
-      fontSize: "12px", color: "#666", paddingBottom: "24px",
+      marginTop: "60px", paddingTop: "32px", borderTop: `1px solid rgba(255,255,255,0.06)`,
+      display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "16px",
+      fontSize: "12px", color: "rgba(255,255,255,0.3)", paddingBottom: "32px",
     }}>
-      <div style={{ display: "flex", gap: "16px" }}>
-        <a href="https://x.com/solanamadesimp" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>@solanamadesimp</a>
-        <a href="https://t.me/+WQlko_c5blJhN2E0" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>Telegram</a>
-        <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: "#888", textDecoration: "none" }}>FairScale</a>
+      <div style={{ display: "flex", gap: "20px" }}>
+        <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>built by @smsonx</a>
+        <a href="https://smsai.fun" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>smsai.fun</a>
+        <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>FairScale</a>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <Logo size={16} />
-        <span>FairBounty © 2026 · Powered by{" "}
-        <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>FairScale</a>
-        </span>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Logo size={14} />
+          <span style={{ letterSpacing: "-0.02em" }}>FairBounty © 2026</span>
+        </div>
+        <a href="https://smsai.fun" target="_blank" rel="noopener noreferrer" style={{
+          color: "rgba(255,255,255,0.25)", textDecoration: "none", fontSize: "11px",
+          letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: "500",
+        }}>
+          A <span style={{ color: theme.primary, fontWeight: "600" }}>Solana Made Simple</span> product
+        </a>
       </div>
-      <a href="https://smsai.vercel.app" target="_blank" rel="noopener noreferrer" style={{
-        color: "#555", textDecoration: "none", fontSize: "11px", letterSpacing: "0.3px",
-        display: "flex", alignItems: "center", gap: "4px",
-      }}>
-        A <span style={{ color: theme.primary, fontWeight: "600" }}>Solana Made Simple</span> product
-      </a>
     </div>
   );
 
