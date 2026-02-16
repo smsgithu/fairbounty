@@ -596,10 +596,10 @@ export default function FairBounty() {
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
 
-  // Shared styles — liquid glass / modern minimal
+  // Shared styles — dark mode, logo-matched brand
   const pageStyle = {
     minHeight: "100vh",
-    background: `linear-gradient(160deg, #050508 0%, ${theme.bg}40 30%, #08080c 60%, #0a0a10 100%)`,
+    background: "#070710",
     color: "#E8E8ED",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
     position: "relative",
@@ -608,40 +608,39 @@ export default function FairBounty() {
   };
   const gridOverlay = {
     position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundImage: `radial-gradient(circle at 20% 50%, ${theme.primary}06 0%, transparent 50%), radial-gradient(circle at 80% 20%, ${theme.accent}04 0%, transparent 40%)`,
+    backgroundImage: `radial-gradient(circle at 20% 30%, ${theme.primary}08 0%, transparent 50%), radial-gradient(circle at 80% 70%, ${theme.accent}05 0%, transparent 40%)`,
     pointerEvents: "none", zIndex: 0,
   };
   const cardStyle = {
     background: `rgba(255,255,255,0.03)`,
-    border: `1px solid rgba(255,255,255,0.06)`,
+    border: `1px solid rgba(255,255,255,0.07)`,
     borderRadius: "16px", padding: "20px",
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
     transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-    boxShadow: `0 0 0 0.5px rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.3)`,
+    boxShadow: `0 0 0 0.5px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)`,
   };
   const glassCard = {
     ...cardStyle,
     background: `linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))`,
     border: `1px solid rgba(255,255,255,0.08)`,
-    boxShadow: `0 0 0 0.5px rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`,
+    boxShadow: `0 0 0 0.5px rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)`,
   };
   const btnPrimary = {
     background: `linear-gradient(135deg, ${theme.primary}, ${theme.accent})`,
-    border: "none", borderRadius: "12px", padding: "12px 28px", color: "#0a0a0f",
+    border: "none", borderRadius: "12px", padding: "12px 28px", color: "#070710",
     fontWeight: "600", fontFamily: "inherit", cursor: "pointer", fontSize: "14px",
     transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-    boxShadow: `0 2px 12px ${theme.primary}30`,
+    boxShadow: `0 2px 16px ${theme.primary}25`,
     letterSpacing: "-0.01em",
   };
   const btnOutline = {
-    background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: "12px",
-    padding: "10px 20px", color: "#ccc", fontFamily: "inherit", cursor: "pointer",
+    background: "rgba(255,255,255,0.05)", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: "12px",
+    padding: "10px 20px", color: "#ddd", fontFamily: "inherit", cursor: "pointer",
     fontSize: "13px", transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
     fontWeight: "500", letterSpacing: "-0.01em",
-    backdropFilter: "blur(10px)",
   };
   const inputStyle = {
-    background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.08)`, borderRadius: "12px",
+    background: "rgba(255,255,255,0.05)", border: `1px solid rgba(255,255,255,0.1)`, borderRadius: "12px",
     padding: "14px 18px", color: "#E8E8ED", fontFamily: "inherit", fontSize: "14px",
     width: "100%", boxSizing: "border-box", outline: "none",
     transition: "border-color 0.2s ease",
@@ -660,7 +659,7 @@ export default function FairBounty() {
     @keyframes glow { 0%, 100% { box-shadow: 0 0 20px ${theme.primary}10; } 50% { box-shadow: 0 0 40px ${theme.primary}20; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+    body { background: #070710; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
     ::selection { background: ${theme.primary}30; color: white; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -757,7 +756,7 @@ export default function FairBounty() {
             ].map((item) => (
               <div key={item.action} style={{
                 display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px",
-                background: "#0a0a0f", borderRadius: "8px", border: `1px solid ${item.color}20`,
+                background: "#0c0c14", borderRadius: "8px", border: `1px solid ${item.color}20`,
               }}>
                 <span style={{ fontSize: "20px" }}>{item.icon}</span>
                 <div style={{ flex: 1 }}>
@@ -954,7 +953,7 @@ export default function FairBounty() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <Logo size={32} />
                 <span style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "-0.5px" }}>FairBounty</span>
-                <span style={{ fontSize: "9px", fontWeight: "700", color: "#0a0a0f", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
+                <span style={{ fontSize: "9px", fontWeight: "700", color: "#0c0c14", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
               </div>
               <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
                 <button style={{ ...btnOutline, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("about")}>About</button>
@@ -1043,23 +1042,22 @@ export default function FairBounty() {
 
             {/* Tier Breakdown */}
             <div style={{ marginTop: "60px", ...cardStyle, padding: "32px", textAlign: "left", ...fadeIn, transitionDelay: "0.65s" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "700", marginBottom: "20px", textAlign: "center" }}>🏅 FairScore Tier Benefits</h3>
+              <h3 style={{ fontSize: "18px", fontWeight: "700", marginBottom: "20px", textAlign: "center", letterSpacing: "-0.03em" }}>FairScore Tier Benefits</h3>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                   <thead>
-                    <tr style={{ borderBottom: `1px solid ${theme.primary}20` }}>
-                      {["Tier", "Max Bounty", "BXP Multiplier", "Reward Bonus"].map((h) => (
-                        <th key={h} style={{ padding: "10px 8px", textAlign: "left", color: "#888", fontWeight: "600", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
+                    <tr style={{ borderBottom: `1px solid rgba(255,255,255,0.08)` }}>
+                      {["Tier", "BXP Multiplier", "Review Weight"].map((h) => (
+                        <th key={h} style={{ padding: "10px 8px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontWeight: "500", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(TIER_CONFIG).map(([k, v]) => (
-                      <tr key={k} style={{ borderBottom: `1px solid ${theme.primary}10` }}>
-                        <td style={{ padding: "10px 8px", color: v.color, fontWeight: "700" }}>{v.emoji} Tier {k} — {v.label}</td>
-                        <td style={{ padding: "10px 8px" }}>{v.maxBounty ? `$${v.maxBounty.toLocaleString()}` : "Unlimited"}</td>
-                        <td style={{ padding: "10px 8px" }}>{v.xpMultiplier}x</td>
-                        <td style={{ padding: "10px 8px", color: theme.primary }}>+{v.rewardBonus}%</td>
+                      <tr key={k} style={{ borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+                        <td style={{ padding: "12px 8px", color: v.color, fontWeight: "600" }}>{v.emoji} Tier {k} — {v.label}</td>
+                        <td style={{ padding: "12px 8px" }}>{v.xpMultiplier}x</td>
+                        <td style={{ padding: "12px 8px" }}>{v.voteWeight}x</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1123,47 +1121,27 @@ export default function FairBounty() {
         content: "Solana projects needing vetted contributors (devs, designers, auditors, community managers). Web3 freelancers who want to build verifiable on-chain reputation. DAOs looking for accountable talent. NFT projects needing trusted collaborators.",
       },
       {
-        title: "📊 FairScore Integration (Core Logic)",
+        title: "📊 FairScore Integration",
         items: [
           "Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.",
-          "Community Review — Submissions are upvoted/downvoted Reddit-style. Higher tiers have more influence. Client picks winner from top-voted work.",
-          "Dynamic Rewards — Tier-based bonus rewards up to +25% on completed bounties.",
+          "Community Review — Submissions are voted on. Higher tiers have more influence. Client picks the winner.",
+          "Dynamic Rewards — Tier-based bonus rewards on completed bounties.",
           "Risk Assessment — Every wallet gets a risk score. Projects see trustworthiness at a glance.",
-          "BXP Multipliers — Higher tiers earn BXP 1x–3x faster, accelerating reputation growth.",
-          "Referral Gating — Only Tier 2+ can refer, preventing bot-driven growth.",
-        ],
-      },
-      {
-        title: "💰 Revenue Model",
-        items: [
-          "Listing Fees — 50 USDC per bounty posted. Sustainable, predictable revenue.",
-          "Commission — 5% cut of all completed bounty payouts.",
-          "Data Insights — Anonymized reputation analytics sold to ecosystem partners.",
-        ],
-      },
-      {
-        title: "🚀 Growth Strategy",
-        items: [
-          "First 100 users — Direct outreach to Solana developer communities on X, Discord, and Telegram. Seed bounties from existing projects.",
-          "First 1,000 — Referral program with BXP rewards. Partner with Superteam, Solana Foundation, and hackathon organizers.",
-          "First 10,000 — Expand to multi-chain via FairScale's cross-chain reputation. Integrate with DAOs for governance-linked bounties.",
-          "Ongoing — Content marketing (build-in-public threads), ecosystem partnerships, and community-driven bounty curation.",
-        ],
-      },
-      {
-        title: "🏗️ Technical Architecture",
-        items: [
-          "Frontend — React + Vite + Tailwind, deployed on Vercel.",
-          "Backend — Node.js serverless functions for bounty management.",
-          "Database — PostgreSQL (Neon) for bounties, submissions, BXP, and user data.",
-          "Auth — Solana wallet-based (Phantom, Solflare, Jupiter, Backpack, Glow).",
-          "FairScore — Real-time API integration via FairScale REST API.",
-          "Scalability — Stateless architecture, CDN-delivered frontend, auto-scaling serverless backend.",
+          "BXP Multipliers — Higher tiers earn BXP faster, accelerating reputation growth.",
+          "Referral Rewards — Refer friends, both of you earn BXP.",
         ],
       },
       {
         title: "🤝 Competitive Advantage",
         content: "No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, reducing friction for both projects and contributors while creating a self-reinforcing reputation flywheel.",
+      },
+      {
+        title: "🔗 Links",
+        items: [
+          "Built by @smsonx — x.com/smsonx",
+          "Research & Updates — smsai.fun",
+          "Powered by FairScale — fairscale.xyz",
+        ],
       },
     ];
 
@@ -1188,7 +1166,7 @@ export default function FairBounty() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {s.items.map((item, i) => (
                         <div key={i} style={{
-                          padding: "10px 14px", background: "#0a0a0f", borderRadius: "6px",
+                          padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
                           fontSize: "12px", color: "#bbb", lineHeight: "1.6",
                           borderLeft: `2px solid ${theme.primary}40`,
                         }}>
@@ -1241,19 +1219,14 @@ export default function FairBounty() {
           "💡 Example: Tier 3 (Builder, 1.5x) wins $500 USDC → $550 payout + 150 BXP",
         ],
       },
-      {
-        num: "05", icon: "📈", title: "Level Up",
-        desc: "As you use more Solana protocols, hold NFTs, participate in DeFi, and complete bounties — your on-chain activity grows. FairScale tracks this and your FairScore tier increases over time, unlocking higher bounties.",
-        details: ["Use more DeFi protocols (Jupiter, Raydium, Marinade...)", "Hold and trade NFTs", "Increase transaction volume", "Maintain consistent on-chain activity", "Complete bounties to build reputation"],
-      },
     ];
 
     const tierDetails = {
-      1: { xp: "1x", vote: "1x", bonus: "+0%", tip: "🌱 Just getting started. Connect your wallet and explore smaller bounties to begin building reputation." },
-      2: { xp: "1.25x", vote: "2x", bonus: "+5%", tip: "🔍 You've been active on-chain. You can now access mid-range bounties, generate referral links, and your submission reviews carry 2x weight." },
-      3: { xp: "1.5x", vote: "3x", bonus: "+10%", tip: "🔨 Established builder. Access bounties up to $1,000, earn 10% bonus rewards, and your 3x review weight helps surface the best submissions." },
-      4: { xp: "2x", vote: "5x", bonus: "+15%", tip: "⭐ Veteran status. You've proven yourself on-chain. $5K bounties, 15% bonus, 5x review power, and 2x BXP acceleration." },
-      5: { xp: "3x", vote: "8x", bonus: "+25%", tip: "👑 Legendary reputation. Unlimited bounty access, 25% bonus rewards, 8x review weight, 3x BXP. You're the top of the ecosystem." },
+      1: { xp: "1x", vote: "1x", tip: "Connect your wallet and explore. Build on-chain activity to start climbing." },
+      2: { xp: "1.25x", vote: "2x", tip: "Active on-chain. Access mid-range bounties, generate referral links, reviews carry 2x weight." },
+      3: { xp: "1.5x", vote: "3x", tip: "Established builder. Earn bonus rewards, 3x review weight helps surface the best work." },
+      4: { xp: "2x", vote: "5x", tip: "Veteran status. Proven on-chain. 5x review power, 2x BXP acceleration." },
+      5: { xp: "3x", vote: "8x", tip: "Legendary reputation. Unlimited access, 8x review weight, 3x BXP." },
     };
 
     return (
@@ -1314,7 +1287,7 @@ export default function FairBounty() {
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                           {step.details.map((d, j) => (
                             <div key={j} style={{
-                              padding: "10px 14px", background: "#0a0a0f", borderRadius: "6px",
+                              padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
                               fontSize: "12px", color: "#999", lineHeight: "1.5",
                               borderLeft: `2px solid ${theme.primary}40`,
                               display: "flex", alignItems: "center", gap: "8px",
@@ -1336,91 +1309,60 @@ export default function FairBounty() {
               })}
             </div>
 
-            {/* Tier Breakdown */}
-            <div style={{ textAlign: "center", margin: "0 0 32px" }}>
-              <div style={{
-                display: "inline-block", padding: "8px 20px",
-                background: `${theme.primary}10`, border: `1px solid ${theme.primary}25`,
-                borderRadius: "100px", fontSize: "12px", color: theme.primary, fontWeight: "600",
-              }}>
-                ↓ Understand the Tiers ↓
-              </div>
-            </div>
+            {/* Tiers & How to Level Up — Combined */}
+            <div style={{ marginBottom: "60px" }}>
+              <h2 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "8px", textAlign: "center", letterSpacing: "-0.03em" }}>Tiers & How to Level Up</h2>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: "28px" }}>Your FairScore tier determines what you can access. Tap to expand.</p>
 
-            <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "8px", textAlign: "center" }}>🏅 Tier Breakdown</h2>
-            <p style={{ fontSize: "13px", color: "#888", textAlign: "center", marginBottom: "32px" }}>Tap a tier to see what it unlocks</p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "60px" }}>
-              {Object.entries(TIER_CONFIG).map(([k, v]) => {
-                const td = tierDetails[k];
-                const isOpen = activeTier === k;
-                return (
-                  <div key={k} onClick={() => setActiveTier(isOpen ? null : k)}
-                    style={{
-                      ...cardStyle, cursor: "pointer",
-                      border: isOpen ? `1px solid ${v.color}50` : `1px solid ${theme.primary}15`,
-                      transition: "all 0.3s ease",
-                    }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                      <span style={{ fontSize: "28px" }}>{v.emoji}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: "15px", fontWeight: "700", color: v.color }}>Tier {k} — {v.label}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px" }}>
+                {Object.entries(TIER_CONFIG).map(([k, v]) => {
+                  const td = tierDetails[k];
+                  const isOpen = activeTier === k;
+                  return (
+                    <div key={k} onClick={() => setActiveTier(isOpen ? null : k)}
+                      style={{
+                        ...cardStyle, cursor: "pointer",
+                        border: isOpen ? `1px solid ${v.color}40` : `1px solid rgba(255,255,255,0.07)`,
+                      }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                        <span style={{ fontSize: "24px" }}>{v.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: "14px", fontWeight: "600", color: v.color }}>Tier {k} — {v.label}</div>
+                        </div>
+                        <div style={{ display: "flex", gap: "12px", fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
+                          <span>BXP {td.xp}</span>
+                          <span>Review {td.vote}</span>
+                        </div>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: "14px", fontWeight: "800", color: theme.primary }}>{v.maxBounty ? `$${v.maxBounty.toLocaleString()}` : "Unlimited"}</div>
-                        <div style={{ fontSize: "10px", color: "#666" }}>max bounty</div>
-                      </div>
+                      {isOpen && (
+                        <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: `1px solid ${v.color}15` }}>
+                          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "12px" }}>{td.tip}</p>
+                        </div>
+                      )}
                     </div>
-                    {isOpen && (
-                      <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${v.color}20` }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                          {[
-                            { label: "Review Weight", value: td.vote, icon: "⚖️" },
-                            { label: "BXP Multiplier", value: td.xp, icon: "⚡" },
-                            { label: "Reward Bonus", value: td.bonus, icon: "💎" },
-                          ].map((stat) => (
-                            <div key={stat.label} style={{
-                              padding: "14px", background: "#0a0a0f", borderRadius: "8px", textAlign: "center",
-                              border: `1px solid ${v.color}15`,
-                            }}>
-                              <div style={{ fontSize: "16px", marginBottom: "4px" }}>{stat.icon}</div>
-                              <div style={{ fontSize: "16px", fontWeight: "800", color: v.color }}>{stat.value}</div>
-                              <div style={{ fontSize: "9px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginTop: "2px" }}>{stat.label}</div>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{
-                          marginTop: "12px", padding: "12px", background: `${v.color}08`,
-                          border: `1px solid ${v.color}15`, borderRadius: "8px",
-                          fontSize: "12px", color: "#999", lineHeight: "1.6",
-                        }}>
-                          {td.tip}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
-            {/* How to Level Up */}
-            <div style={{ ...cardStyle, marginBottom: "60px", padding: "32px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "800", marginBottom: "20px", textAlign: "center" }}>📈 How to Increase Your Tier</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
-                {[
-                  { icon: "🔄", title: "Use DeFi Protocols", desc: "Swap on Jupiter, stake with Marinade, provide liquidity on Raydium. Each protocol interaction builds your score." },
-                  { icon: "🖼️", title: "Collect & Trade NFTs", desc: "Active NFT participation shows ecosystem engagement. Buy, sell, and hold across marketplaces." },
-                  { icon: "📊", title: "Increase Activity", desc: "More transactions over time = higher trust. Consistent, legitimate activity matters more than volume." },
-                  { icon: "🏗️", title: "Complete Bounties", desc: "Successfully completed bounties on FairBounty feed back into your on-chain reputation." },
-                  { icon: "⏰", title: "Wallet Age", desc: "Older wallets with consistent history score higher. Time in the ecosystem demonstrates commitment." },
-                  { icon: "🌐", title: "Diversify", desc: "Don't just use one protocol. Spread activity across lending, swapping, staking, governance, and NFTs." },
-                ].map((item) => (
-                  <div key={item.title} style={{ padding: "20px", background: "#0a0a0f", borderRadius: "10px", border: `1px solid ${theme.primary}10` }}>
-                    <div style={{ fontSize: "24px", marginBottom: "8px" }}>{item.icon}</div>
-                    <div style={{ fontSize: "13px", fontWeight: "700", marginBottom: "6px" }}>{item.title}</div>
-                    <div style={{ fontSize: "11px", color: "#888", lineHeight: "1.6" }}>{item.desc}</div>
-                  </div>
-                ))}
+              {/* How to increase */}
+              <div style={{ ...cardStyle, padding: "24px" }}>
+                <h3 style={{ fontSize: "15px", fontWeight: "600", marginBottom: "16px", letterSpacing: "-0.02em" }}>How to increase your tier</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "10px" }}>
+                  {[
+                    { icon: "🔄", title: "Use DeFi", desc: "Swap, stake, and provide liquidity across protocols" },
+                    { icon: "📊", title: "Stay Active", desc: "Consistent on-chain activity over time" },
+                    { icon: "🏗️", title: "Complete Bounties", desc: "Successful completions build your reputation" },
+                    { icon: "⏰", title: "Wallet Age", desc: "Older wallets with history score higher" },
+                    { icon: "🌐", title: "Diversify", desc: "Spread activity across multiple protocols" },
+                    { icon: "🔗", title: "Connect Socials", desc: "Link your X account to boost social score" },
+                  ].map((item) => (
+                    <div key={item.title} style={{ padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: "10px" }}>
+                      <div style={{ fontSize: "18px", marginBottom: "6px" }}>{item.icon}</div>
+                      <div style={{ fontSize: "12px", fontWeight: "600", marginBottom: "4px" }}>{item.title}</div>
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", lineHeight: "1.5" }}>{item.desc}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1481,7 +1423,7 @@ export default function FairBounty() {
                 <button key={opt.id} onClick={() => !loading && connectWallet(opt.id)} disabled={loading}
                   style={{
                     display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px",
-                    background: `linear-gradient(135deg, ${wTheme.bg}, #0a0a0f)`,
+                    background: `linear-gradient(135deg, ${wTheme.bg}, #0c0c14)`,
                     border: `1px solid ${wTheme.primary}30`, borderRadius: "12px", color: "#E8E8ED",
                     fontFamily: "inherit", cursor: loading ? "wait" : "pointer", fontSize: "15px", fontWeight: "600",
                     transition: "all 0.2s ease", textAlign: "left", opacity: loading ? 0.5 : 1,
@@ -1539,7 +1481,7 @@ export default function FairBounty() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "#0a0a0f", borderRadius: "10px", padding: "4px" }}>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {setupTabs.map((t) => (
                 <button key={t} onClick={() => setSetupTab(t)}
                   style={{
@@ -1692,7 +1634,7 @@ export default function FairBounty() {
                           const selected = profileForm.skills.includes(s);
                           return (
                             <button key={s} onClick={() => toggleSkill(s)} style={{
-                              padding: "5px 12px", background: selected ? `${theme.primary}20` : "#0a0a0f",
+                              padding: "5px 12px", background: selected ? `${theme.primary}20` : "#0c0c14",
                               border: `1px solid ${selected ? theme.primary + "40" : theme.primary + "15"}`,
                               borderRadius: "100px", fontSize: "11px", color: selected ? theme.primary : "#999",
                               cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s ease",
@@ -1836,7 +1778,7 @@ export default function FairBounty() {
             </div>
 
             {/* Profile Tabs */}
-            <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: "#0a0a0f", borderRadius: "10px", padding: "4px" }}>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {["overview", "skills", "bookmarks"].map((t) => (
                 <button key={t} onClick={() => setProfileTab(t)}
                   style={{
@@ -1892,7 +1834,7 @@ export default function FairBounty() {
                         { label: "Platforms", value: scoreData.protocolsUsed },
                         { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` },
                       ].map((d) => (
-                        <div key={d.label} style={{ padding: "10px", background: "#0a0a0f", borderRadius: "6px" }}>
+                        <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                           <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.label}</div>
                           <div style={{ fontSize: "14px", fontWeight: "600" }}>{d.value}</div>
                         </div>
@@ -1939,7 +1881,7 @@ export default function FairBounty() {
                         <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>Improve Your Score</div>
                         {scoreData.actions.map((action) => (
                           <div key={action.id} style={{
-                            padding: "8px 12px", marginBottom: "6px", background: "#0a0a0f", borderRadius: "6px",
+                            padding: "8px 12px", marginBottom: "6px", background: "#0c0c14", borderRadius: "6px",
                             borderLeft: `2px solid ${action.priority === "high" ? "#EF4444" : action.priority === "medium" ? "#F59E0B" : theme.primary}40`,
                             fontSize: "12px", color: "#999",
                           }}>
@@ -1962,7 +1904,7 @@ export default function FairBounty() {
                       { label: "Referred Bonus", value: bxpBreakdown.referred, icon: "🤝" },
                       { label: "Submissions", value: bxpBreakdown.submissions, icon: "📝" },
                     ].map((d) => (
-                      <div key={d.label} style={{ padding: "10px", background: "#0a0a0f", borderRadius: "6px" }}>
+                      <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                         <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.icon} {d.label}</div>
                         <div style={{ fontSize: "14px", fontWeight: "600", color: d.value > 0 ? theme.primary : "#444" }}>{d.value} BXP</div>
                       </div>
@@ -1981,7 +1923,7 @@ export default function FairBounty() {
                     Share FairBounty and earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> per signup. They earn the same.
                     {referralCount > 0 && <span style={{ color: theme.primary, fontWeight: "600" }}> · {referralCount} referral{referralCount !== 1 ? "s" : ""} so far</span>}
                   </p>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0a0a0f", borderRadius: "8px", padding: "10px 14px", marginBottom: "10px" }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0c0c14", borderRadius: "8px", padding: "10px 14px", marginBottom: "10px" }}>
                     <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "12px", color: "#aaa", padding: "0" }} />
                     <button onClick={() => navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!"))}
                       style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }}>📋 Copy</button>
@@ -2128,7 +2070,7 @@ export default function FairBounty() {
                 { label: "Reward", value: `${b.reward} ${b.currency}`, color: theme.primary },
                 { label: "Deadline", value: b.deadline, color: "#888" },
               ].map((m) => (
-                <div key={m.label} style={{ padding: "12px", background: "#0a0a0f", borderRadius: "8px", textAlign: "center" }}>
+                <div key={m.label} style={{ padding: "12px", background: "#0c0c14", borderRadius: "8px", textAlign: "center" }}>
                   <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{m.label}</div>
                   <div style={{ fontSize: "14px", fontWeight: "600", color: m.color }}>{m.value}</div>
                 </div>
@@ -2539,7 +2481,7 @@ export default function FairBounty() {
                 </div>
               )}
             </div>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0a0a0f", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0c0c14", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
               <input
                 readOnly
                 value={referralLink}
