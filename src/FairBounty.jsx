@@ -566,7 +566,7 @@ export default function FairBounty() {
     return result;
   };
 
-  const handleProfileSave = () => {
+  const handleProfileSave = async () => {
     if (!profileForm.displayName.trim()) {
       notify("Display name is required.");
       return;
