@@ -85,6 +85,77 @@ const FAIRSCALE_TIER_MAP = {
   platinum: 5,
 };
 
+// Database API — persists data across devices via Neon Postgres
+const DbAPI = {
+  async getProfile(wallet) {
+    try {
+      const res = await fetch(`/api/db?action=get-profile&wallet=${wallet}`);
+      const data = await res.json();
+      return data.profile || null;
+    } catch (e) { console.error("DbAPI.getProfile:", e); return null; }
+  },
+  async saveProfile(wallet, profile) {
+    try {
+      await fetch("/api/db?action=save-profile", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet, profile }),
+      });
+    } catch (e) { console.error("DbAPI.saveProfile:", e); }
+  },
+  async getBxp(wallet) {
+    try {
+      const res = await fetch(`/api/db?action=get-bxp&wallet=${wallet}`);
+      return await res.json();
+    } catch (e) { console.error("DbAPI.getBxp:", e); return null; }
+  },
+  async claimWelcome(wallet, amount) {
+    try {
+      const res = await fetch("/api/db?action=claim-welcome", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet, amount }),
+      });
+      return await res.json();
+    } catch (e) { console.error("DbAPI.claimWelcome:", e); return { success: false }; }
+  },
+  async processReferral(referrerWallet, referredWallet, referrerAmount, referredAmount) {
+    try {
+      await fetch("/api/db?action=process-referral", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referrerWallet, referredWallet, referrerAmount, referredAmount }),
+      });
+    } catch (e) { console.error("DbAPI.processReferral:", e); }
+  },
+  async getReferralCount(wallet) {
+    try {
+      const res = await fetch(`/api/db?action=get-referrals&wallet=${wallet}`);
+      const data = await res.json();
+      return data.count || 0;
+    } catch (e) { console.error("DbAPI.getReferralCount:", e); return 0; }
+  },
+  async trackWallet(wallet) {
+    try {
+      await fetch("/api/db?action=track-wallet", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet }),
+      });
+    } catch (e) { console.error("DbAPI.trackWallet:", e); }
+  },
+  async getStats() {
+    try {
+      const res = await fetch("/api/db?action=get-stats");
+      return await res.json();
+    } catch (e) { console.error("DbAPI.getStats:", e); return null; }
+  },
+  async submitBountyApp(wallet, displayName, fairScore, form) {
+    try {
+      await fetch("/api/db?action=submit-bounty-app", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet, displayName, fairScore, form }),
+      });
+    } catch (e) { console.error("DbAPI.submitBountyApp:", e); }
+  },
+};
+
 const FairScoreAPI = {
   // Fetch reputation data for a wallet address via our serverless proxy
   async getScore(walletAddress) {
@@ -218,7 +289,15 @@ export default function FairBounty() {
   });
   const [referredBy, setReferredBy] = useState(null);
   const [referralCount, setReferralCount] = useState(0);
+  const [globalStats, setGlobalStats] = useState({ connectedWallets: 0, profiles: 0, bountyApps: 0 });
   const [bxpBreakdown, setBxpBreakdown] = useState({ welcome: 0, referrals: 0, referred: 0, submissions: 0, wins: 0 });
+
+  // Load global stats from DB on mount
+  useEffect(() => {
+    DbAPI.getStats().then((stats) => {
+      if (stats) setGlobalStats(stats);
+    });
+  }, []);
 
   // Detect referral code from URL on mount
   useEffect(() => {
@@ -378,8 +457,37 @@ export default function FairBounty() {
           notify(`Connected via ${WALLET_THEMES[type]?.name || opt.name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label}) — ${data.fairscaleTier}`);
         }
 
-        // Restore saved profile for this wallet
+        // Track wallet connection in DB
+        DbAPI.trackWallet(pubkey);
+
+        // Restore saved profile — check DB first, then localStorage
         try {
+          const dbProfile = await DbAPI.getProfile(pubkey);
+          if (dbProfile) {
+            setProfile(dbProfile);
+            setProfileForm({
+              displayName: dbProfile.displayName || "", xHandle: dbProfile.xHandle || "", bio: dbProfile.bio || "",
+              contact: dbProfile.contact || "", email: dbProfile.email || "", pfpUrl: dbProfile.pfpUrl || "",
+              linkedin: dbProfile.linkedin || "", github: dbProfile.github || "", website: dbProfile.website || "",
+              telegram: dbProfile.telegram || "", discord: dbProfile.discord || "", lookingFor: dbProfile.lookingFor || "",
+              worksAt: dbProfile.worksAt || "", location: dbProfile.location || "", skills: dbProfile.skills || [],
+            });
+            // Restore BXP from DB
+            const bxpData = await DbAPI.getBxp(pubkey);
+            if (bxpData && bxpData.bxp) {
+              setBxpBreakdown(bxpData.bxp);
+              setXp(Object.values(bxpData.bxp).reduce((a, b) => a + b, 0));
+            }
+            const refCount = await DbAPI.getReferralCount(pubkey);
+            setReferralCount(refCount);
+            // Also save to localStorage as cache
+            try { localStorage.setItem(`fb_profile_${pubkey}`, JSON.stringify(dbProfile)); } catch (e) {}
+            setLoading(false);
+            setView("dashboard");
+            return;
+          }
+
+          // Fallback to localStorage
           const saved = localStorage.getItem(`fb_profile_${pubkey}`);
           if (saved) {
             const p = JSON.parse(saved);
@@ -393,20 +501,19 @@ export default function FairBounty() {
             });
             const savedBookmarks = localStorage.getItem(`fb_bookmarks_${pubkey}`);
             if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
-            // Restore BXP data
             const savedBxp = localStorage.getItem(`fb_bxp_${pubkey}`);
             if (savedBxp) {
               const bxp = JSON.parse(savedBxp);
               setBxpBreakdown(bxp);
               setXp(Object.values(bxp).reduce((a, b) => a + b, 0));
             }
-            const savedRefs = localStorage.getItem(`fb_referrals_${pubkey}`);
-            if (savedRefs) setReferralCount(JSON.parse(savedRefs).length);
+            // Migrate localStorage profile to DB
+            DbAPI.saveProfile(pubkey, p);
             setLoading(false);
             setView("dashboard");
             return;
           }
-        } catch (e) { /* localStorage not available */ }
+        } catch (e) { console.error("Profile restore error:", e); }
 
         setLoading(false);
         setView("profile-setup");
@@ -485,11 +592,12 @@ export default function FairBounty() {
     };
     setProfile(profileData);
 
-    // Persist to localStorage
+    // Persist to database + localStorage
     if (fullAddress) {
       try {
         localStorage.setItem(`fb_profile_${fullAddress}`, JSON.stringify(profileData));
       } catch (e) { /* storage full or unavailable */ }
+      DbAPI.saveProfile(fullAddress, profileData);
     }
 
     // BXP REWARDS
@@ -497,34 +605,27 @@ export default function FairBounty() {
     let newBxp = { ...bxpBreakdown };
     let bonusMessages = [];
 
-    // Welcome bonus (only first time — check if already claimed)
+    // Welcome bonus (only first time — check DB then localStorage)
     const alreadyClaimed = localStorage.getItem(`fb_welcome_${fullAddress}`);
     if (!alreadyClaimed && fullAddress) {
       const welcomeAmount = Math.floor(100 * multiplier);
-      newBxp.welcome = welcomeAmount;
-      bonusMessages.push(`+${welcomeAmount} BXP welcome bonus`);
-      try { localStorage.setItem(`fb_welcome_${fullAddress}`, "1"); } catch (e) {}
+      const result = await DbAPI.claimWelcome(fullAddress, welcomeAmount);
+      if (result.success || result.already_claimed === undefined) {
+        newBxp.welcome = welcomeAmount;
+        bonusMessages.push(`+${welcomeAmount} BXP welcome bonus`);
+        try { localStorage.setItem(`fb_welcome_${fullAddress}`, "1"); } catch (e) {}
+      }
     }
 
     // Referred bonus — you get 50 BXP for signing up via someone's link
     if (referredBy && referredBy !== fullAddress && !localStorage.getItem(`fb_was_referred_${fullAddress}`)) {
       const referredAmount = Math.floor(50 * multiplier);
+      const referrerAmount = Math.floor(50 * multiplier);
       newBxp.referred = referredAmount;
       bonusMessages.push(`+${referredAmount} BXP referral bonus`);
-      try {
-        localStorage.setItem(`fb_was_referred_${fullAddress}`, referredBy);
-        // Credit the referrer
-        const referrerRefs = JSON.parse(localStorage.getItem(`fb_referrals_${referredBy}`) || "[]");
-        if (!referrerRefs.includes(fullAddress)) {
-          referrerRefs.push(fullAddress);
-          localStorage.setItem(`fb_referrals_${referredBy}`, JSON.stringify(referrerRefs));
-          // Add BXP to referrer's breakdown
-          const referrerBxp = JSON.parse(localStorage.getItem(`fb_bxp_${referredBy}`) || '{"welcome":0,"referrals":0,"referred":0,"submissions":0,"wins":0}');
-          const referrerMultiplier = FairScoreAPI.getXpMultiplier(fairScore || 1); // approximate
-          referrerBxp.referrals += Math.floor(50 * referrerMultiplier);
-          localStorage.setItem(`fb_bxp_${referredBy}`, JSON.stringify(referrerBxp));
-        }
-      } catch (e) {}
+      // Process in DB
+      DbAPI.processReferral(referredBy, fullAddress, referrerAmount, referredAmount);
+      try { localStorage.setItem(`fb_was_referred_${fullAddress}`, referredBy); } catch (e) {}
     }
 
     // Save BXP breakdown
@@ -535,12 +636,10 @@ export default function FairBounty() {
       try { localStorage.setItem(`fb_bxp_${fullAddress}`, JSON.stringify(newBxp)); } catch (e) {}
     }
 
-    // Load referral count
+    // Load referral count from DB
     if (fullAddress) {
-      try {
-        const refs = JSON.parse(localStorage.getItem(`fb_referrals_${fullAddress}`) || "[]");
-        setReferralCount(refs.length);
-      } catch (e) {}
+      const refCount = await DbAPI.getReferralCount(fullAddress);
+      setReferralCount(refCount);
     }
 
     const bonusText = bonusMessages.length > 0 ? ` ${bonusMessages.join(" · ")}` : "";
@@ -1009,9 +1108,9 @@ export default function FairBounty() {
             {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
-                { value: connectedWallets.length.toString(), label: "Connected Wallets", live: true },
-                { value: "0", label: "Bounties Posted", live: true },
-                { value: "0", label: "Submissions", live: true },
+                { value: globalStats.connectedWallets.toString(), label: "Connected Wallets", live: true },
+                { value: globalStats.bountyApps.toString(), label: "Bounties Posted", live: true },
+                { value: globalStats.profiles.toString(), label: "Profiles", live: true },
               ].map((stat) => (
                 <div key={stat.label} style={{ ...cardStyle, padding: "24px", textAlign: "center" }}>
                   <div style={{ fontSize: "28px", fontWeight: "800", color: theme.primary, marginBottom: "4px" }}>{stat.value}</div>
@@ -2254,6 +2353,7 @@ export default function FairBounty() {
       const updated = [...bountyApplications, application];
       setBountyApplications(updated);
       try { localStorage.setItem("fb_bounty_applications", JSON.stringify(updated)); } catch (e) {}
+      DbAPI.submitBountyApp(fullAddress, profile.displayName, fairScore, bountyForm);
       setBountyForm({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
       notify("Bounty application submitted! We'll review and get back to you.");
       setView("dashboard");
