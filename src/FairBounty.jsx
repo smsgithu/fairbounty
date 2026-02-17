@@ -12,6 +12,7 @@ const WALLET_THEMES = {
   backpack: { primary: "#E33E3F", accent: "#FF6B6B", bg: "#1A0C0C", name: "Backpack" },
   jupiter: { primary: "#C7F284", accent: "#95D840", bg: "#0F1A08", name: "Jupiter" },
   glow: { primary: "#B4A0FF", accent: "#8B72FF", bg: "#15102A", name: "Glow" },
+  seedvault: { primary: "#00D4AA", accent: "#00F0CC", bg: "#0A1A16", name: "Seed Vault" },
   default: { primary: "#00F0FF", accent: "#00C4CC", bg: "#0A1A1C", name: "FairBounty" },
 };
 
@@ -351,6 +352,12 @@ export default function FairBounty() {
     {
       id: "glow", name: "Glow", window: "glow", check: (w) => !!w,
       downloadUrl: "https://glow.app/",
+    },
+    {
+      id: "seedvault", name: "Seed Vault", window: "solflare", check: (w) => !!w,
+      mobileLink: `https://solflare.com/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      downloadUrl: "https://solanamobile.com/seeker",
+      seekerOnly: true,
     },
   ], [isIOS]);
 
@@ -1477,7 +1484,7 @@ export default function FairBounty() {
   // WALLET CONNECT
   // ============================================================
   if (view === "connect") {
-    const walletIcons = { jupiter: "🪐", phantom: "👻", solflare: "🔥", backpack: "🎒", glow: "✨" };
+    const walletIcons = { jupiter: "🪐", phantom: "👻", solflare: "🔥", backpack: "🎒", glow: "✨", seedvault: "🔐" };
 
     // Check which wallets are detected
     const isWalletDetected = (opt) => {
@@ -2001,25 +2008,36 @@ export default function FairBounty() {
                   </div>
                 </div>
 
-                <div style={cardStyle}>
-                  <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>🔗 Referral Link</h3>
-                  <p style={{ fontSize: "12px", color: "#888", marginBottom: "10px" }}>
-                    Share FairBounty and earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> per signup. They earn the same.
-                    {referralCount > 0 && <span style={{ color: theme.primary, fontWeight: "600" }}> · {referralCount} referral{referralCount !== 1 ? "s" : ""} so far</span>}
+                <div style={{ ...glassCard, padding: "24px" }}>
+                  <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.02em" }}>🔗 Invite & Earn BXP</h3>
+                  <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", marginBottom: "14px", lineHeight: "1.6" }}>
+                    Share your referral link — you earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> and they earn the same when they sign up.
+                    {referralCount > 0 && <span style={{ color: theme.primary, fontWeight: "600" }}> · {referralCount} referral{referralCount !== 1 ? "s" : ""} so far!</span>}
                   </p>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0c0c14", borderRadius: "8px", padding: "10px 14px", marginBottom: "10px" }}>
-                    <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "12px", color: "#aaa", padding: "0" }} />
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px", border: `1px solid ${theme.primary}15` }}>
+                    <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "11px", color: "rgba(255,255,255,0.5)", padding: "0" }} />
                     <button onClick={() => navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!"))}
                       style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }}>📋 Copy</button>
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(`I'm building my on-chain reputation on FairBounty — a trust-gated bounty platform powered by @FairScale_xyz.\n\nJoin with my link and we both earn BXP:\n${referralLink}`)}`}
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(`I'm earning BXP on @FairBounty — reputation-gated bounties on Solana powered by @fairscalexyz\n\nJoin with my link and we both earn BXP:\n${referralLink}\n\nBuilt by @smsonx`)}`}
                       target="_blank" rel="noopener noreferrer"
-                      style={{ ...btnOutline, fontSize: "12px", padding: "8px 18px", textDecoration: "none" }}>Share on 𝕏 →</a>
-                    <a href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties powered by FairScale!")}`}
+                      style={{ ...btnPrimary, fontSize: "12px", padding: "10px 20px", textDecoration: "none", flex: 1, textAlign: "center", display: "block" }}>Share on 𝕏</a>
+                    <a href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties on Solana powered by FairScale! We both earn BXP.")}`}
                       target="_blank" rel="noopener noreferrer"
-                      style={{ ...btnOutline, fontSize: "12px", padding: "8px 18px", textDecoration: "none" }}>Telegram</a>
+                      style={{ ...btnOutline, fontSize: "12px", padding: "10px 20px", textDecoration: "none", flex: 1, textAlign: "center", display: "block" }}>Share on Telegram</a>
                   </div>
+                  {isMobile && (
+                    <button onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: "FairBounty", text: "Join FairBounty — reputation-gated bounties on Solana. We both earn BXP!", url: referralLink });
+                      } else {
+                        navigator.clipboard.writeText(referralLink).then(() => notify("Link copied!"));
+                      }
+                    }} style={{ ...btnOutline, width: "100%", marginTop: "8px", fontSize: "12px", padding: "10px" }}>
+                      📱 Share via...
+                    </button>
+                  )}
                 </div>
               </div>
             )}
