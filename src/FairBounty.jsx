@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { getWallets } from "@wallet-standard/app";
+import {
+  createDefaultAuthorizationCache,
+  createDefaultChainSelector,
+  createDefaultWalletNotFoundHandler,
+  registerMwa,
+} from "@solana-mobile/wallet-standard-mobile";
 
 // ============================================================
 // FAIRBOUNTY — Reputation-Gated Bounty Platform
@@ -357,6 +363,34 @@ export default function FairBounty() {
     return () => removeListener();
   }, []);
 
+  // Register MWA for Solana Mobile (same as SMSai)
+  useEffect(() => {
+    registerMwa({
+      appIdentity: { name: "FairBounty", uri: "https://fairbounty.vercel.app", icon: "/logo.png" },
+      authorizationCache: createDefaultAuthorizationCache(),
+      chains: ["solana:mainnet"],
+      chainSelector: createDefaultChainSelector(),
+      onWalletNotFound: createDefaultWalletNotFoundHandler(),
+    });
+  }, []);
+
+  // Find MWA/Seed Vault wallet from wallet standard (same as SMSai)
+  const findMwaWallet = useCallback(() => {
+    return standardWallets.find(w =>
+      w.name?.toLowerCase().includes("mobile wallet adapter") ||
+      w.name?.toLowerCase().includes("seed vault") ||
+      w.name?.toLowerCase().includes("mwa")
+    );
+  }, [standardWallets]);
+
+  // Find Jupiter wallet from wallet standard
+  const findJupiterWallet = useCallback(() => {
+    return standardWallets.find(w =>
+      w.name?.toLowerCase().includes("jupiter") ||
+      w.name?.toLowerCase() === "jup"
+    );
+  }, [standardWallets]);
+
   // Wallet options matching SMSai pattern
   const walletOptions = useMemo(() => [
     {
@@ -386,10 +420,7 @@ export default function FairBounty() {
       downloadUrl: "https://glow.app/",
     },
     {
-      id: "seedvault", name: "Seed Vault", window: "solflare", check: (w) => !!w,
-      mobileLink: `https://solflare.com/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}`,
-      downloadUrl: "https://solanamobile.com/seeker",
-      seekerOnly: true,
+      id: "seedvault", name: "Seed Vault", useStandard: true, isMwa: true,
     },
   ], [isIOS]);
 
@@ -426,23 +457,48 @@ export default function FairBounty() {
     try {
       let pubkey = null;
 
-      // 1. Try wallet-standard (Jupiter, etc)
-      if (opt.useStandard) {
-        const stdWallet = standardWallets.find((w) =>
-          w.name?.toLowerCase().includes(opt.name.toLowerCase())
-        );
-        if (stdWallet) {
-          const connectFeature = stdWallet.features?.["standard:connect"];
+      // Handle Seed Vault / MWA via wallet standard (same as SMSai)
+      if (opt.isMwa) {
+        const mwaWallet = findMwaWallet();
+        if (!mwaWallet) {
+          notify("Seed Vault / Mobile Wallet Adapter not available. This wallet is only available on Solana Mobile devices.");
+          setLoading(false);
+          return;
+        }
+        const connectFeature = mwaWallet.features?.["standard:connect"];
+        if (!connectFeature) throw new Error("Wallet does not support connect");
+        const result = await connectFeature.connect();
+        if (result.accounts && result.accounts.length > 0) {
+          pubkey = result.accounts[0].address;
+        } else {
+          throw new Error("No accounts returned");
+        }
+      }
+      // Handle Jupiter via wallet standard
+      else if (opt.useStandard) {
+        const jupiterWallet = findJupiterWallet();
+        if (jupiterWallet) {
+          const connectFeature = jupiterWallet.features?.["standard:connect"];
           if (connectFeature) {
             const result = await connectFeature.connect();
-            const account = result?.accounts?.[0] || stdWallet.accounts?.[0];
+            const account = result?.accounts?.[0] || jupiterWallet.accounts?.[0];
             if (account?.address) {
               pubkey = account.address;
             } else if (account?.publicKey) {
-              // publicKey is a Uint8Array, encode as base58
               pubkey = encodeBase58(account.publicKey);
             }
           }
+        }
+        if (!pubkey && isMobile && opt.mobileLink) {
+          window.location.href = opt.mobileLink;
+          setLoading(false);
+          return;
+        }
+        if (!pubkey && !isMobile && opt.downloadUrl) {
+          notify(`${opt.name} not detected. Opening download page...`);
+          window.open(opt.downloadUrl, "_blank");
+          setLoading(false);
+          return;
         }
       }
 
@@ -1534,8 +1590,8 @@ export default function FairBounty() {
       return false;
     };
 
-    // Detect if on Solana Mobile / Seeker
-    const isSolanaMobile = isMobile && (window.solflare || standardWallets.some((w) => w.name?.toLowerCase().includes("solflare")));
+    // Detect if MWA / Seed Vault is available
+    const mwaAvailable = !!findMwaWallet();
 
     return (
       <div style={pageStyle}>
@@ -1552,8 +1608,8 @@ export default function FairBounty() {
             </div>
           )}
 
-          {/* Seed Vault — prominent on mobile */}
-          {isMobile && isSolanaMobile && (
+          {/* Seed Vault / MWA — prominent when detected */}
+          {mwaAvailable && (
             <div style={{
               ...glassCard, marginBottom: "20px", padding: "20px", textAlign: "center",
               border: `1px solid ${WALLET_THEMES.seedvault.primary}30`,
@@ -1561,7 +1617,7 @@ export default function FairBounty() {
               <div style={{ fontSize: "11px", fontWeight: "600", color: WALLET_THEMES.seedvault.primary, marginBottom: "12px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                 📱 Solana Mobile Detected
               </div>
-              <button onClick={() => !loading && connectWallet("solflare")} disabled={loading}
+              <button onClick={() => !loading && connectWallet("seedvault")} disabled={loading}
                 style={{
                   ...btnPrimary, width: "100%", padding: "14px 24px", fontSize: "15px",
                   background: `linear-gradient(135deg, ${WALLET_THEMES.seedvault.primary}, ${WALLET_THEMES.seedvault.accent})`,
@@ -1573,7 +1629,7 @@ export default function FairBounty() {
           )}
 
           {/* Tip for non-detected mobile */}
-          {isMobile && !isSolanaMobile && (
+          {isMobile && !mwaAvailable && (
             <div style={{
               ...cardStyle, marginBottom: "20px", padding: "14px 16px", textAlign: "center",
               fontSize: "12px", color: "rgba(255,255,255,0.4)",
@@ -1582,13 +1638,13 @@ export default function FairBounty() {
             </div>
           )}
 
-          {/* Other wallets label on mobile when Seed Vault is shown */}
-          {isMobile && isSolanaMobile && (
+          {/* Other wallets label when Seed Vault is shown */}
+          {mwaAvailable && (
             <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "12px", textAlign: "center" }}>Or select another wallet:</p>
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {walletOptions.filter((opt) => !opt.seekerOnly).map((opt) => {
+            {walletOptions.filter((opt) => !opt.isMwa).map((opt) => {
               const wTheme = WALLET_THEMES[opt.id] || WALLET_THEMES.default;
               const detected = isWalletDetected(opt);
               return (
