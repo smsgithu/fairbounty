@@ -1534,21 +1534,61 @@ export default function FairBounty() {
       return false;
     };
 
+    // Detect if on Solana Mobile / Seeker
+    const isSolanaMobile = isMobile && (window.solflare || standardWallets.some((w) => w.name?.toLowerCase().includes("solflare")));
+
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "460px", margin: "0 auto", padding: "60px 20px", ...fadeIn }}>
           <button onClick={() => setView("landing")} style={{ ...btnOutline, marginBottom: "40px", fontSize: "12px", padding: "8px 16px" }}>← Back</button>
-          <h2 style={{ fontSize: "28px", fontWeight: "800", marginBottom: "8px" }}>Connect Wallet</h2>
-          <p style={{ color: "#888", fontSize: "14px", marginBottom: "32px" }}>Choose your Solana wallet. Your FairScore will be fetched automatically.</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {loading && (
-              <div style={{ textAlign: "center", padding: "20px", color: theme.primary, fontSize: "14px" }}>
-                <div style={{ fontSize: "28px", marginBottom: "8px", animation: "pulse 1s ease-in-out infinite" }}>⏳</div>
-                Connecting wallet...
+          <h2 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Connect Wallet</h2>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "32px" }}>Choose your Solana wallet. Your FairScore will be fetched automatically.</p>
+
+          {loading && (
+            <div style={{ textAlign: "center", padding: "20px", color: theme.primary, fontSize: "14px" }}>
+              <div style={{ fontSize: "28px", marginBottom: "8px", animation: "pulse 1s ease-in-out infinite" }}>⏳</div>
+              Connecting wallet...
+            </div>
+          )}
+
+          {/* Seed Vault — prominent on mobile */}
+          {isMobile && isSolanaMobile && (
+            <div style={{
+              ...glassCard, marginBottom: "20px", padding: "20px", textAlign: "center",
+              border: `1px solid ${WALLET_THEMES.seedvault.primary}30`,
+            }}>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: WALLET_THEMES.seedvault.primary, marginBottom: "12px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                📱 Solana Mobile Detected
               </div>
-            )}
-            {walletOptions.filter((opt) => !opt.seekerOnly || isMobile).map((opt) => {
+              <button onClick={() => !loading && connectWallet("solflare")} disabled={loading}
+                style={{
+                  ...btnPrimary, width: "100%", padding: "14px 24px", fontSize: "15px",
+                  background: `linear-gradient(135deg, ${WALLET_THEMES.seedvault.primary}, ${WALLET_THEMES.seedvault.accent})`,
+                  boxShadow: `0 2px 20px ${WALLET_THEMES.seedvault.primary}30`,
+                }}>
+                🔐 Connect with Seed Vault
+              </button>
+            </div>
+          )}
+
+          {/* Tip for non-detected mobile */}
+          {isMobile && !isSolanaMobile && (
+            <div style={{
+              ...cardStyle, marginBottom: "20px", padding: "14px 16px", textAlign: "center",
+              fontSize: "12px", color: "rgba(255,255,255,0.4)",
+            }}>
+              📱 Tap a wallet to open this site in that wallet's browser
+            </div>
+          )}
+
+          {/* Other wallets label on mobile when Seed Vault is shown */}
+          {isMobile && isSolanaMobile && (
+            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "12px", textAlign: "center" }}>Or select another wallet:</p>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {walletOptions.filter((opt) => !opt.seekerOnly).map((opt) => {
               const wTheme = WALLET_THEMES[opt.id] || WALLET_THEMES.default;
               const detected = isWalletDetected(opt);
               return (
@@ -1566,7 +1606,7 @@ export default function FairBounty() {
                   <span style={{ fontSize: "24px" }}>{walletIcons[opt.id] || "💳"}</span>
                   <span>{opt.name}</span>
                   <span style={{ marginLeft: "auto", fontSize: "10px", padding: "4px 10px", background: detected ? `${wTheme.primary}25` : "#ffffff08", color: detected ? wTheme.primary : "#666", borderRadius: "100px", fontWeight: "600" }}>
-                    {detected ? "✓ Detected" : "Solana"}
+                    {detected ? "✓ Detected" : isMobile && opt.mobileLink ? "↗" : "Solana"}
                   </span>
                 </button>
               );
