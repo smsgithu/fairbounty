@@ -155,6 +155,29 @@ const DbAPI = {
       });
     } catch (e) { console.error("DbAPI.submitBountyApp:", e); }
   },
+  async setReferralCode(wallet, code) {
+    try {
+      const res = await fetch("/api/db?action=set-referral-code", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet, code }),
+      });
+      return await res.json();
+    } catch (e) { console.error("DbAPI.setReferralCode:", e); return { code: null }; }
+  },
+  async getReferralCode(wallet) {
+    try {
+      const res = await fetch(`/api/db?action=get-referral-code&wallet=${wallet}`);
+      const data = await res.json();
+      return data.code || null;
+    } catch (e) { console.error("DbAPI.getReferralCode:", e); return null; }
+  },
+  async resolveReferral(code) {
+    try {
+      const res = await fetch(`/api/db?action=resolve-referral&code=${encodeURIComponent(code)}`);
+      const data = await res.json();
+      return data.wallet || null;
+    } catch (e) { console.error("DbAPI.resolveReferral:", e); return null; }
+  },
 };
 
 const FairScoreAPI = {
@@ -291,6 +314,7 @@ export default function FairBounty() {
   const [referredBy, setReferredBy] = useState(null);
   const [referralCount, setReferralCount] = useState(0);
   const [globalStats, setGlobalStats] = useState({ connectedWallets: 0, profiles: 0, bountyApps: 0 });
+  const [referralCode, setReferralCode] = useState(null);
   const [bxpBreakdown, setBxpBreakdown] = useState({ welcome: 0, referrals: 0, referred: 0, submissions: 0, wins: 0 });
 
   // Load global stats from DB on mount
@@ -302,15 +326,23 @@ export default function FairBounty() {
 
   // Detect referral code from URL on mount
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const ref = params.get("ref");
-      if (ref && ref.length >= 32) {
-        setReferredBy(ref);
-        // Clean URL without reload
-        window.history.replaceState({}, "", window.location.pathname);
-      }
-    } catch (e) {}
+    (async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref");
+        if (ref) {
+          if (ref.length >= 32) {
+            // It's a wallet address
+            setReferredBy(ref);
+          } else {
+            // It's a referral code — resolve to wallet
+            const wallet = await DbAPI.resolveReferral(ref);
+            if (wallet) setReferredBy(wallet);
+          }
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+      } catch (e) {}
+    })();
   }, []);
 
   // Detect iOS for deep links
@@ -489,6 +521,9 @@ export default function FairBounty() {
             setReferralCount(refCount);
             // Also save to localStorage as cache
             try { localStorage.setItem(`fb_profile_${pubkey}`, JSON.stringify(dbProfile)); } catch (e) {}
+            // Load referral code
+            const code = await DbAPI.getReferralCode(pubkey);
+            if (code) setReferralCode(code);
             setLoading(false);
             setView("dashboard");
             return;
@@ -605,6 +640,10 @@ export default function FairBounty() {
         localStorage.setItem(`fb_profile_${fullAddress}`, JSON.stringify(profileData));
       } catch (e) { /* storage full or unavailable */ }
       DbAPI.saveProfile(fullAddress, profileData);
+      // Generate referral code from display name
+      const codeBase = (profileForm.displayName || "user").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      const codeResult = await DbAPI.setReferralCode(fullAddress, codeBase);
+      if (codeResult.code) setReferralCode(codeResult.code);
     }
 
     // BXP REWARDS
@@ -697,7 +736,9 @@ export default function FairBounty() {
     return;
   };
 
-  const referralLink = fullAddress ? `https://fairbounty.vercel.app?ref=${fullAddress}` : "";
+  const referralLink = referralCode
+    ? `https://fairbounty.vercel.app?ref=${referralCode}`
+    : fullAddress ? `https://fairbounty.vercel.app?ref=${fullAddress}` : "";
   const filteredBounties = filterTier > 0 ? bounties.filter((b) => b.minTier === filterTier) : bounties;
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
@@ -1507,7 +1548,7 @@ export default function FairBounty() {
                 Connecting wallet...
               </div>
             )}
-            {walletOptions.map((opt) => {
+            {walletOptions.filter((opt) => !opt.seekerOnly || isMobile).map((opt) => {
               const wTheme = WALLET_THEMES[opt.id] || WALLET_THEMES.default;
               const detected = isWalletDetected(opt);
               return (
@@ -2015,7 +2056,7 @@ export default function FairBounty() {
                     {referralCount > 0 && <span style={{ color: theme.primary, fontWeight: "600" }}> · {referralCount} referral{referralCount !== 1 ? "s" : ""} so far!</span>}
                   </p>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px", border: `1px solid ${theme.primary}15` }}>
-                    <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "11px", color: "rgba(255,255,255,0.5)", padding: "0" }} />
+                    <input readOnly value={referralCode ? `fairbounty.vercel.app?ref=${referralCode}` : referralLink ? `fairbounty.vercel.app?ref=${fullAddress.slice(0, 4)}...${fullAddress.slice(-4)}` : ""} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "11px", color: "rgba(255,255,255,0.5)", padding: "0" }} />
                     <button onClick={() => navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!"))}
                       style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }}>📋 Copy</button>
                   </div>
