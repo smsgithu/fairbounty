@@ -342,6 +342,7 @@ export default function FairBounty() {
   const [bountyApplications, setBountyApplications] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fb_bounty_applications") || "[]"); } catch { return []; }
   });
+  const [bountyForm, setBountyForm] = useState({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
   const [connectedWallets, setConnectedWallets] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fb_connected_wallets") || "[]"); } catch { return []; }
   });
@@ -1296,7 +1297,12 @@ export default function FairBounty() {
       { title: "👥 Target Audience", content: "Solana projects needing vetted contributors (devs, designers, auditors, community managers). Web3 freelancers who want to build verifiable on-chain reputation. DAOs looking for accountable talent. NFT projects needing trusted collaborators." },
       { title: "📊 FairScore Integration", items: ["Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.", "Community Review — Submissions voted on, weighted by tier. Client picks the winner.", "Dynamic Rewards — Tier-based bonus rewards on completed bounties.", "Risk Assessment — Every wallet gets a risk score.", "BXP Multipliers — Higher tiers earn BXP faster.", "Multi-Prize Support — USDC, memecoins, and NFTs as prizes."] },
       { title: "🤝 Competitive Advantage", content: "No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, creating a self-reinforcing reputation flywheel." },
-      { title: "🔗 Links", items: ["Built by @smsonx — x.com/smsonx", "Platform — @fairbounty", "Research & Updates — smsai.fun", "Powered by FairScale — fairscale.xyz"] },
+      { title: "🔗 Links", links: [
+        { label: "Built by @smsonx", url: "https://x.com/smsonx" },
+        { label: "Platform — @fairbounty", url: "https://x.com/fairbounty" },
+        { label: "Research & Updates — smsai.fun", url: "https://smsai.fun" },
+        { label: "Powered by FairScale — fairscale.xyz", url: "https://fairscale.xyz" },
+      ]},
     ];
     return (
       <div style={pageStyle}>
@@ -1315,6 +1321,21 @@ export default function FairBounty() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {s.items.map((item, i) => (
                         <div key={i} style={{ padding: "10px 14px", background: "#0c0c14", borderRadius: "6px", fontSize: "12px", color: "#bbb", lineHeight: "1.6", borderLeft: `2px solid ${theme.primary}40` }}>{item}</div>
+                      ))}
+                    </div>
+                  )}
+                  {s.links && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {s.links.map((link, i) => (
+                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
+                          padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
+                          fontSize: "12px", color: theme.primary, lineHeight: "1.6",
+                          borderLeft: `2px solid ${theme.primary}40`, textDecoration: "none",
+                          display: "block", transition: "background 0.2s ease",
+                        }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = `${theme.primary}10`}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "#0c0c14"}
+                        >{link.label} ↗</a>
                       ))}
                     </div>
                   )}
@@ -2121,7 +2142,6 @@ export default function FairBounty() {
     }
 
     // Non-beta users: intake form
-    const [bountyForm, setBountyForm] = useState({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
     const handleBountySubmit = () => {
       if (!wallet || !profile) { notify("Please connect wallet first."); setView("connect"); return; }
       if (!bountyForm.projectName.trim() || !bountyForm.title.trim() || !bountyForm.description.trim() || !bountyForm.reward) { notify("Please fill in all required fields."); return; }
