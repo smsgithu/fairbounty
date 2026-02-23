@@ -40,10 +40,11 @@ const RISK_LEVELS = {
 
 // Prize type config
 const PRIZE_TYPES = {
-  USDC: { label: "USDC", icon: "💵", color: "#2775CA", description: "Stablecoin — most common for bounties" },
+  USDC: { label: "Stablecoin", icon: "💵", color: "#2775CA", description: "USDC, USDT, or any stablecoin" },
   SOL: { label: "SOL", icon: "◎", color: "#9945FF", description: "Native Solana token" },
   MEMECOIN: { label: "Memecoin", icon: "🐸", color: "#F59E0B", description: "BONK, WIF, POPCAT, etc." },
   NFT: { label: "NFT / cNFT", icon: "🖼️", color: "#EC4899", description: "NFT or compressed NFT as prize" },
+  COLLECTIBLE: { label: "Collectible", icon: "📦", color: "#10B981", description: "Card packs, Pokémon, physical or digital collectibles" },
 };
 
 // ============================================================
@@ -1200,7 +1201,7 @@ export default function FairBounty() {
               <GlitchText text="Earn." /> <span style={{ color: theme.primary }}>Prove.</span><br />Build <span style={{ color: theme.accent }}>Reputation.</span>
             </h1>
             <p style={{ fontSize: "17px", lineHeight: "1.7", color: "#9999A8", maxWidth: "550px", margin: "0 auto 40px", ...fadeIn, transitionDelay: "0.3s" }}>
-              A bounty board where your on-chain reputation unlocks opportunities. Prizes in USDC, memecoins, or NFTs. Community votes. Client picks the winner.
+              A bounty board where your on-chain reputation unlocks opportunities. Prizes in stablecoins, memecoins, NFTs, or collectibles. Community votes. Client picks the winner.
             </p>
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", ...fadeIn, transitionDelay: "0.4s" }}>
               <button style={btnPrimary} onClick={() => setView("connect")}
@@ -1230,7 +1231,7 @@ export default function FairBounty() {
             {/* Prize types */}
             <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.55s" }}>
               <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Prize Types</h2>
-              <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Post bounties with USDC, memecoins, or NFTs as prizes</p>
+              <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Post bounties with stablecoins, memecoins, NFTs, or collectibles as prizes</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
                 {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
                   <div key={key} style={{ ...cardStyle, padding: "20px", textAlign: "center", border: `1px solid ${pt.color}20` }}>
@@ -1318,7 +1319,7 @@ export default function FairBounty() {
       { title: "🎯 The Problem", content: "The Solana ecosystem is booming with bounties, grants, and freelance work — but there's no trust layer. Projects waste time and money on unvetted contributors. Developers get scammed by fake bounties. There's no way to prove you're legit without a personal network." },
       { title: "💡 The Solution", content: "FairBounty uses FairScale's on-chain reputation scoring (FairScore) to gate every interaction. Your wallet history becomes your resume. Projects trust contributors because their reputation is transparent, verifiable, and can't be faked." },
       { title: "👥 Target Audience", content: "Solana projects needing vetted contributors (devs, designers, auditors, community managers). Web3 freelancers who want to build verifiable on-chain reputation. DAOs looking for accountable talent. NFT projects needing trusted collaborators." },
-      { title: "📊 FairScore Integration", items: ["Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.", "Community Review — Submissions voted on, weighted by tier. Client picks the winner.", "Dynamic Rewards — Tier-based bonus rewards on completed bounties.", "Risk Assessment — Every wallet gets a risk score.", "BXP Multipliers — Higher tiers earn BXP faster.", "Multi-Prize Support — USDC, memecoins, and NFTs as prizes."] },
+      { title: "📊 FairScore Integration", items: ["Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.", "Community Review — Submissions voted on, weighted by tier. Client picks the winner.", "Dynamic Rewards — Tier-based bonus rewards on completed bounties.", "Risk Assessment — Every wallet gets a risk score.", "BXP Multipliers — Higher tiers earn BXP faster.", "Multi-Prize Support — stablecoins, memecoins, NFTs, and collectibles as prizes."] },
       { title: "🤝 Competitive Advantage", content: "No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, creating a self-reinforcing reputation flywheel." },
       { title: "🔗 Links", links: [
         { label: "Built by @smsonx", url: "https://x.com/smsonx" },
@@ -1379,7 +1380,7 @@ export default function FairBounty() {
   if (view === "how-it-works") {
     const howSteps = [
       { num: "01", icon: "🔗", title: "Connect Your Wallet", desc: "Connect your Solana wallet. We automatically fetch your FairScore from the FairScale API. Your on-chain history determines your tier (1–5), which unlocks bounties, perks, and earning potential.", details: ["Jupiter, Phantom, Solflare, Backpack, Glow, Seed Vault supported", "FairScore fetched automatically on connect", "Set up your profile — display name, skills, socials", "Profile persists across devices via Neon Postgres"] },
-      { num: "02", icon: "🎯", title: "Find & Claim Bounties", desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger bounties. Prizes include USDC, memecoins, and NFTs.", details: ["Filter by tier, tags, prize type", "Bookmark bounties to save for later", "Beta testers can post real bounties — coming to everyone soon", "Locked bounties show the tier needed to unlock"] },
+      { num: "02", icon: "🎯", title: "Find & Claim Bounties", desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger bounties. Prizes include stablecoins, memecoins, NFTs, and collectibles.", details: ["Filter by tier, tags, prize type", "Bookmark bounties to save for later", "Beta testers can post real bounties — coming to everyone soon", "Locked bounties show the tier needed to unlock"] },
       { num: "03", icon: "⚖️", title: "Community Reviews Submissions", desc: "Contributors submit work. The community votes — your tier determines how much your vote counts. Higher-tier wallets carry more influence. The client then picks the winner from top-voted submissions.", details: ["Upvote/downvote submissions with FairScore-weighted votes", "Tier 5 vote = 8x weight vs Tier 1 = 1x", "Client picks winner from top-ranked submissions", "No single person controls the outcome"] },
       { num: "04", icon: "💰", title: "Submit & Earn", desc: "Complete bounties, refer friends, build BXP. All BXP multiplied by your tier.", details: ["🎁 Welcome: 100 BXP × tier multiplier", "🔗 Referrals: 50 BXP × multiplier (both parties)", "📝 Submissions: 25 BXP × multiplier", "🏆 Wins: 100 BXP + prize + tier bonus"] },
     ];
@@ -2070,7 +2071,7 @@ export default function FairBounty() {
                   {/* Prize details based on type */}
                   {betaBountyForm.prizeType === "USDC" && (
                     <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>USDC Amount *</label>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Amount *</label>
                       <input style={inputStyle} type="number" placeholder="e.g. 500" value={betaBountyForm.reward} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, reward: e.target.value })} />
                     </div>
                   )}
@@ -2104,6 +2105,22 @@ export default function FairBounty() {
                       </div>
                       <div style={{ padding: "10px 14px", background: "#EC489910", borderRadius: "8px", border: "1px solid #EC489930", fontSize: "12px", color: "#EC4899" }}>
                         🖼️ NFT escrow via smart contract — coming soon. For now, prize transfer coordinated directly with winner.
+                      </div>
+                    </div>
+                  )}
+
+                  {betaBountyForm.prizeType === "COLLECTIBLE" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Collectible Name *</label>
+                        <input style={inputStyle} placeholder="e.g. Pokémon booster pack, trading card set, digital pack..." value={betaBountyForm.nftName} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftName: e.target.value })} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Details / Link (optional)</label>
+                        <input style={inputStyle} placeholder="Link to item, mint address, or description of what's included" value={betaBountyForm.nftMint} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftMint: e.target.value })} />
+                      </div>
+                      <div style={{ padding: "10px 14px", background: "#10B98110", borderRadius: "8px", border: "1px solid #10B98130", fontSize: "12px", color: "#10B981" }}>
+                        📦 Prize transfer coordinated directly with winner. Physical items shipped, digital items transferred on-chain or via agreed method.
                       </div>
                     </div>
                   )}
