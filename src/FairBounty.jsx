@@ -23,11 +23,11 @@ const WALLET_THEMES = {
 };
 
 const TIER_CONFIG = {
-  1: { label: "Newcomer", color: "#6B7280", maxBounty: 50, emoji: "🌱", xpMultiplier: 1.0, voteWeight: 1, rewardBonus: 0 },
-  2: { label: "Explorer", color: "#3B82F6", maxBounty: 250, emoji: "🔍", xpMultiplier: 1.25, voteWeight: 2, rewardBonus: 5 },
-  3: { label: "Builder", color: "#8B5CF6", maxBounty: 1000, emoji: "🔨", xpMultiplier: 1.5, voteWeight: 3, rewardBonus: 10 },
-  4: { label: "Veteran", color: "#F59E0B", maxBounty: 5000, emoji: "⭐", xpMultiplier: 2.0, voteWeight: 5, rewardBonus: 15 },
-  5: { label: "Legend", color: "#EF4444", maxBounty: null, emoji: "👑", xpMultiplier: 3.0, voteWeight: 8, rewardBonus: 25 },
+  1: { label: "Newcomer", color: "#6B7280", emoji: "🌱", xpMultiplier: 1.0, voteWeight: 1, rewardBonus: 0 },
+  2: { label: "Explorer", color: "#3B82F6", emoji: "🔍", xpMultiplier: 1.25, voteWeight: 2, rewardBonus: 5 },
+  3: { label: "Builder", color: "#8B5CF6", emoji: "🔨", xpMultiplier: 1.5, voteWeight: 3, rewardBonus: 10 },
+  4: { label: "Veteran", color: "#F59E0B", emoji: "⭐", xpMultiplier: 2.0, voteWeight: 5, rewardBonus: 15 },
+  5: { label: "Legend", color: "#EF4444", emoji: "👑", xpMultiplier: 3.0, voteWeight: 8, rewardBonus: 25 },
 };
 
 const RISK_LEVELS = {
@@ -1247,7 +1247,7 @@ export default function FairBounty() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid rgba(255,255,255,0.08)` }}>
-                      {["Tier", "BXP Multiplier", "Vote Weight", "Max Prize"].map((h) => (
+                      {["Tier", "BXP Multiplier", "Vote Weight"].map((h) => (
                         <th key={h} style={{ padding: "10px 8px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontWeight: "500", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
                       ))}
                     </tr>
@@ -1258,7 +1258,6 @@ export default function FairBounty() {
                         <td style={{ padding: "12px 8px", color: v.color, fontWeight: "600" }}>{v.emoji} Tier {k} — {v.label}</td>
                         <td style={{ padding: "12px 8px" }}>{v.xpMultiplier}x</td>
                         <td style={{ padding: "12px 8px" }}>{v.voteWeight}x</td>
-                        <td style={{ padding: "12px 8px" }}>{v.maxBounty ? `$${v.maxBounty.toLocaleString()}` : "Unlimited"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1668,7 +1667,7 @@ export default function FairBounty() {
                   {betaAccess && <span style={{ marginLeft: "12px" }}>⚡ Beta access active</span>}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
-                  {[{ label: "FairScore", value: scoreData?.score || 0, color: tier?.color }, { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", color: theme.accent }, { label: "BXP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary }, { label: "Vote Weight", value: `${tier?.voteWeight}x`, color: theme.primary }, { label: "Risk Level", value: riskData.level, color: riskData.color }].map((s) => (
+                  {[{ label: "FairScore", value: scoreData?.score || 0, color: tier?.color }, { label: "Prize Access", value: "TBD", color: theme.accent }, { label: "BXP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary }, { label: "Vote Weight", value: `${tier?.voteWeight}x`, color: theme.primary }, { label: "Risk Level", value: riskData.level, color: riskData.color }].map((s) => (
                     <div key={s.label} style={{ ...cardStyle, padding: "14px", textAlign: "center" }}>
                       <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: "4px" }}>{s.label}</div>
                       <div style={{ fontSize: "16px", fontWeight: "800", color: s.color }}>{s.value}</div>
