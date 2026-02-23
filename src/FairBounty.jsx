@@ -901,6 +901,12 @@ export default function FairBounty() {
     button:hover { transform: translateY(-1px); }
     button:active { transform: translateY(0); }
     .beta-badge { animation: betaPulse 2s ease-in-out infinite; }
+    @media (max-width: 640px) {
+      .prize-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+      .stats-grid { gap: 10px !important; }
+      .stats-grid > div { padding: 14px 8px !important; }
+      .stats-grid > div > div:first-child { font-size: 22px !important; }
+    }
   `;
 
   // ============================================================
@@ -1176,18 +1182,18 @@ export default function FairBounty() {
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ position: "absolute", top: "10%", right: "15%", width: "300px", height: "300px", background: `radial-gradient(circle, ${theme.primary}20, transparent 70%)`, borderRadius: "50%", filter: "blur(60px)", animation: "float 6s ease-in-out infinite" }} />
-          <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px", textAlign: "center" }}>
+          <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px 16px", textAlign: "center" }}>
             <DemoBanner />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "80px", ...fadeIn }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "60px", flexWrap: "wrap", gap: "12px", ...fadeIn }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Logo size={32} />
-                <span style={{ fontSize: "18px", fontWeight: "700", letterSpacing: "-0.5px" }}>FairBounty</span>
+                <Logo size={28} />
+                <span style={{ fontSize: "16px", fontWeight: "700", letterSpacing: "-0.5px" }}>FairBounty</span>
                 <span style={{ fontSize: "9px", fontWeight: "700", color: "#0c0c14", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
               </div>
-              <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-                <button style={{ ...btnOutline, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("about")}>About</button>
-                <button style={{ ...btnOutline, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("how-it-works")}>How It Works</button>
-                <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "13px", opacity: 0.8 }}>Powered by FairScale ↗</a>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                <button style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }} onClick={() => setView("about")}>About</button>
+                <button style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }} onClick={() => setView("how-it-works")}>How It Works</button>
+                <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "12px", opacity: 0.8 }}>FairScale ↗</a>
               </div>
             </div>
 
@@ -1215,7 +1221,7 @@ export default function FairBounty() {
             </div>
 
             {/* Stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
+            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
                 { value: globalStats.connectedWallets.toString(), label: "Connected Wallets", live: true },
                 { value: (liveBounties.length || globalStats.bountyApps || 0).toString(), label: "Live Bounties", live: true },
@@ -1232,15 +1238,15 @@ export default function FairBounty() {
             <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.55s" }}>
               <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Prize Types</h2>
               <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Post bounties with stablecoins, memecoins, NFTs, or collectibles as prizes</p>
-              <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "nowrap" }}>
+              <div className="prize-grid" style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "nowrap" }}>
                 {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
                   <div key={key} style={{
-                    ...cardStyle, padding: "18px 14px", textAlign: "center",
+                    ...cardStyle, padding: "18px 10px", textAlign: "center",
                     border: `1px solid ${pt.color}25`, flex: "1", minWidth: "0",
                     background: `linear-gradient(135deg, ${pt.color}08, ${pt.color}03)`,
                   }}>
-                    <div style={{ fontSize: "26px", marginBottom: "8px" }}>{pt.icon}</div>
-                    <div style={{ fontSize: "13px", fontWeight: "700", color: pt.color, marginBottom: "4px", whiteSpace: "nowrap" }}>{pt.label}</div>
+                    <div style={{ fontSize: "24px", marginBottom: "6px" }}>{pt.icon}</div>
+                    <div style={{ fontSize: "12px", fontWeight: "700", color: pt.color, marginBottom: "3px" }}>{pt.label}</div>
                     <div style={{ fontSize: "10px", color: "#777", lineHeight: "1.4" }}>{pt.description}</div>
                   </div>
                 ))}
