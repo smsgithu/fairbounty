@@ -30,7 +30,6 @@ const TIER_CONFIG = {
   5: { label: "Legend", color: "#EF4444", maxBounty: null, emoji: "👑", xpMultiplier: 3.0, voteWeight: 8, rewardBonus: 25 },
 };
 
-// Risk scoring based on FairScore tier
 const RISK_LEVELS = {
   1: { level: "High", color: "#EF4444", label: "High Risk — New wallet, limited history" },
   2: { level: "Medium", color: "#F59E0B", label: "Medium Risk — Some on-chain activity" },
@@ -39,13 +38,38 @@ const RISK_LEVELS = {
   5: { level: "Minimal", color: "#22C55E", label: "Minimal Risk — Legendary reputation" },
 };
 
+// Prize type config
+const PRIZE_TYPES = {
+  USDC: { label: "USDC", icon: "💵", color: "#2775CA", description: "Stablecoin — most common for bounties" },
+  SOL: { label: "SOL", icon: "◎", color: "#9945FF", description: "Native Solana token" },
+  MEMECOIN: { label: "Memecoin", icon: "🐸", color: "#F59E0B", description: "BONK, WIF, POPCAT, etc." },
+  NFT: { label: "NFT / cNFT", icon: "🖼️", color: "#EC4899", description: "NFT or compressed NFT as prize" },
+};
+
+// ============================================================
+// BETA ACCESS CONTROL
+// Whitelisted wallets get full beta access — real bounties,
+// real submissions, voting, winner selection
+// ============================================================
+const BETA_WHITELIST = [
+  "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD", // Sean — Founder
+  // Add beta tester wallets here
+];
+
+const PLATFORM_BADGES_CONFIG = {
+  "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD": [
+    { id: "founder", label: "Founder", color: "#FFD700", bg: "#FFD70015", border: "#FFD70040" },
+    { id: "beta", label: "Beta", color: "#00F0FF", bg: "#00F0FF15", border: "#00F0FF40" },
+  ],
+};
+
 const SAMPLE_BOUNTIES = [
-  { id: 1, title: "Build Token-Gated Discord Bot", project: "SolanaFM", reward: 800, currency: "USDC", minTier: 3, tags: ["Bot", "Discord", "TypeScript"], submissions: 4, deadline: "2026-02-20", description: "Create a Discord bot that gates channels based on token holdings with real-time verification.", status: "open" },
-  { id: 2, title: "Design Landing Page for NFT Collection", project: "Tensor", reward: 200, currency: "USDC", minTier: 2, tags: ["Design", "Frontend", "React"], submissions: 7, deadline: "2026-02-15", description: "Design and implement a responsive landing page for an upcoming NFT collection launch.", status: "open" },
-  { id: 3, title: "Smart Contract Audit - Staking Program", project: "Marinade", reward: 3000, currency: "USDC", minTier: 4, tags: ["Rust", "Audit", "Security"], submissions: 1, deadline: "2026-03-01", description: "Full security audit of a Solana staking program written in Anchor/Rust.", status: "open" },
-  { id: 4, title: "Create Educational Thread on Compressed NFTs", project: "Metaplex", reward: 75, currency: "USDC", minTier: 1, tags: ["Content", "Education", "cNFTs"], submissions: 12, deadline: "2026-02-12", description: "Write a comprehensive Twitter thread explaining compressed NFTs for beginners.", status: "open" },
-  { id: 5, title: "Build Analytics Dashboard for DeFi Protocol", project: "Jupiter", reward: 4500, currency: "USDC", minTier: 5, tags: ["Frontend", "Data", "DeFi"], submissions: 0, deadline: "2026-03-15", description: "Full-stack analytics dashboard showing real-time protocol metrics, TVL, and user activity.", status: "open" },
-  { id: 6, title: "Write Integration Guide for Wallet Adapter", project: "Solana Labs", reward: 150, currency: "USDC", minTier: 2, tags: ["Docs", "Tutorial", "TypeScript"], submissions: 3, deadline: "2026-02-18", description: "Step-by-step developer guide for integrating Solana Wallet Adapter into a React application.", status: "open" },
+  { id: "sample_1", title: "Build Token-Gated Discord Bot", project: "SolanaFM", reward: 800, currency: "USDC", prizeType: "USDC", minTier: 3, tags: ["Bot", "Discord", "TypeScript"], submissions: 4, deadline: "2026-02-20", description: "Create a Discord bot that gates channels based on token holdings with real-time verification.", status: "open", isDemo: true, poster: null },
+  { id: "sample_2", title: "Design Landing Page for NFT Collection", project: "Tensor", reward: 200, currency: "USDC", prizeType: "USDC", minTier: 2, tags: ["Design", "Frontend", "React"], submissions: 7, deadline: "2026-02-15", description: "Design and implement a responsive landing page for an upcoming NFT collection launch.", status: "open", isDemo: true, poster: null },
+  { id: "sample_3", title: "Smart Contract Audit - Staking Program", project: "Marinade", reward: 3000, currency: "USDC", prizeType: "USDC", minTier: 4, tags: ["Rust", "Audit", "Security"], submissions: 1, deadline: "2026-03-01", description: "Full security audit of a Solana staking program written in Anchor/Rust.", status: "open", isDemo: true, poster: null },
+  { id: "sample_4", title: "Create Educational Thread on Compressed NFTs", project: "Metaplex", reward: 75, currency: "USDC", prizeType: "USDC", minTier: 1, tags: ["Content", "Education", "cNFTs"], submissions: 12, deadline: "2026-02-12", description: "Write a comprehensive Twitter thread explaining compressed NFTs for beginners.", status: "open", isDemo: true, poster: null },
+  { id: "sample_5", title: "Build Analytics Dashboard for DeFi Protocol", project: "Jupiter", reward: 4500, currency: "USDC", prizeType: "USDC", minTier: 5, tags: ["Frontend", "Data", "DeFi"], submissions: 0, deadline: "2026-03-15", description: "Full-stack analytics dashboard showing real-time protocol metrics, TVL, and user activity.", status: "open", isDemo: true, poster: null },
+  { id: "sample_6", title: "Write Integration Guide for Wallet Adapter", project: "Solana Labs", reward: 150, currency: "USDC", prizeType: "USDC", minTier: 2, tags: ["Docs", "Tutorial", "TypeScript"], submissions: 3, deadline: "2026-02-18", description: "Step-by-step developer guide for integrating Solana Wallet Adapter into a React application.", status: "open", isDemo: true, poster: null },
 ];
 
 const GlitchText = ({ text }) => {
@@ -77,22 +101,13 @@ const Logo = ({ size = 28 }) => (
   }} />
 );
 
-// ============================================================
-// FairScore API Integration — LIVE via FairScale API
-// Proxied through /api/fairscore to keep API key server-side
-// Docs: https://docs.fairscale.xyz
-// ============================================================
-
-// Map FairScale tier names to our 1-5 tier system
 const FAIRSCALE_TIER_MAP = {
-  unranked: 1,
-  bronze: 2,
-  silver: 3,
-  gold: 4,
-  platinum: 5,
+  unranked: 1, bronze: 2, silver: 3, gold: 4, platinum: 5,
 };
 
-// Database API — persists data across devices via Neon Postgres
+// ============================================================
+// DATABASE API
+// ============================================================
 const DbAPI = {
   async getProfile(wallet) {
     try {
@@ -113,7 +128,7 @@ const DbAPI = {
     try {
       const res = await fetch(`/api/db?action=get-bxp&wallet=${wallet}`);
       return await res.json();
-    } catch (e) { console.error("DbAPI.getBxp:", e); return null; }
+    } catch (e) { return null; }
   },
   async claimWelcome(wallet, amount) {
     try {
@@ -122,7 +137,7 @@ const DbAPI = {
         body: JSON.stringify({ wallet, amount }),
       });
       return await res.json();
-    } catch (e) { console.error("DbAPI.claimWelcome:", e); return { success: false }; }
+    } catch (e) { return { success: false }; }
   },
   async processReferral(referrerWallet, referredWallet, referrerAmount, referredAmount) {
     try {
@@ -130,14 +145,14 @@ const DbAPI = {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ referrerWallet, referredWallet, referrerAmount, referredAmount }),
       });
-    } catch (e) { console.error("DbAPI.processReferral:", e); }
+    } catch (e) {}
   },
   async getReferralCount(wallet) {
     try {
       const res = await fetch(`/api/db?action=get-referrals&wallet=${wallet}`);
       const data = await res.json();
       return data.count || 0;
-    } catch (e) { console.error("DbAPI.getReferralCount:", e); return 0; }
+    } catch (e) { return 0; }
   },
   async trackWallet(wallet) {
     try {
@@ -145,13 +160,13 @@ const DbAPI = {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
       });
-    } catch (e) { console.error("DbAPI.trackWallet:", e); }
+    } catch (e) {}
   },
   async getStats() {
     try {
       const res = await fetch("/api/db?action=get-stats");
       return await res.json();
-    } catch (e) { console.error("DbAPI.getStats:", e); return null; }
+    } catch (e) { return null; }
   },
   async submitBountyApp(wallet, displayName, fairScore, form) {
     try {
@@ -159,7 +174,7 @@ const DbAPI = {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet, displayName, fairScore, form }),
       });
-    } catch (e) { console.error("DbAPI.submitBountyApp:", e); }
+    } catch (e) {}
   },
   async setReferralCode(wallet, code) {
     try {
@@ -168,49 +183,96 @@ const DbAPI = {
         body: JSON.stringify({ wallet, code }),
       });
       return await res.json();
-    } catch (e) { console.error("DbAPI.setReferralCode:", e); return { code: null }; }
+    } catch (e) { return { code: null }; }
   },
   async getReferralCode(wallet) {
     try {
       const res = await fetch(`/api/db?action=get-referral-code&wallet=${wallet}`);
       const data = await res.json();
       return data.code || null;
-    } catch (e) { console.error("DbAPI.getReferralCode:", e); return null; }
+    } catch (e) { return null; }
   },
   async resolveReferral(code) {
     try {
       const res = await fetch(`/api/db?action=resolve-referral&code=${encodeURIComponent(code)}`);
       const data = await res.json();
       return data.wallet || null;
-    } catch (e) { console.error("DbAPI.resolveReferral:", e); return null; }
+    } catch (e) { return null; }
+  },
+  // Beta bounty CRUD
+  async createBounty(bountyData) {
+    try {
+      const res = await fetch("/api/db?action=create-bounty", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bountyData),
+      });
+      return await res.json();
+    } catch (e) { console.error("DbAPI.createBounty:", e); return { success: false }; }
+  },
+  async getBounties() {
+    try {
+      const res = await fetch("/api/db?action=get-bounties");
+      return await res.json();
+    } catch (e) { return []; }
+  },
+  async submitWork(bountyId, wallet, displayName, tier, content, links) {
+    try {
+      const res = await fetch("/api/db?action=submit-work", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bountyId, wallet, displayName, tier, content, links }),
+      });
+      return await res.json();
+    } catch (e) { return { success: false }; }
+  },
+  async getSubmissions(bountyId) {
+    try {
+      const res = await fetch(`/api/db?action=get-submissions&bountyId=${bountyId}`);
+      return await res.json();
+    } catch (e) { return []; }
+  },
+  async vote(submissionId, voterWallet, voteType, voteWeight) {
+    try {
+      const res = await fetch("/api/db?action=vote", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId, voterWallet, voteType, voteWeight }),
+      });
+      return await res.json();
+    } catch (e) { return { success: false }; }
+  },
+  async selectWinner(bountyId, submissionId, posterWallet) {
+    try {
+      const res = await fetch("/api/db?action=select-winner", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bountyId, submissionId, posterWallet }),
+      });
+      return await res.json();
+    } catch (e) { return { success: false }; }
+  },
+  async checkBetaAccess(wallet) {
+    // Check whitelist + allow expansion via DB
+    if (BETA_WHITELIST.includes(wallet)) return true;
+    try {
+      const res = await fetch(`/api/db?action=check-beta&wallet=${wallet}`);
+      const data = await res.json();
+      return data.hasAccess || false;
+    } catch (e) { return false; }
   },
 };
 
 const FairScoreAPI = {
-  // Fetch reputation data for a wallet address via our serverless proxy
   async getScore(walletAddress) {
     try {
       const response = await fetch(`/api/fairscore?wallet=${encodeURIComponent(walletAddress)}`);
-
-      if (!response.ok) {
-        console.error("FairScore proxy error:", response.status);
-        return null;
-      }
-
+      if (!response.ok) return null;
       const data = await response.json();
-
-      // Map FairScale response to our internal format
       const tier = FAIRSCALE_TIER_MAP[data.tier] || 1;
-
       return {
-        tier,
-        score: Math.round(data.fairscore || 0),
+        tier, score: Math.round(data.fairscore || 0),
         fairscoreBase: data.fairscore_base || 0,
         socialScore: data.social_score || 0,
         fairscaleTier: data.tier || "unranked",
         badges: data.badges || [],
         actions: data.actions || [],
-        // Map features to our display fields
         walletAge: data.features?.wallet_age_score || 0,
         txCount: data.features?.tx_count || 0,
         protocolsUsed: data.features?.platform_diversity || 0,
@@ -221,80 +283,56 @@ const FairScoreAPI = {
         convictionRatio: data.features?.conviction_ratio || 0,
         noInstantDumps: data.features?.no_instant_dumps || 0,
         netSolFlow30d: data.features?.net_sol_flow_30d || 0,
-        _raw: data, // Keep raw response for debugging
+        _raw: data,
       };
-    } catch (err) {
-      console.error("FairScore API error:", err);
-      return null;
-    }
+    } catch (err) { return null; }
   },
-
-  // Calculate risk level from FairScore data
   assessRisk(scoreData) {
     if (!scoreData) return RISK_LEVELS[1];
     return RISK_LEVELS[scoreData.tier] || RISK_LEVELS[1];
   },
-
-  // Calculate dynamic reward bonus based on tier
-  getRewardBonus(tier) {
-    return TIER_CONFIG[tier]?.rewardBonus || 0;
-  },
-
-  // Get vote weight for a tier
-  getVoteWeight(tier) {
-    return TIER_CONFIG[tier]?.voteWeight || 1;
-  },
-
-  // Get BXP multiplier for tier
-  getXpMultiplier(tier) {
-    return TIER_CONFIG[tier]?.xpMultiplier || 1.0;
-  },
+  getRewardBonus(tier) { return TIER_CONFIG[tier]?.rewardBonus || 0; },
+  getVoteWeight(tier) { return TIER_CONFIG[tier]?.voteWeight || 1; },
+  getXpMultiplier(tier) { return TIER_CONFIG[tier]?.xpMultiplier || 1.0; },
 };
 
 export default function FairBounty() {
+  const PLATFORM_BADGES = PLATFORM_BADGES_CONFIG;
+  const isBetaUser = (addr) => addr && BETA_WHITELIST.includes(addr);
+
   // ============================================================
-  // ACCESS CONTROL & BADGES
-  // Everyone can connect + make a profile + browse
-  // Whitelist = tester badges and future feature access
+  // STATE
   // ============================================================
-  const WHITELIST = [
-    "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD", // Sean — Founder
-  ];
-
-  // Platform badges (separate from FairScale badges)
-  const PLATFORM_BADGES = {
-    "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD": [
-      { id: "founder", label: "Founder", color: "#FFD700", bg: "#FFD70015", border: "#FFD70040" },
-    ],
-  };
-
-  const isWhitelisted = (addr) => WHITELIST.includes(addr);
-
   const [view, setView] = useState("landing");
   const [wallet, setWallet] = useState(null);
   const [walletType, setWalletType] = useState("default");
   const [fairScore, setFairScore] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [xp, setXp] = useState(0);
-  const [bounties, setBounties] = useState(SAMPLE_BOUNTIES);
+  const [liveBounties, setLiveBounties] = useState([]); // real bounties from DB
   const [selectedBounty, setSelectedBounty] = useState(null);
+  const [selectedBountySubmissions, setSelectedBountySubmissions] = useState([]);
   const [filterTier, setFilterTier] = useState(0);
+  const [filterType, setFilterType] = useState("all"); // "all" | "live" | "demo"
   const [showReferral, setShowReferral] = useState(false);
   const [notification, setNotification] = useState(null);
-  const [postForm, setPostForm] = useState({ title: "", description: "", reward: "", currency: "USDC", minTier: 1, tags: "", deadline: "" });
   const [submissionText, setSubmissionText] = useState("");
+  const [submissionLinks, setSubmissionLinks] = useState("");
   const [animateIn, setAnimateIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [standardWallets, setStandardWallets] = useState([]);
   const [fullAddress, setFullAddress] = useState(null);
+  const [betaAccess, setBetaAccess] = useState(false);
   const [profile, setProfile] = useState(null);
   const [profileForm, setProfileForm] = useState({
     displayName: "", xHandle: "", bio: "", contact: "", email: "",
     pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "",
-    lookingFor: "", worksAt: "", location: "",
-    skills: [],
+    lookingFor: "", worksAt: "", location: "", skills: [],
   });
   const [bookmarks, setBookmarks] = useState([]);
   const [profileTab, setProfileTab] = useState("overview");
@@ -302,20 +340,10 @@ export default function FairBounty() {
   const [activeStep, setActiveStep] = useState(0);
   const [activeTier, setActiveTier] = useState(null);
   const [bountyApplications, setBountyApplications] = useState(() => {
-    try {
-      const saved = localStorage.getItem("fb_bounty_applications");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  const [bountyForm, setBountyForm] = useState({
-    projectName: "", title: "", description: "", reward: "", currency: "USDC",
-    minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "",
+    try { return JSON.parse(localStorage.getItem("fb_bounty_applications") || "[]"); } catch { return []; }
   });
   const [connectedWallets, setConnectedWallets] = useState(() => {
-    try {
-      const saved = localStorage.getItem("fb_connected_wallets");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem("fb_connected_wallets") || "[]"); } catch { return []; }
   });
   const [referredBy, setReferredBy] = useState(null);
   const [referralCount, setReferralCount] = useState(0);
@@ -323,27 +351,35 @@ export default function FairBounty() {
   const [referralCode, setReferralCode] = useState(null);
   const [bxpBreakdown, setBxpBreakdown] = useState({ welcome: 0, referrals: 0, referred: 0, submissions: 0, wins: 0 });
 
-  // Load global stats from DB on mount
+  // Post Bounty form (beta)
+  const [betaBountyForm, setBetaBountyForm] = useState({
+    title: "", description: "", projectName: "", category: "",
+    prizeType: "USDC", reward: "", currency: "USDC",
+    memeToken: "", memeTokenAmount: "",
+    nftMint: "", nftName: "",
+    minTier: 1, deadline: "", tags: "",
+    contactMethod: "x", contactValue: "",
+    submissionRequirements: "",
+    evaluationCriteria: "",
+  });
+
+  // Load global stats + live bounties on mount
   useEffect(() => {
-    DbAPI.getStats().then((stats) => {
-      if (stats) setGlobalStats(stats);
-    });
+    DbAPI.getStats().then((stats) => { if (stats) setGlobalStats(stats); });
+    DbAPI.getBounties().then((bounties) => { if (Array.isArray(bounties)) setLiveBounties(bounties); });
   }, []);
 
-  // Detect referral code from URL on mount
+  // Referral detection
   useEffect(() => {
     (async () => {
       try {
         const params = new URLSearchParams(window.location.search);
         const ref = params.get("ref");
         if (ref) {
-          if (ref.length >= 32) {
-            // It's a wallet address
-            setReferredBy(ref);
-          } else {
-            // It's a referral code — resolve to wallet
-            const wallet = await DbAPI.resolveReferral(ref);
-            if (wallet) setReferredBy(wallet);
+          if (ref.length >= 32) setReferredBy(ref);
+          else {
+            const w = await DbAPI.resolveReferral(ref);
+            if (w) setReferredBy(w);
           }
           window.history.replaceState({}, "", window.location.pathname);
         }
@@ -351,11 +387,9 @@ export default function FairBounty() {
     })();
   }, []);
 
-  // Detect iOS for deep links
   const isIOS = useMemo(() => /iPhone|iPad|iPod/i.test(navigator.userAgent), []);
   const isMobile = useMemo(() => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent), []);
 
-  // Initialize wallet-standard detection (same as SMSai)
   useEffect(() => {
     const { get, on } = getWallets();
     setStandardWallets(get());
@@ -363,7 +397,6 @@ export default function FairBounty() {
     return () => removeListener();
   }, []);
 
-  // Register MWA for Solana Mobile (same as SMSai)
   useEffect(() => {
     registerMwa({
       appIdentity: { name: "FairBounty", uri: "https://fairbounty.vercel.app", icon: "/logo.png" },
@@ -374,7 +407,6 @@ export default function FairBounty() {
     });
   }, []);
 
-  // Find MWA/Seed Vault wallet from wallet standard (same as SMSai)
   const findMwaWallet = useCallback(() => {
     return standardWallets.find(w =>
       w.name?.toLowerCase().includes("mobile wallet adapter") ||
@@ -383,15 +415,12 @@ export default function FairBounty() {
     );
   }, [standardWallets]);
 
-  // Find Jupiter wallet from wallet standard
   const findJupiterWallet = useCallback(() => {
     return standardWallets.find(w =>
-      w.name?.toLowerCase().includes("jupiter") ||
-      w.name?.toLowerCase() === "jup"
+      w.name?.toLowerCase().includes("jupiter") || w.name?.toLowerCase() === "jup"
     );
   }, [standardWallets]);
 
-  // Wallet options matching SMSai pattern
   const walletOptions = useMemo(() => [
     {
       id: "jupiter", name: "Jupiter", useStandard: true,
@@ -415,13 +444,8 @@ export default function FairBounty() {
       mobileLink: `https://backpack.app/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
       downloadUrl: "https://backpack.app/",
     },
-    {
-      id: "glow", name: "Glow", window: "glow", check: (w) => !!w,
-      downloadUrl: "https://glow.app/",
-    },
-    {
-      id: "seedvault", name: "Seed Vault", useStandard: true, isMwa: true,
-    },
+    { id: "glow", name: "Glow", window: "glow", check: (w) => !!w, downloadUrl: "https://glow.app/" },
+    { id: "seedvault", name: "Seed Vault", useStandard: true, isMwa: true },
   ], [isIOS]);
 
   const SKILL_CATEGORIES = {
@@ -444,65 +468,47 @@ export default function FairBounty() {
 
   const notify = useCallback((msg) => {
     setNotification(msg);
-    setTimeout(() => setNotification(null), 3000);
+    setTimeout(() => setNotification(null), 3500);
   }, []);
 
+  // ============================================================
+  // WALLET CONNECT
+  // ============================================================
   const connectWallet = async (type) => {
     setWalletType(type);
     setLoading(true);
-
     const opt = walletOptions.find((w) => w.id === type);
     if (!opt) { setLoading(false); return; }
 
     try {
       let pubkey = null;
 
-      // Handle Seed Vault / MWA via wallet standard (same as SMSai)
       if (opt.isMwa) {
         const mwaWallet = findMwaWallet();
         if (!mwaWallet) {
           notify("Seed Vault / Mobile Wallet Adapter not available. This wallet is only available on Solana Mobile devices.");
-          setLoading(false);
-          return;
+          setLoading(false); return;
         }
         const connectFeature = mwaWallet.features?.["standard:connect"];
         if (!connectFeature) throw new Error("Wallet does not support connect");
         const result = await connectFeature.connect();
-        if (result.accounts && result.accounts.length > 0) {
-          pubkey = result.accounts[0].address;
-        } else {
-          throw new Error("No accounts returned");
-        }
-      }
-      // Handle Jupiter via wallet standard
-      else if (opt.useStandard) {
+        if (result.accounts?.length > 0) pubkey = result.accounts[0].address;
+        else throw new Error("No accounts returned");
+      } else if (opt.useStandard) {
         const jupiterWallet = findJupiterWallet();
         if (jupiterWallet) {
           const connectFeature = jupiterWallet.features?.["standard:connect"];
           if (connectFeature) {
             const result = await connectFeature.connect();
             const account = result?.accounts?.[0] || jupiterWallet.accounts?.[0];
-            if (account?.address) {
-              pubkey = account.address;
-            } else if (account?.publicKey) {
-              pubkey = encodeBase58(account.publicKey);
-            }
+            if (account?.address) pubkey = account.address;
+            else if (account?.publicKey) pubkey = encodeBase58(account.publicKey);
           }
         }
-        if (!pubkey && isMobile && opt.mobileLink) {
-          window.location.href = opt.mobileLink;
-          setLoading(false);
-          return;
-        }
-        if (!pubkey && !isMobile && opt.downloadUrl) {
-          notify(`${opt.name} not detected. Opening download page...`);
-          window.open(opt.downloadUrl, "_blank");
-          setLoading(false);
-          return;
-        }
+        if (!pubkey && isMobile && opt.mobileLink) { window.location.href = opt.mobileLink; setLoading(false); return; }
+        if (!pubkey && !isMobile && opt.downloadUrl) { notify(`${opt.name} not detected. Opening download page...`); window.open(opt.downloadUrl, "_blank"); setLoading(false); return; }
       }
 
-      // 2. Try window provider (Phantom, Solflare, Backpack, Glow)
       if (!pubkey && opt.window) {
         const provider = window[opt.window];
         if (provider && (!opt.check || opt.check(provider))) {
@@ -510,31 +516,14 @@ export default function FairBounty() {
           pubkey = resp?.publicKey?.toString() || provider.publicKey?.toString();
         }
       }
+      if (!pubkey && isMobile && opt.mobileLink) { window.location.href = opt.mobileLink; setLoading(false); return; }
+      if (!pubkey && !isMobile && opt.downloadUrl) { notify(`${opt.name} not detected. Opening download page...`); window.open(opt.downloadUrl, "_blank"); setLoading(false); return; }
 
-      // 3. Mobile deep link fallback
-      if (!pubkey && isMobile && opt.mobileLink) {
-        window.location.href = opt.mobileLink;
-        setLoading(false);
-        return;
-      }
-
-      // 4. Desktop — wallet not installed, open download
-      if (!pubkey && !isMobile && opt.downloadUrl) {
-        notify(`${opt.name} not detected. Opening download page...`);
-        window.open(opt.downloadUrl, "_blank");
-        setLoading(false);
-        return;
-      }
-
-      // Got a real public key — finish connect
       if (pubkey) {
-        const displayAddr = pubkey.length > 20
-          ? pubkey.slice(0, 6) + "..." + pubkey.slice(-4)
-          : pubkey;
+        const displayAddr = pubkey.length > 20 ? pubkey.slice(0, 6) + "..." + pubkey.slice(-4) : pubkey;
         setWallet(displayAddr);
         setFullAddress(pubkey);
 
-        // Track unique wallet connection
         try {
           const wallets = JSON.parse(localStorage.getItem("fb_connected_wallets") || "[]");
           if (!wallets.includes(pubkey)) {
@@ -549,63 +538,46 @@ export default function FairBounty() {
           setFairScore(data.tier);
           setScoreData(data);
           setXp(Math.floor(data.score / 2));
-          notify(`Connected via ${WALLET_THEMES[type]?.name || opt.name}! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label}) — ${data.fairscaleTier}`);
+          notify(`Connected! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
         }
 
-        // Track wallet connection in DB
         DbAPI.trackWallet(pubkey);
 
-        // Restore saved profile — check DB first, then localStorage
+        // Check beta access
+        const hasBeta = await DbAPI.checkBetaAccess(pubkey);
+        setBetaAccess(hasBeta);
+
+        // Restore profile
         try {
           const dbProfile = await DbAPI.getProfile(pubkey);
           if (dbProfile) {
             setProfile(dbProfile);
-            setProfileForm({
-              displayName: dbProfile.displayName || "", xHandle: dbProfile.xHandle || "", bio: dbProfile.bio || "",
-              contact: dbProfile.contact || "", email: dbProfile.email || "", pfpUrl: dbProfile.pfpUrl || "",
-              linkedin: dbProfile.linkedin || "", github: dbProfile.github || "", website: dbProfile.website || "",
-              telegram: dbProfile.telegram || "", discord: dbProfile.discord || "", lookingFor: dbProfile.lookingFor || "",
-              worksAt: dbProfile.worksAt || "", location: dbProfile.location || "", skills: dbProfile.skills || [],
-            });
-            // Restore BXP from DB
+            setProfileForm({ displayName: dbProfile.displayName || "", xHandle: dbProfile.xHandle || "", bio: dbProfile.bio || "", contact: dbProfile.contact || "", email: dbProfile.email || "", pfpUrl: dbProfile.pfpUrl || "", linkedin: dbProfile.linkedin || "", github: dbProfile.github || "", website: dbProfile.website || "", telegram: dbProfile.telegram || "", discord: dbProfile.discord || "", lookingFor: dbProfile.lookingFor || "", worksAt: dbProfile.worksAt || "", location: dbProfile.location || "", skills: dbProfile.skills || [] });
             const bxpData = await DbAPI.getBxp(pubkey);
-            if (bxpData && bxpData.bxp) {
+            if (bxpData?.bxp) {
               setBxpBreakdown(bxpData.bxp);
               setXp(Object.values(bxpData.bxp).reduce((a, b) => a + b, 0));
             }
             const refCount = await DbAPI.getReferralCount(pubkey);
             setReferralCount(refCount);
-            // Also save to localStorage as cache
             try { localStorage.setItem(`fb_profile_${pubkey}`, JSON.stringify(dbProfile)); } catch (e) {}
-            // Load referral code
             const code = await DbAPI.getReferralCode(pubkey);
             if (code) setReferralCode(code);
             setLoading(false);
             setView("dashboard");
             return;
           }
-
-          // Fallback to localStorage
           const saved = localStorage.getItem(`fb_profile_${pubkey}`);
           if (saved) {
             const p = JSON.parse(saved);
             setProfile(p);
-            setProfileForm({
-              displayName: p.displayName || "", xHandle: p.xHandle || "", bio: p.bio || "",
-              contact: p.contact || "", email: p.email || "", pfpUrl: p.pfpUrl || "",
-              linkedin: p.linkedin || "", github: p.github || "", website: p.website || "",
-              telegram: p.telegram || "", discord: p.discord || "", lookingFor: p.lookingFor || "",
-              worksAt: p.worksAt || "", location: p.location || "", skills: p.skills || [],
-            });
-            const savedBookmarks = localStorage.getItem(`fb_bookmarks_${pubkey}`);
-            if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
+            setProfileForm({ displayName: p.displayName || "", xHandle: p.xHandle || "", bio: p.bio || "", contact: p.contact || "", email: p.email || "", pfpUrl: p.pfpUrl || "", linkedin: p.linkedin || "", github: p.github || "", website: p.website || "", telegram: p.telegram || "", discord: p.discord || "", lookingFor: p.lookingFor || "", worksAt: p.worksAt || "", location: p.location || "", skills: p.skills || [] });
             const savedBxp = localStorage.getItem(`fb_bxp_${pubkey}`);
             if (savedBxp) {
               const bxp = JSON.parse(savedBxp);
               setBxpBreakdown(bxp);
               setXp(Object.values(bxp).reduce((a, b) => a + b, 0));
             }
-            // Migrate localStorage profile to DB
             DbAPI.saveProfile(pubkey, p);
             setLoading(false);
             setView("dashboard");
@@ -618,96 +590,61 @@ export default function FairBounty() {
         return;
       }
 
-      // No wallet found — demo fallback
-      notify("No wallet detected — using demo mode.");
-      const demoAddr = "F" + Array.from({ length: 8 }, () =>
-        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]
-      ).join("") + "...";
+      // Demo fallback
+      notify("No wallet detected — demo mode.");
+      const demoAddr = "F" + Array.from({ length: 8 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]).join("") + "...";
       setWallet(demoAddr);
       const data = await FairScoreAPI.getScore(demoAddr);
-      if (data) {
-        setFairScore(data.tier);
-        setScoreData(data);
-        setXp(Math.floor(data.score / 2));
-      }
+      if (data) { setFairScore(data.tier); setScoreData(data); setXp(Math.floor(data.score / 2)); }
       setLoading(false);
       setView("profile-setup");
-
     } catch (err) {
       console.log("Wallet connect error:", err.message);
-      notify("Connection failed — using demo mode.");
-      const demoAddr = "F" + Array.from({ length: 8 }, () =>
-        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]
-      ).join("") + "...";
+      notify("Connection failed — demo mode.");
+      const demoAddr = "F" + Array.from({ length: 8 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]).join("") + "...";
       setWallet(demoAddr);
       const data = await FairScoreAPI.getScore(demoAddr);
-      if (data) {
-        setFairScore(data.tier);
-        setScoreData(data);
-        setXp(Math.floor(data.score / 2));
-      }
+      if (data) { setFairScore(data.tier); setScoreData(data); setXp(Math.floor(data.score / 2)); }
       setLoading(false);
       setView("profile-setup");
     }
   };
 
-  // Simple base58 encoder for Uint8Array public keys
   const encodeBase58 = (bytes) => {
     const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     let result = "";
     let num = BigInt("0x" + Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join(""));
-    while (num > 0n) {
-      result = ALPHABET[Number(num % 58n)] + result;
-      num = num / 58n;
-    }
+    while (num > 0n) { result = ALPHABET[Number(num % 58n)] + result; num = num / 58n; }
     for (const b of bytes) { if (b === 0) result = "1" + result; else break; }
     return result;
   };
 
+  // ============================================================
+  // PROFILE SAVE
+  // ============================================================
   const handleProfileSave = async () => {
-    if (!profileForm.displayName.trim()) {
-      notify("Display name is required.");
-      return;
-    }
+    if (!profileForm.displayName.trim()) { notify("Display name is required."); return; }
     const handle = profileForm.xHandle.replace(/^@/, "");
     const profileData = {
-      displayName: profileForm.displayName.trim(),
-      xHandle: handle,
-      bio: profileForm.bio.trim(),
-      contact: profileForm.contact.trim(),
-      email: profileForm.email.trim(),
-      pfpUrl: profileForm.pfpUrl.trim(),
-      linkedin: profileForm.linkedin.trim(),
-      github: profileForm.github.trim(),
-      website: profileForm.website.trim(),
-      telegram: profileForm.telegram.trim(),
-      discord: profileForm.discord.trim(),
-      lookingFor: profileForm.lookingFor,
-      worksAt: profileForm.worksAt.trim(),
-      location: profileForm.location.trim(),
-      skills: profileForm.skills || [],
+      displayName: profileForm.displayName.trim(), xHandle: handle, bio: profileForm.bio.trim(),
+      contact: profileForm.contact.trim(), email: profileForm.email.trim(), pfpUrl: profileForm.pfpUrl.trim(),
+      linkedin: profileForm.linkedin.trim(), github: profileForm.github.trim(), website: profileForm.website.trim(),
+      telegram: profileForm.telegram.trim(), discord: profileForm.discord.trim(),
+      lookingFor: profileForm.lookingFor, worksAt: profileForm.worksAt.trim(),
+      location: profileForm.location.trim(), skills: profileForm.skills || [],
       joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
     };
     setProfile(profileData);
-
-    // Persist to database + localStorage
     if (fullAddress) {
-      try {
-        localStorage.setItem(`fb_profile_${fullAddress}`, JSON.stringify(profileData));
-      } catch (e) { /* storage full or unavailable */ }
+      try { localStorage.setItem(`fb_profile_${fullAddress}`, JSON.stringify(profileData)); } catch (e) {}
       DbAPI.saveProfile(fullAddress, profileData);
-      // Generate referral code from display name
       const codeBase = (profileForm.displayName || "user").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
       const codeResult = await DbAPI.setReferralCode(fullAddress, codeBase);
       if (codeResult.code) setReferralCode(codeResult.code);
     }
-
-    // BXP REWARDS
     const multiplier = FairScoreAPI.getXpMultiplier(fairScore || 1);
     let newBxp = { ...bxpBreakdown };
     let bonusMessages = [];
-
-    // Welcome bonus (only first time — check DB then localStorage)
     const alreadyClaimed = localStorage.getItem(`fb_welcome_${fullAddress}`);
     if (!alreadyClaimed && fullAddress) {
       const welcomeAmount = Math.floor(100 * multiplier);
@@ -718,96 +655,180 @@ export default function FairBounty() {
         try { localStorage.setItem(`fb_welcome_${fullAddress}`, "1"); } catch (e) {}
       }
     }
-
-    // Referred bonus — you get 50 BXP for signing up via someone's link
     if (referredBy && referredBy !== fullAddress && !localStorage.getItem(`fb_was_referred_${fullAddress}`)) {
       const referredAmount = Math.floor(50 * multiplier);
       const referrerAmount = Math.floor(50 * multiplier);
       newBxp.referred = referredAmount;
       bonusMessages.push(`+${referredAmount} BXP referral bonus`);
-      // Process in DB
       DbAPI.processReferral(referredBy, fullAddress, referrerAmount, referredAmount);
       try { localStorage.setItem(`fb_was_referred_${fullAddress}`, referredBy); } catch (e) {}
     }
-
-    // Save BXP breakdown
     setBxpBreakdown(newBxp);
     const totalBxp = Object.values(newBxp).reduce((a, b) => a + b, 0);
     setXp(totalBxp);
-    if (fullAddress) {
-      try { localStorage.setItem(`fb_bxp_${fullAddress}`, JSON.stringify(newBxp)); } catch (e) {}
-    }
-
-    // Load referral count from DB
-    if (fullAddress) {
-      const refCount = await DbAPI.getReferralCount(fullAddress);
-      setReferralCount(refCount);
-    }
-
-    const bonusText = bonusMessages.length > 0 ? ` ${bonusMessages.join(" · ")}` : "";
-    notify(`Welcome, ${profileForm.displayName}!${bonusText}`);
-
-    // Show BXP welcome guide if first time
+    if (fullAddress) { try { localStorage.setItem(`fb_bxp_${fullAddress}`, JSON.stringify(newBxp)); } catch (e) {} }
+    if (fullAddress) { const refCount = await DbAPI.getReferralCount(fullAddress); setReferralCount(refCount); }
+    notify(`Welcome, ${profileForm.displayName}!${bonusMessages.length ? " " + bonusMessages.join(" · ") : ""}`);
     const seenWelcome = localStorage.getItem(`fb_seen_welcome_${fullAddress}`);
-    if (!seenWelcome) {
-      setShowWelcomeModal(true);
-    }
-
+    if (!seenWelcome) setShowWelcomeModal(true);
     setView("dashboard");
   };
 
   const toggleSkill = (skill) => {
-    setProfileForm((prev) => ({
-      ...prev,
-      skills: prev.skills.includes(skill)
-        ? prev.skills.filter((s) => s !== skill)
-        : [...prev.skills, skill],
-    }));
+    setProfileForm((prev) => ({ ...prev, skills: prev.skills.includes(skill) ? prev.skills.filter((s) => s !== skill) : [...prev.skills, skill] }));
   };
-
   const toggleBookmark = (bountyId) => {
     setBookmarks((prev) => {
       const updated = prev.includes(bountyId) ? prev.filter((id) => id !== bountyId) : [...prev, bountyId];
-      if (fullAddress) {
-        try { localStorage.setItem(`fb_bookmarks_${fullAddress}`, JSON.stringify(updated)); } catch (e) {}
-      }
+      if (fullAddress) { try { localStorage.setItem(`fb_bookmarks_${fullAddress}`, JSON.stringify(updated)); } catch (e) {} }
       return updated;
     });
   };
 
   const canClaim = (bounty) => fairScore >= bounty.minTier;
 
-  const handleSubmit = (bountyId) => {
-    setShowDemoModal(true);
-    return;
+  // ============================================================
+  // BETA: CREATE REAL BOUNTY
+  // ============================================================
+  const handleCreateBounty = async () => {
+    if (!betaAccess) { notify("Beta access required to post bounties."); return; }
+    if (!betaBountyForm.title.trim() || !betaBountyForm.description.trim() || !betaBountyForm.projectName.trim()) {
+      notify("Please fill in all required fields."); return;
+    }
+    const rewardValue = betaBountyForm.prizeType === "MEMECOIN" ? betaBountyForm.memeTokenAmount : betaBountyForm.prizeType === "NFT" ? "1" : betaBountyForm.reward;
+    if (!rewardValue) { notify("Prize amount required."); return; }
+
+    setSubmitting(true);
+    const bountyData = {
+      ...betaBountyForm,
+      reward: rewardValue,
+      currency: betaBountyForm.prizeType === "MEMECOIN" ? betaBountyForm.memeToken : betaBountyForm.prizeType === "NFT" ? "NFT" : betaBountyForm.currency,
+      tags: betaBountyForm.tags.split(",").map(t => t.trim()).filter(Boolean),
+      poster: fullAddress,
+      posterName: profile?.displayName || wallet,
+      posterTier: fairScore,
+      status: "open",
+      isBeta: true,
+      isDemo: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    const result = await DbAPI.createBounty(bountyData);
+    setSubmitting(false);
+
+    if (result.success || result.id) {
+      notify("🎉 Bounty posted! It's live on the board.");
+      // Refresh live bounties
+      const updated = await DbAPI.getBounties();
+      if (Array.isArray(updated)) setLiveBounties(updated);
+      setBetaBountyForm({
+        title: "", description: "", projectName: "", category: "",
+        prizeType: "USDC", reward: "", currency: "USDC",
+        memeToken: "", memeTokenAmount: "", nftMint: "", nftName: "",
+        minTier: 1, deadline: "", tags: "", contactMethod: "x", contactValue: "",
+        submissionRequirements: "", evaluationCriteria: "",
+      });
+      setView("dashboard");
+    } else {
+      notify("Failed to post bounty — please try again.");
+    }
   };
 
-  const handleVote = (bountyId) => {
-    setShowDemoModal(true);
-    return;
+  // ============================================================
+  // BETA: SUBMIT WORK
+  // ============================================================
+  const handleSubmitWork = async (bountyId) => {
+    if (!betaAccess) { setShowDemoModal(true); return; }
+    if (!submissionText.trim()) { notify("Please add your submission details."); return; }
+    setSubmitting(true);
+    const result = await DbAPI.submitWork(
+      bountyId, fullAddress, profile?.displayName || wallet,
+      fairScore, submissionText, submissionLinks
+    );
+    setSubmitting(false);
+    if (result.success || result.id) {
+      notify("✅ Submission received! The community will review it.");
+      setSubmissionText(""); setSubmissionLinks("");
+      setShowSubmitModal(false);
+      // Reload submissions
+      const subs = await DbAPI.getSubmissions(bountyId);
+      setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
+      // BXP for submission
+      const multiplier = FairScoreAPI.getXpMultiplier(fairScore || 1);
+      const subBxp = Math.floor(25 * multiplier);
+      const newBxp = { ...bxpBreakdown, submissions: (bxpBreakdown.submissions || 0) + subBxp };
+      setBxpBreakdown(newBxp);
+      setXp(Object.values(newBxp).reduce((a, b) => a + b, 0));
+      if (fullAddress) { try { localStorage.setItem(`fb_bxp_${fullAddress}`, JSON.stringify(newBxp)); } catch (e) {} }
+    } else {
+      notify("Submission failed — please try again.");
+    }
   };
 
-  const handlePostBounty = () => {
-    setShowDemoModal(true);
-    return;
+  // ============================================================
+  // BETA: VOTE ON SUBMISSION
+  // ============================================================
+  const handleVote = async (submissionId, voteType) => {
+    if (!betaAccess) { setShowDemoModal(true); return; }
+    const voteWeight = FairScoreAPI.getVoteWeight(fairScore || 1);
+    const result = await DbAPI.vote(submissionId, fullAddress, voteType, voteWeight);
+    if (result.success) {
+      notify(`Vote cast! (Weight: ${voteWeight}x)`);
+      // Refresh submissions
+      if (selectedBounty) {
+        const subs = await DbAPI.getSubmissions(selectedBounty.id);
+        setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
+      }
+    } else if (result.alreadyVoted) {
+      notify("You already voted on this submission.");
+    }
   };
+
+  // ============================================================
+  // BETA: SELECT WINNER
+  // ============================================================
+  const handleSelectWinner = async (bountyId, submissionId) => {
+    const result = await DbAPI.selectWinner(bountyId, submissionId, fullAddress);
+    if (result.success) {
+      notify("🏆 Winner selected! Prize release instructions will be sent.");
+      setShowWinnerModal(false);
+      // Refresh bounties
+      const updated = await DbAPI.getBounties();
+      if (Array.isArray(updated)) setLiveBounties(updated);
+      setView("dashboard");
+    } else {
+      notify("Failed to select winner.");
+    }
+  };
+
+  // Combined bounty board — live first, then demo
+  const allBounties = useMemo(() => {
+    const live = liveBounties.map(b => ({ ...b, isDemo: false }));
+    const demo = SAMPLE_BOUNTIES;
+    return [...live, ...demo];
+  }, [liveBounties]);
+
+  const filteredBounties = useMemo(() => {
+    let list = allBounties;
+    if (filterType === "live") list = list.filter(b => !b.isDemo);
+    if (filterType === "demo") list = list.filter(b => b.isDemo);
+    if (filterTier > 0) list = list.filter(b => b.minTier === filterTier);
+    return list;
+  }, [allBounties, filterTier, filterType]);
 
   const referralLink = referralCode
     ? `https://fairbounty.vercel.app?ref=${referralCode}`
     : fullAddress ? `https://fairbounty.vercel.app?ref=${fullAddress}` : "";
-  const filteredBounties = filterTier > 0 ? bounties.filter((b) => b.minTier === filterTier) : bounties;
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
 
-  // Shared styles — dark mode with glass morphism
+  // ============================================================
+  // STYLES
+  // ============================================================
   const pageStyle = {
-    minHeight: "100vh",
-    background: "#070710",
-    color: "#E8E8ED",
+    minHeight: "100vh", background: "#070710", color: "#E8E8ED",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-    position: "relative",
-    overflow: "hidden",
-    WebkitFontSmoothing: "antialiased",
+    position: "relative", overflow: "hidden", WebkitFontSmoothing: "antialiased",
   };
   const gridOverlay = {
     position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
@@ -816,8 +837,7 @@ export default function FairBounty() {
   };
   const cardStyle = {
     background: `linear-gradient(135deg, ${theme.primary}08, ${theme.accent}04)`,
-    border: `1px solid ${theme.primary}18`,
-    borderRadius: "16px", padding: "20px",
+    border: `1px solid ${theme.primary}18`, borderRadius: "16px", padding: "20px",
     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
     transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
     boxShadow: `0 0 0 0.5px ${theme.primary}0A, 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 ${theme.primary}08`,
@@ -840,15 +860,18 @@ export default function FairBounty() {
     background: `${theme.primary}08`, border: `1px solid ${theme.primary}25`, borderRadius: "12px",
     padding: "10px 20px", color: "#ddd", fontFamily: "inherit", cursor: "pointer",
     fontSize: "13px", transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-    fontWeight: "500", letterSpacing: "-0.01em",
-    backdropFilter: "blur(10px)",
+    fontWeight: "500", letterSpacing: "-0.01em", backdropFilter: "blur(10px)",
+  };
+  const btnDanger = {
+    background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px",
+    padding: "10px 20px", color: "#EF4444", fontFamily: "inherit", cursor: "pointer",
+    fontSize: "13px", transition: "all 0.2s ease", fontWeight: "600",
   };
   const inputStyle = {
     background: `${theme.primary}06`, border: `1px solid ${theme.primary}18`, borderRadius: "12px",
     padding: "14px 18px", color: "#E8E8ED", fontFamily: "inherit", fontSize: "14px",
     width: "100%", boxSizing: "border-box", outline: "none",
-    transition: "border-color 0.2s ease",
-    letterSpacing: "-0.01em",
+    transition: "border-color 0.2s ease", letterSpacing: "-0.01em",
   };
   const fadeIn = animateIn
     ? { opacity: 1, transform: "translateY(0)", transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)" }
@@ -858,9 +881,10 @@ export default function FairBounty() {
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
     @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
     @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes glow { 0%, 100% { box-shadow: 0 0 20px ${theme.primary}10; } 50% { box-shadow: 0 0 40px ${theme.primary}20; } }
+    @keyframes betaPulse { 0%, 100% { box-shadow: 0 0 0 0 ${theme.primary}40; } 50% { box-shadow: 0 0 0 6px ${theme.primary}00; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     body { background: #070710; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
@@ -874,81 +898,108 @@ export default function FairBounty() {
     a:hover { opacity: 0.8; }
     button:hover { transform: translateY(-1px); }
     button:active { transform: translateY(0); }
+    .beta-badge { animation: betaPulse 2s ease-in-out infinite; }
   `;
 
-  // Demo banner
+  // ============================================================
+  // SHARED COMPONENTS
+  // ============================================================
+
   const DemoBanner = () => (
     <div style={{
       background: `linear-gradient(90deg, ${theme.primary}08, ${theme.accent}06)`,
       border: `1px solid ${theme.primary}15`, borderRadius: "12px",
       padding: "10px 16px", marginBottom: "16px", textAlign: "center",
-      fontSize: "12px", color: "rgba(255,255,255,0.45)",
-      backdropFilter: "blur(16px)", letterSpacing: "-0.01em",
+      fontSize: "12px", color: "rgba(255,255,255,0.45)", backdropFilter: "blur(16px)", letterSpacing: "-0.01em",
     }}>
       <span style={{ color: "#22C55E", fontWeight: "500" }}>✅ Live:</span> FairScore · BXP · Referrals · Wallet Count{" "}
       <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>{" "}
-      <span style={{ color: "#F59E0B", fontWeight: "500" }}>⏳ Demo:</span> Bounty listings are examples{" "}
+      {betaAccess
+        ? <><span style={{ color: theme.primary, fontWeight: "600" }}>⚡ Beta:</span> Real bounties · Submissions · Voting · Live rewards</>
+        : <><span style={{ color: "#F59E0B", fontWeight: "500" }}>⏳ Demo:</span> Example bounties</>
+      }{" "}
       <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>{" "}
       <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontWeight: "500" }}>Powered by FairScale</a>
     </div>
   );
 
-  // Demo modal overlay
   const DemoModal = () => showDemoModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
       background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: "20px",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
     }} onClick={() => setShowDemoModal(false)}>
-      <div style={{
-        ...glassCard, maxWidth: "420px", width: "100%", padding: "36px",
-        textAlign: "center", animation: "slideIn 0.3s ease",
-      }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: "40px", marginBottom: "16px" }}>🚧</div>
-        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Demo Mode</h3>
+      <div style={{ ...glassCard, maxWidth: "420px", width: "100%", padding: "36px", textAlign: "center", animation: "slideIn 0.3s ease" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ fontSize: "40px", marginBottom: "16px" }}>🔒</div>
+        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Beta Access Only</h3>
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "24px" }}>
-          This action isn't available yet. Wallet connection, FairScore, BXP, and referrals are live.
-          Bounty submissions and voting are coming soon.
+          Submissions and voting are live for beta testers. Want in? DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>@smsonx</a> on X.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           <button style={btnPrimary} onClick={() => setShowDemoModal(false)}>Got it</button>
           <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer"
-            style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>Follow @smsonx</a>
+            style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>DM @smsonx</a>
         </div>
       </div>
     </div>
   ) : null;
 
-  // BXP Welcome Modal — shows on first connect
+  // Submit work modal
+  const SubmitModal = ({ bounty }) => showSubmitModal ? (
+    <div style={{
+      position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
+    }} onClick={() => setShowSubmitModal(false)}>
+      <div style={{ ...glassCard, maxWidth: "560px", width: "100%", padding: "36px", animation: "slideUp 0.4s cubic-bezier(0.16,1,0.3,1)" }} onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "4px" }}>Submit Your Work</h3>
+        <p style={{ fontSize: "12px", color: "#888", marginBottom: "20px" }}>{bounty?.title}</p>
+
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Your Submission *</label>
+          <textarea
+            style={{ ...inputStyle, minHeight: "140px", resize: "vertical" }}
+            placeholder="Describe your work, approach, and deliverables. Be thorough — the community will review this..."
+            value={submissionText}
+            onChange={(e) => setSubmissionText(e.target.value)}
+          />
+        </div>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Links (optional)</label>
+          <input
+            style={inputStyle}
+            placeholder="GitHub, Figma, live demo, video... (comma-separated)"
+            value={submissionLinks}
+            onChange={(e) => setSubmissionLinks(e.target.value)}
+          />
+        </div>
+
+        <div style={{ padding: "12px 14px", background: `${theme.primary}08`, borderRadius: "8px", border: `1px solid ${theme.primary}15`, marginBottom: "20px", fontSize: "12px", color: "#888" }}>
+          🎯 Your vote weight: <span style={{ color: theme.primary, fontWeight: "700" }}>{FairScoreAPI.getVoteWeight(fairScore || 1)}x</span> · BXP earned: <span style={{ color: theme.primary, fontWeight: "700" }}>+{Math.floor(25 * FairScoreAPI.getXpMultiplier(fairScore || 1))}</span>
+        </div>
+
+        <div style={{ display: "flex", gap: "12px" }}>
+          <button style={{ ...btnPrimary, flex: 1 }} disabled={submitting} onClick={() => handleSubmitWork(bounty?.id)}>
+            {submitting ? "Submitting..." : "Submit Work →"}
+          </button>
+          <button style={btnOutline} onClick={() => setShowSubmitModal(false)}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   const WelcomeModal = () => showWelcomeModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
       background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: "20px", overflowY: "auto",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", overflowY: "auto",
     }}>
-      <div style={{
-        ...glassCard, maxWidth: "520px", width: "100%", padding: "40px",
-        animation: "slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-      }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ ...glassCard, maxWidth: "520px", width: "100%", padding: "40px", animation: "slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
           <div style={{ fontSize: "48px", marginBottom: "12px" }}>⭐</div>
-          <h2 style={{ fontSize: "24px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.04em" }}>
-            Welcome to FairBounty
-          </h2>
+          <h2 style={{ fontSize: "24px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.04em" }}>Welcome to FairBounty</h2>
           <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Here's how BXP works</p>
         </div>
-
-        {/* What is BXP */}
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, marginBottom: "8px" }}>What is BXP?</h3>
-          <p style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.7" }}>
-            BXP (Bounty Experience) measures your activity on FairBounty. It's earned through actions on the platform and multiplied by your FairScore tier. The more on-chain reputation you have, the faster you earn.
-          </p>
-        </div>
-
-        {/* How to earn */}
         <div style={{ marginBottom: "20px" }}>
           <h3 style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, marginBottom: "10px" }}>How to Earn BXP</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -958,10 +1009,7 @@ export default function FairBounty() {
               { icon: "📝", action: "Submit Work", amount: "25 BXP", note: "per bounty submission", color: "#8B5CF6" },
               { icon: "🏆", action: "Win a Bounty", amount: "100 BXP", note: "plus the reward payout", color: "#F59E0B" },
             ].map((item) => (
-              <div key={item.action} style={{
-                display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px",
-                background: "#0c0c14", borderRadius: "8px", border: `1px solid ${item.color}20`,
-              }}>
+              <div key={item.action} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px", background: "#0c0c14", borderRadius: "8px", border: `1px solid ${item.color}20` }}>
                 <span style={{ fontSize: "20px" }}>{item.icon}</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: "13px", fontWeight: "600" }}>{item.action}</span>
@@ -971,61 +1019,23 @@ export default function FairBounty() {
               </div>
             ))}
           </div>
-          <p style={{ fontSize: "11px", color: "#666", marginTop: "8px", textAlign: "center" }}>
-            All BXP amounts are multiplied by your tier: Tier 1 = 1x, Tier 2 = 1.25x, Tier 3 = 1.5x, Tier 4 = 2x, Tier 5 = 3x
-          </p>
         </div>
-
-        {/* Your status */}
         {fairScore && (
-          <div style={{
-            padding: "14px", background: `${theme.primary}10`, borderRadius: "8px",
-            border: `1px solid ${theme.primary}20`, marginBottom: "20px", textAlign: "center",
-          }}>
+          <div style={{ padding: "14px", background: `${theme.primary}10`, borderRadius: "8px", border: `1px solid ${theme.primary}20`, marginBottom: "20px", textAlign: "center" }}>
             <span style={{ fontSize: "20px" }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-            <span style={{ fontSize: "14px", fontWeight: "700", marginLeft: "8px" }}>
-              You're Tier {fairScore} ({TIER_CONFIG[fairScore]?.label})
-            </span>
-            <span style={{ fontSize: "12px", color: "#888", marginLeft: "8px" }}>
-              {TIER_CONFIG[fairScore]?.xpMultiplier}x BXP multiplier active
-            </span>
+            <span style={{ fontSize: "14px", fontWeight: "700", marginLeft: "8px" }}>You're Tier {fairScore} — {TIER_CONFIG[fairScore]?.xpMultiplier}x BXP multiplier</span>
           </div>
         )}
-
-        {/* Quick start */}
-        <div style={{ marginBottom: "24px" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, marginBottom: "8px" }}>Quick Start</h3>
-          <div style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.8" }}>
-            1. ✅ <span style={{ color: "#22C55E" }}>Profile created — 100 BXP earned!</span><br />
-            2. 🔗 Share your referral link to earn 50 BXP per signup<br />
-            3. 📋 Browse example bounties to see what's coming<br />
-            4. 📈 Build on-chain activity to raise your FairScore tier
-          </div>
-        </div>
-
-        {/* Buttons */}
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-          <button style={{ ...btnPrimary, padding: "12px 28px", fontSize: "14px" }} onClick={() => {
+          <button style={{ ...btnPrimary, padding: "12px 28px" }} onClick={() => {
             setShowWelcomeModal(false);
             try { localStorage.setItem(`fb_seen_welcome_${fullAddress}`, "1"); } catch (e) {}
-          }}>
-            Let's Go →
-          </button>
+          }}>Let's Go →</button>
         </div>
-        <button onClick={() => {
-          setShowWelcomeModal(false);
-          try { localStorage.setItem(`fb_seen_welcome_${fullAddress}`, "1"); } catch (e) {}
-        }} style={{
-          background: "none", border: "none", color: "#555", cursor: "pointer",
-          fontSize: "12px", fontFamily: "inherit", marginTop: "12px", width: "100%", textAlign: "center",
-        }}>
-          Don't show this again
-        </button>
       </div>
     </div>
   ) : null;
 
-  // Nav bar component
   const NavBar = ({ showBack, backTo, backLabel }) => (
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -1033,20 +1043,20 @@ export default function FairBounty() {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {showBack && (
-          <button onClick={() => setView(backTo || "dashboard")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>
-            ← {backLabel || "Back"}
-          </button>
+          <button onClick={() => setView(backTo || "dashboard")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>← {backLabel || "Back"}</button>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} onClick={() => setView("landing")}>
           <Logo size={24} />
           <span style={{ fontSize: "15px", fontWeight: "600", letterSpacing: "-0.03em" }}>FairBounty</span>
-          <span style={{ fontSize: "8px", fontWeight: "600", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px", letterSpacing: "0.05em", textTransform: "uppercase" }}>Beta</span>
+          <span style={{ fontSize: "8px", fontWeight: "600", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            {betaAccess ? "Beta ⚡" : "Beta"}
+          </span>
         </div>
       </div>
       <div style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" }}>
         {[
           { label: "Bounties", view: wallet && profile ? "dashboard" : "landing" },
-          { label: "Post a Bounty", view: "post-bounty" },
+          { label: "Post Bounty", view: "post-bounty" },
           { label: "How It Works", view: "how-it-works" },
           { label: "About", view: "about" },
           { label: "🏆", view: "leaderboard" },
@@ -1054,40 +1064,33 @@ export default function FairBounty() {
           <button key={tab.label} style={{
             background: view === tab.view ? `${theme.primary}18` : "transparent",
             border: view === tab.view ? `1px solid ${theme.primary}30` : "1px solid transparent",
-            borderRadius: "10px",
-            padding: "7px 14px", color: view === tab.view ? "#fff" : "rgba(255,255,255,0.45)",
+            borderRadius: "10px", padding: "7px 14px",
+            color: view === tab.view ? "#fff" : "rgba(255,255,255,0.45)",
             fontFamily: "inherit", cursor: "pointer", fontSize: "12px", fontWeight: "500",
-            transition: "all 0.2s ease", letterSpacing: "-0.01em",
-            backdropFilter: view === tab.view ? "blur(10px)" : "none",
+            transition: "all 0.2s ease", backdropFilter: view === tab.view ? "blur(10px)" : "none",
           }} onClick={() => setView(tab.view)}>{tab.label}</button>
         ))}
         {wallet && profile && (
-          <button style={{
-            background: view === "profile" ? `rgba(255,255,255,0.08)` : "transparent",
-            border: "none", borderRadius: "10px", padding: "7px 12px",
-            color: view === "profile" ? "#fff" : "rgba(255,255,255,0.45)",
-            fontFamily: "inherit", cursor: "pointer", fontSize: "12px",
-            transition: "all 0.2s ease",
-          }} onClick={() => setView("profile")}>👤</button>
+          <button style={{ background: view === "profile" ? `rgba(255,255,255,0.08)` : "transparent", border: "none", borderRadius: "10px", padding: "7px 12px", color: view === "profile" ? "#fff" : "rgba(255,255,255,0.45)", fontFamily: "inherit", cursor: "pointer", fontSize: "12px", transition: "all 0.2s ease" }} onClick={() => setView("profile")}>👤</button>
         )}
         {wallet ? (
-          <div style={{
-            display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px",
-            background: `${theme.primary}0C`, border: `1px solid ${theme.primary}20`,
-            borderRadius: "12px", fontSize: "12px", cursor: profile ? "pointer" : "default",
-            backdropFilter: "blur(16px)", marginLeft: "4px",
-            boxShadow: `inset 0 1px 0 ${theme.primary}08`,
-          }} onClick={() => profile && setView("profile")}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px", background: `${theme.primary}0C`, border: `1px solid ${theme.primary}20`, borderRadius: "12px", fontSize: "12px", cursor: profile ? "pointer" : "default", backdropFilter: "blur(16px)", marginLeft: "4px", boxShadow: `inset 0 1px 0 ${theme.primary}08` }} onClick={() => profile && setView("profile")}>
             <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
             <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: "500" }}>{profile ? profile.displayName : wallet}</span>
             {fullAddress && PLATFORM_BADGES[fullAddress] && (
               <span style={{ fontSize: "9px", fontWeight: "600", color: "#FFD700", background: "rgba(255,215,0,0.1)", padding: "2px 8px", borderRadius: "100px" }}>★ Founder</span>
             )}
+            {betaAccess && (
+              <span style={{ fontSize: "9px", fontWeight: "600", color: theme.primary, background: `${theme.primary}20`, padding: "2px 8px", borderRadius: "100px" }}>⚡ Beta</span>
+            )}
             <span style={{ color: theme.primary, fontWeight: "600", fontSize: "11px" }}>{xp} BXP</span>
-            <button onClick={(e) => { e.stopPropagation(); setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null); setScoreData(null); setXp(0); setProfile(null); setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] }); setBookmarks([]); setView("landing"); }}
-              style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }}
-              title="Disconnect wallet"
-            >✕</button>
+            <button onClick={(e) => {
+              e.stopPropagation();
+              setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null);
+              setScoreData(null); setXp(0); setProfile(null); setBetaAccess(false);
+              setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] });
+              setBookmarks([]); setView("landing");
+            }} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }} title="Disconnect">✕</button>
           </div>
         ) : (
           <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("connect")}>Connect</button>
@@ -1097,11 +1100,7 @@ export default function FairBounty() {
   );
 
   const Footer = () => (
-    <div style={{
-      marginTop: "60px", paddingTop: "32px", borderTop: `1px solid rgba(255,255,255,0.06)`,
-      display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "16px",
-      fontSize: "12px", color: "rgba(255,255,255,0.3)", paddingBottom: "32px",
-    }}>
+    <div style={{ marginTop: "60px", paddingTop: "32px", borderTop: `1px solid rgba(255,255,255,0.06)`, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "16px", fontSize: "12px", color: "rgba(255,255,255,0.3)", paddingBottom: "32px" }}>
       <div style={{ display: "flex", gap: "20px" }}>
         <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>built by @smsonx</a>
         <a href="https://smsai.fun" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>smsai.fun</a>
@@ -1112,26 +1111,29 @@ export default function FairBounty() {
           <Logo size={14} />
           <span style={{ letterSpacing: "-0.02em" }}>FairBounty © 2026</span>
         </div>
-        <a href="https://smsai.fun" target="_blank" rel="noopener noreferrer" style={{
-          color: "rgba(255,255,255,0.25)", textDecoration: "none", fontSize: "11px",
-          letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: "500",
-        }}>
+        <a href="https://smsai.fun" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.25)", textDecoration: "none", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: "500" }}>
           A <span style={{ color: theme.primary, fontWeight: "600" }}>Solana Made Simple</span> product
         </a>
       </div>
     </div>
   );
 
-  // Loading spinner
+  const Notification = () => notification ? (
+    <div style={{
+      position: "fixed", top: "20px", right: "20px", zIndex: 300, padding: "12px 20px",
+      background: `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
+      border: `1px solid ${theme.primary}40`, borderRadius: "8px", fontSize: "13px",
+      color: theme.primary, fontWeight: "600", backdropFilter: "blur(10px)",
+      animation: "slideIn 0.3s ease", maxWidth: "340px",
+    }}>{notification}</div>
+  ) : null;
+
+  // Loading
   if (loading) {
     return (
       <div style={{ ...pageStyle, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{
-            width: "48px", height: "48px", border: `3px solid ${theme.primary}30`,
-            borderTop: `3px solid ${theme.primary}`, borderRadius: "50%",
-            animation: "spin 1s linear infinite", margin: "0 auto 16px",
-          }} />
+          <div style={{ width: "48px", height: "48px", border: `3px solid ${theme.primary}30`, borderTop: `3px solid ${theme.primary}`, borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
           <div style={{ color: theme.primary, fontSize: "14px", fontWeight: "600" }}>Fetching FairScore...</div>
           <div style={{ color: "#666", fontSize: "12px", marginTop: "4px" }}>Querying FairScale API</div>
         </div>
@@ -1141,19 +1143,14 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // LANDING PAGE
+  // LANDING
   // ============================================================
   if (view === "landing") {
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{
-            position: "absolute", top: "10%", right: "15%", width: "300px", height: "300px",
-            background: `radial-gradient(circle, ${theme.primary}20, transparent 70%)`,
-            borderRadius: "50%", filter: "blur(60px)", animation: "float 6s ease-in-out infinite",
-          }} />
-
+          <div style={{ position: "absolute", top: "10%", right: "15%", width: "300px", height: "300px", background: `radial-gradient(circle, ${theme.primary}20, transparent 70%)`, borderRadius: "50%", filter: "blur(60px)", animation: "float 6s ease-in-out infinite" }} />
           <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px", textAlign: "center" }}>
             <DemoBanner />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "80px", ...fadeIn }}>
@@ -1165,39 +1162,22 @@ export default function FairBounty() {
               <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
                 <button style={{ ...btnOutline, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("about")}>About</button>
                 <button style={{ ...btnOutline, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("how-it-works")}>How It Works</button>
-                <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "13px", opacity: 0.8 }}>
-                  Powered by FairScale ↗
-                </a>
+                <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "13px", opacity: 0.8 }}>Powered by FairScale ↗</a>
               </div>
             </div>
 
             <div style={{ ...fadeIn, transitionDelay: "0.1s" }}>
-              <div style={{
-                display: "inline-block", padding: "6px 16px",
-                background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`,
-                borderRadius: "100px", fontSize: "12px", color: theme.primary,
-                marginBottom: "24px", letterSpacing: "1px", textTransform: "uppercase",
-              }}>
+              <div style={{ display: "inline-block", padding: "6px 16px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "100px", fontSize: "12px", color: theme.primary, marginBottom: "24px", letterSpacing: "1px", textTransform: "uppercase" }}>
                 Reputation-Gated Bounties on Solana
               </div>
             </div>
 
-            <h1 style={{
-              fontSize: "clamp(40px, 7vw, 72px)", fontWeight: "900", lineHeight: "1.05",
-              margin: "0 0 24px", letterSpacing: "-2px", ...fadeIn, transitionDelay: "0.2s",
-            }}>
-              <GlitchText text="Earn." /> <span style={{ color: theme.primary }}>Prove.</span>
-              <br />Build <span style={{ color: theme.accent }}>Reputation.</span>
+            <h1 style={{ fontSize: "clamp(40px, 7vw, 72px)", fontWeight: "900", lineHeight: "1.05", margin: "0 0 24px", letterSpacing: "-2px", ...fadeIn, transitionDelay: "0.2s" }}>
+              <GlitchText text="Earn." /> <span style={{ color: theme.primary }}>Prove.</span><br />Build <span style={{ color: theme.accent }}>Reputation.</span>
             </h1>
-
-            <p style={{
-              fontSize: "17px", lineHeight: "1.7", color: "#9999A8", maxWidth: "550px",
-              margin: "0 auto 40px", ...fadeIn, transitionDelay: "0.3s",
-            }}>
-              A bounty board where your on-chain reputation unlocks opportunities.
-              Higher FairScore = bigger bounties, weighted votes, and bonus rewards.
+            <p style={{ fontSize: "17px", lineHeight: "1.7", color: "#9999A8", maxWidth: "550px", margin: "0 auto 40px", ...fadeIn, transitionDelay: "0.3s" }}>
+              A bounty board where your on-chain reputation unlocks opportunities. Prizes in USDC, memecoins, or NFTs. Community votes. Client picks the winner.
             </p>
-
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", ...fadeIn, transitionDelay: "0.4s" }}>
               <button style={btnPrimary} onClick={() => setView("connect")}
                 onMouseEnter={(e) => { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = `0 8px 30px ${theme.primary}40`; }}
@@ -1213,7 +1193,7 @@ export default function FairBounty() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
                 { value: globalStats.connectedWallets.toString(), label: "Connected Wallets", live: true },
-                { value: globalStats.bountyApps.toString(), label: "Bounties Posted", live: true },
+                { value: (liveBounties.length || globalStats.bountyApps || 0).toString(), label: "Live Bounties", live: true },
                 { value: globalStats.profiles.toString(), label: "Profiles", live: true },
               ].map((stat) => (
                 <div key={stat.label} style={{ ...cardStyle, padding: "24px", textAlign: "center" }}>
@@ -1223,20 +1203,33 @@ export default function FairBounty() {
               ))}
             </div>
 
-            {/* How FairScore Powers FairBounty */}
-            <div style={{ marginTop: "80px", ...fadeIn, transitionDelay: "0.6s" }}>
-              <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "12px", textAlign: "center" }}>How FairScore Powers Everything</h2>
-              <p style={{ fontSize: "13px", color: "#888", marginBottom: "32px", textAlign: "center", maxWidth: "500px", margin: "0 auto 32px" }}>
-                FairScore isn't decorative — it's the engine. Every feature is gated, weighted, or enhanced by your on-chain reputation.
-              </p>
+            {/* Prize types */}
+            <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.55s" }}>
+              <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Prize Types</h2>
+              <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Post bounties with USDC, memecoins, or NFTs as prizes</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+                {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
+                  <div key={key} style={{ ...cardStyle, padding: "20px", textAlign: "center", border: `1px solid ${pt.color}20` }}>
+                    <div style={{ fontSize: "28px", marginBottom: "8px" }}>{pt.icon}</div>
+                    <div style={{ fontSize: "14px", fontWeight: "700", color: pt.color, marginBottom: "4px" }}>{pt.label}</div>
+                    <div style={{ fontSize: "11px", color: "#888" }}>{pt.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* FairScore features */}
+            <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.6s" }}>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "12px" }}>How FairScore Powers Everything</h2>
+              <p style={{ fontSize: "13px", color: "#888", marginBottom: "32px", maxWidth: "500px", margin: "0 auto 32px" }}>Your on-chain reputation is the engine. Every feature is gated, weighted, or enhanced by FairScore.</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
                 {[
-                  { icon: "🔒", title: "Tier-Gated Access", desc: "Bounties are locked by minimum FairScore tier. Higher reputation = access to bigger, more valuable bounties." },
-                  { icon: "⚖️", title: "Community Review", desc: "Submissions are upvoted/downvoted by the community. Higher-tier wallets carry more influence. Client picks the winner from top-voted work." },
-                  { icon: "💎", title: "Dynamic Rewards", desc: "Earn bonus rewards on completed bounties. Up to +25% bonus USDC for Tier 5 Legends." },
-                  { icon: "🛡️", title: "Risk Management", desc: "Every wallet gets a risk assessment based on FairScore. Projects can filter low-reputation submissions." },
-                  { icon: "⚡", title: "BXP Multipliers", desc: "Higher tiers earn BXP faster. Tier 5 earns 3x BXP per action. Build reputation to build reputation." },
-                  { icon: "🔗", title: "Referral Gating", desc: "Only Tier 2+ wallets can generate referral links, preventing bot-driven referral spam." },
+                  { icon: "🔒", title: "Tier-Gated Access", desc: "Bounties require minimum FairScore tiers. Higher reputation = bigger bounties." },
+                  { icon: "⚖️", title: "Community Review", desc: "Community votes on submissions. Higher tiers carry more influence. Client picks winner from top-voted." },
+                  { icon: "💎", title: "Dynamic Rewards", desc: "Up to +25% bonus rewards for Tier 5 Legends on top of the prize amount." },
+                  { icon: "🛡️", title: "Risk Assessment", desc: "Every wallet gets a risk level based on FairScore. Projects filter with confidence." },
+                  { icon: "⚡", title: "BXP Multipliers", desc: "Tier 5 earns 3x BXP per action. Build reputation to build reputation faster." },
+                  { icon: "🔗", title: "Referral Gating", desc: "Only Tier 2+ wallets generate referral links, preventing bot-driven spam." },
                 ].map((item) => (
                   <div key={item.title} style={{ ...cardStyle, padding: "24px" }}>
                     <div style={{ fontSize: "28px", marginBottom: "8px" }}>{item.icon}</div>
@@ -1247,14 +1240,14 @@ export default function FairBounty() {
               </div>
             </div>
 
-            {/* Tier Breakdown */}
+            {/* Tiers */}
             <div style={{ marginTop: "60px", ...cardStyle, padding: "32px", textAlign: "left", ...fadeIn, transitionDelay: "0.65s" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "700", marginBottom: "20px", textAlign: "center", letterSpacing: "-0.03em" }}>FairScore Tier Benefits</h3>
+              <h3 style={{ fontSize: "18px", fontWeight: "700", marginBottom: "20px", textAlign: "center" }}>FairScore Tier Benefits</h3>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid rgba(255,255,255,0.08)` }}>
-                      {["Tier", "BXP Multiplier", "Review Weight"].map((h) => (
+                      {["Tier", "BXP Multiplier", "Vote Weight", "Max Prize"].map((h) => (
                         <th key={h} style={{ padding: "10px 8px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontWeight: "500", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
                       ))}
                     </tr>
@@ -1265,6 +1258,7 @@ export default function FairBounty() {
                         <td style={{ padding: "12px 8px", color: v.color, fontWeight: "600" }}>{v.emoji} Tier {k} — {v.label}</td>
                         <td style={{ padding: "12px 8px" }}>{v.xpMultiplier}x</td>
                         <td style={{ padding: "12px 8px" }}>{v.voteWeight}x</td>
+                        <td style={{ padding: "12px 8px" }}>{v.maxBounty ? `$${v.maxBounty.toLocaleString()}` : "Unlimited"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1272,31 +1266,19 @@ export default function FairBounty() {
               </div>
             </div>
 
-            {/* Built on FairScale + SMS branding */}
-            <div style={{
-              marginTop: "60px", padding: "24px 32px",
-              background: `linear-gradient(135deg, ${theme.primary}10, ${theme.accent}10)`,
-              border: `1px solid ${theme.primary}25`, borderRadius: "12px",
-              display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column",
-              textAlign: "center", gap: "16px", ...fadeIn, transitionDelay: "0.8s",
-            }}>
+            {/* Footer branding card */}
+            <div style={{ marginTop: "60px", padding: "24px 32px", background: `linear-gradient(135deg, ${theme.primary}10, ${theme.accent}10)`, border: `1px solid ${theme.primary}25`, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", textAlign: "center", gap: "16px", ...fadeIn, transitionDelay: "0.8s" }}>
               <div>
                 <Logo size={40} />
                 <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px", marginTop: "8px" }}>FairBounty</div>
                 <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>Reputation-gated bounties powered by FairScale</div>
               </div>
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
-                {[
-                  { href: "https://fairscale.xyz", label: "FairScale ↗" },
-                  { href: "https://smsai.fun", label: "smsai.fun ↗" },
-                  { href: "https://x.com/smsonx", label: "@smsonx ↗" },
-                ].map((l) => (
-                  <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer"
-                    style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px", textDecoration: "none" }}>{l.label}</a>
+                {[{ href: "https://fairscale.xyz", label: "FairScale ↗" }, { href: "https://smsai.fun", label: "smsai.fun ↗" }, { href: "https://x.com/smsonx", label: "@smsonx ↗" }].map((l) => (
+                  <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px", textDecoration: "none" }}>{l.label}</a>
                 ))}
               </div>
             </div>
-
             <Footer />
           </div>
         </div>
@@ -1306,59 +1288,25 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // ABOUT PAGE — Business Viability, Problem, Audience, Growth
+  // ABOUT
   // ============================================================
   if (view === "about") {
     const sections = [
-      {
-        title: "🎯 The Problem",
-        content: "The Solana ecosystem is booming with bounties, grants, and freelance work — but there's no trust layer. Projects waste time and money on unvetted contributors. Developers get scammed by fake bounties. There's no way to prove you're legit without a personal network.",
-      },
-      {
-        title: "💡 The Solution",
-        content: "FairBounty uses FairScale's on-chain reputation scoring (FairScore) to gate every interaction. Your wallet history becomes your resume. Projects trust contributors because their reputation is transparent, verifiable, and can't be faked.",
-      },
-      {
-        title: "👥 Target Audience",
-        content: "Solana projects needing vetted contributors (devs, designers, auditors, community managers). Web3 freelancers who want to build verifiable on-chain reputation. DAOs looking for accountable talent. NFT projects needing trusted collaborators.",
-      },
-      {
-        title: "📊 FairScore Integration",
-        items: [
-          "Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.",
-          "Community Review — Submissions are voted on. Higher tiers have more influence. Client picks the winner.",
-          "Dynamic Rewards — Tier-based bonus rewards on completed bounties.",
-          "Risk Assessment — Every wallet gets a risk score. Projects see trustworthiness at a glance.",
-          "BXP Multipliers — Higher tiers earn BXP faster, accelerating reputation growth.",
-          "Referral Rewards — Refer friends, both of you earn BXP.",
-        ],
-      },
-      {
-        title: "🤝 Competitive Advantage",
-        content: "No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, reducing friction for both projects and contributors while creating a self-reinforcing reputation flywheel.",
-      },
-      {
-        title: "🔗 Links",
-        items: [
-          "Built by @smsonx — x.com/smsonx",
-          "Research & Updates — smsai.fun",
-          "Powered by FairScale — fairscale.xyz",
-        ],
-      },
+      { title: "🎯 The Problem", content: "The Solana ecosystem is booming with bounties, grants, and freelance work — but there's no trust layer. Projects waste time and money on unvetted contributors. Developers get scammed by fake bounties. There's no way to prove you're legit without a personal network." },
+      { title: "💡 The Solution", content: "FairBounty uses FairScale's on-chain reputation scoring (FairScore) to gate every interaction. Your wallet history becomes your resume. Projects trust contributors because their reputation is transparent, verifiable, and can't be faked." },
+      { title: "👥 Target Audience", content: "Solana projects needing vetted contributors (devs, designers, auditors, community managers). Web3 freelancers who want to build verifiable on-chain reputation. DAOs looking for accountable talent. NFT projects needing trusted collaborators." },
+      { title: "📊 FairScore Integration", items: ["Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.", "Community Review — Submissions voted on, weighted by tier. Client picks the winner.", "Dynamic Rewards — Tier-based bonus rewards on completed bounties.", "Risk Assessment — Every wallet gets a risk score.", "BXP Multipliers — Higher tiers earn BXP faster.", "Multi-Prize Support — USDC, memecoins, and NFTs as prizes."] },
+      { title: "🤝 Competitive Advantage", content: "No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, creating a self-reinforcing reputation flywheel." },
+      { title: "🔗 Links", items: ["Built by @smsonx — x.com/smsonx", "Platform — @fairbounty", "Research & Updates — smsai.fun", "Powered by FairScale — fairscale.xyz"] },
     ];
-
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="landing" backLabel="Home" />
-
-          <div style={{ ...fadeIn }}>
+          <div style={fadeIn}>
             <h1 style={{ fontSize: "32px", fontWeight: "900", marginBottom: "8px" }}>About FairBounty</h1>
-            <p style={{ color: "#888", fontSize: "14px", marginBottom: "40px" }}>
-              Reputation-gated bounties for the Solana ecosystem, powered by FairScale.
-            </p>
-
+            <p style={{ color: "#888", fontSize: "14px", marginBottom: "40px" }}>Reputation-gated bounties for the Solana ecosystem, powered by FairScale.</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               {sections.map((s) => (
                 <div key={s.title} style={cardStyle}>
@@ -1367,13 +1315,7 @@ export default function FairBounty() {
                   {s.items && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {s.items.map((item, i) => (
-                        <div key={i} style={{
-                          padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
-                          fontSize: "12px", color: "#bbb", lineHeight: "1.6",
-                          borderLeft: `2px solid ${theme.primary}40`,
-                        }}>
-                          {item}
-                        </div>
+                        <div key={i} style={{ padding: "10px 14px", background: "#0c0c14", borderRadius: "6px", fontSize: "12px", color: "#bbb", lineHeight: "1.6", borderLeft: `2px solid ${theme.primary}40` }}>{item}</div>
                       ))}
                     </div>
                   )}
@@ -1381,7 +1323,6 @@ export default function FairBounty() {
               ))}
             </div>
           </div>
-
           <Footer />
         </div>
         <style>{globalStyles}</style>
@@ -1393,90 +1334,39 @@ export default function FairBounty() {
   // HOW IT WORKS
   // ============================================================
   if (view === "how-it-works") {
-
     const howSteps = [
-      {
-        num: "01", icon: "🔗", title: "Connect Your Wallet",
-        desc: "Connect your Solana wallet to FairBounty. We automatically fetch your FairScore from the FairScale API — no extra steps. Your on-chain history determines your tier (1–5), which unlocks bounties, perks, and earning potential.",
-        details: ["Jupiter, Phantom, Solflare, Backpack, Glow supported", "FairScore fetched automatically on connect", "Set up your profile — display name, skills, socials", "Your profile persists across sessions"],
-      },
-      {
-        num: "02", icon: "🎯", title: "Find & Claim Bounties",
-        desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger, more valuable bounties.",
-        details: ["Filter bounties by tier, tags, reward amount", "Bookmark bounties to save for later", "See how many submissions each bounty has", "Locked bounties show what tier you need"],
-      },
-      {
-        num: "03", icon: "⚖️", title: "Community Reviews Submissions",
-        desc: "Once contributors submit work, the community votes on submissions Reddit-style — upvote good work, downvote low effort. Your tier determines how much your vote counts. The client then picks the winner from the top-voted submissions. This keeps things fair: the community surfaces the best work, and the client makes the final call.",
-        details: ["Upvote/downvote submissions like Reddit", "Higher-tier wallets have more voting influence", "Client picks the winner from top-ranked submissions", "No single person controls the outcome"],
-      },
-      {
-        num: "04", icon: "💰", title: "Submit & Earn",
-        desc: "Complete bounties, refer friends, and build your BXP (Bounty Experience). BXP tracks your total platform activity — the more you contribute, the more you earn.",
-        details: [
-          "🎁 Welcome bonus: 100 BXP × tier multiplier (first profile setup)",
-          "🔗 Referrals: 50 BXP × tier multiplier (you AND your friend both earn)",
-          "📝 Submissions: 25 BXP × tier multiplier (per bounty submission)",
-          "🏆 Wins: 100 BXP × tier multiplier (plus the bounty reward + tier bonus)",
-          "💡 Example: Tier 3 (Builder, 1.5x) wins $500 USDC → $550 payout + 150 BXP",
-        ],
-      },
+      { num: "01", icon: "🔗", title: "Connect Your Wallet", desc: "Connect your Solana wallet. We automatically fetch your FairScore from the FairScale API. Your on-chain history determines your tier (1–5), which unlocks bounties, perks, and earning potential.", details: ["Jupiter, Phantom, Solflare, Backpack, Glow, Seed Vault supported", "FairScore fetched automatically on connect", "Set up your profile — display name, skills, socials", "Profile persists across devices via Neon Postgres"] },
+      { num: "02", icon: "🎯", title: "Find & Claim Bounties", desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger bounties. Prizes include USDC, memecoins, and NFTs.", details: ["Filter by tier, tags, prize type", "Bookmark bounties to save for later", "Real bounties posted by beta users now live", "Locked bounties show the tier needed to unlock"] },
+      { num: "03", icon: "⚖️", title: "Community Reviews Submissions", desc: "Contributors submit work. The community votes — your tier determines how much your vote counts. Higher-tier wallets carry more influence. The client then picks the winner from top-voted submissions.", details: ["Upvote/downvote submissions with FairScore-weighted votes", "Tier 5 vote = 8x weight vs Tier 1 = 1x", "Client picks winner from top-ranked submissions", "No single person controls the outcome"] },
+      { num: "04", icon: "💰", title: "Submit & Earn", desc: "Complete bounties, refer friends, build BXP. All BXP multiplied by your tier.", details: ["🎁 Welcome: 100 BXP × tier multiplier", "🔗 Referrals: 50 BXP × multiplier (both parties)", "📝 Submissions: 25 BXP × multiplier", "🏆 Wins: 100 BXP + prize + tier bonus"] },
     ];
-
     const tierDetails = {
       1: { xp: "1x", vote: "1x", tip: "Connect your wallet and explore. Build on-chain activity to start climbing." },
-      2: { xp: "1.25x", vote: "2x", tip: "Active on-chain. Access mid-range bounties, generate referral links, reviews carry 2x weight." },
-      3: { xp: "1.5x", vote: "3x", tip: "Established builder. Earn bonus rewards, 3x review weight helps surface the best work." },
-      4: { xp: "2x", vote: "5x", tip: "Veteran status. Proven on-chain. 5x review power, 2x BXP acceleration." },
-      5: { xp: "3x", vote: "8x", tip: "Legendary reputation. Unlimited access, 8x review weight, 3x BXP." },
+      2: { xp: "1.25x", vote: "2x", tip: "Active on-chain. Access mid-range bounties, generate referral links." },
+      3: { xp: "1.5x", vote: "3x", tip: "Established. Earn bonus rewards, 3x review weight." },
+      4: { xp: "2x", vote: "5x", tip: "Veteran status. 5x review power, 2x BXP acceleration." },
+      5: { xp: "3x", vote: "8x", tip: "Legendary reputation. 8x review weight, 3x BXP." },
     };
-
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="landing" backLabel="Home" />
-
           <div style={fadeIn}>
-            {/* Header */}
             <div style={{ textAlign: "center", marginBottom: "50px" }}>
-              <div style={{
-                display: "inline-block", padding: "6px 16px",
-                background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`,
-                borderRadius: "100px", fontSize: "11px", color: theme.primary,
-                marginBottom: "20px", letterSpacing: "1.5px", textTransform: "uppercase",
-              }}>
-                How It Works
-              </div>
+              <div style={{ display: "inline-block", padding: "6px 16px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "100px", fontSize: "11px", color: theme.primary, marginBottom: "20px", letterSpacing: "1.5px", textTransform: "uppercase" }}>How It Works</div>
               <h1 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: "900", lineHeight: "1.1", marginBottom: "16px", letterSpacing: "-1px" }}>
                 From Wallet to <span style={{ color: theme.primary }}>Earning</span>
               </h1>
-              <p style={{ fontSize: "15px", color: "#888", maxWidth: "500px", margin: "0 auto", lineHeight: "1.7" }}>
-                Your on-chain reputation is your key. Here's how FairScore powers every part of FairBounty.
-              </p>
+              <p style={{ fontSize: "15px", color: "#888", maxWidth: "500px", margin: "0 auto", lineHeight: "1.7" }}>Your on-chain reputation is your key. Here's how FairScore powers every part of FairBounty.</p>
             </div>
-
-            {/* Steps */}
             <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "60px" }}>
               {howSteps.map((step, i) => {
                 const isActive = activeStep === i;
                 return (
-                  <div key={i} onClick={() => setActiveStep(isActive ? -1 : i)}
-                    style={{
-                      ...cardStyle, cursor: "pointer",
-                      border: isActive ? `1px solid ${theme.primary}60` : `1px solid ${theme.primary}20`,
-                      transition: "all 0.3s ease",
-                    }}>
+                  <div key={i} onClick={() => setActiveStep(isActive ? -1 : i)} style={{ ...cardStyle, cursor: "pointer", border: isActive ? `1px solid ${theme.primary}60` : `1px solid ${theme.primary}20`, transition: "all 0.3s ease" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                      <div style={{
-                        width: "48px", height: "48px", borderRadius: "12px", flexShrink: 0,
-                        background: isActive ? `${theme.primary}20` : `${theme.primary}08`,
-                        border: `1px solid ${isActive ? theme.primary + "40" : theme.primary + "15"}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "24px", transition: "all 0.3s ease",
-                      }}>
-                        {step.icon}
-                      </div>
+                      <div style={{ width: "48px", height: "48px", borderRadius: "12px", flexShrink: 0, background: isActive ? `${theme.primary}20` : `${theme.primary}08`, border: `1px solid ${isActive ? theme.primary + "40" : theme.primary + "15"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>{step.icon}</div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: "10px", color: theme.primary, fontWeight: "700", letterSpacing: "1px", marginBottom: "2px" }}>STEP {step.num}</div>
                         <h3 style={{ fontSize: "16px", fontWeight: "700", margin: 0 }}>{step.title}</h3>
@@ -1488,76 +1378,44 @@ export default function FairBounty() {
                         <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", marginBottom: "16px" }}>{step.desc}</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                           {step.details.map((d, j) => (
-                            <div key={j} style={{
-                              padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
-                              fontSize: "12px", color: "#999", lineHeight: "1.5",
-                              borderLeft: `2px solid ${theme.primary}40`,
-                              display: "flex", alignItems: "center", gap: "8px",
-                            }}>
+                            <div key={j} style={{ padding: "10px 14px", background: "#0c0c14", borderRadius: "6px", fontSize: "12px", color: "#999", lineHeight: "1.5", borderLeft: `2px solid ${theme.primary}40`, display: "flex", alignItems: "center", gap: "8px" }}>
                               <span style={{ color: theme.primary }}>›</span> {d}
                             </div>
                           ))}
                         </div>
-                        {step.actionUrl && (
-                          <a href={step.actionUrl} target="_blank" rel="noopener noreferrer"
-                            style={{ ...btnPrimary, display: "inline-block", marginTop: "16px", textDecoration: "none", fontSize: "13px" }}>
-                            {step.action}
-                          </a>
-                        )}
                       </div>
                     )}
                   </div>
                 );
               })}
             </div>
-
-            {/* Tiers & How to Level Up — Combined */}
             <div style={{ marginBottom: "60px" }}>
-              <h2 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "8px", textAlign: "center", letterSpacing: "-0.03em" }}>Tiers & How to Level Up</h2>
-              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: "28px" }}>Your FairScore tier determines what you can access. Tap to expand.</p>
-
+              <h2 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "8px", textAlign: "center" }}>Tiers & How to Level Up</h2>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: "28px" }}>Tap to expand.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px" }}>
                 {Object.entries(TIER_CONFIG).map(([k, v]) => {
                   const td = tierDetails[k];
                   const isOpen = activeTier === k;
                   return (
-                    <div key={k} onClick={() => setActiveTier(isOpen ? null : k)}
-                      style={{
-                        ...cardStyle, cursor: "pointer",
-                        border: isOpen ? `1px solid ${v.color}40` : `1px solid rgba(255,255,255,0.07)`,
-                      }}>
+                    <div key={k} onClick={() => setActiveTier(isOpen ? null : k)} style={{ ...cardStyle, cursor: "pointer", border: isOpen ? `1px solid ${v.color}40` : `1px solid rgba(255,255,255,0.07)` }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                         <span style={{ fontSize: "24px" }}>{v.emoji}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: "14px", fontWeight: "600", color: v.color }}>Tier {k} — {v.label}</div>
                         </div>
                         <div style={{ display: "flex", gap: "12px", fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-                          <span>BXP {td.xp}</span>
-                          <span>Review {td.vote}</span>
+                          <span>BXP {td.xp}</span><span>Vote {td.vote}</span>
                         </div>
                       </div>
-                      {isOpen && (
-                        <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: `1px solid ${v.color}15` }}>
-                          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "12px" }}>{td.tip}</p>
-                        </div>
-                      )}
+                      {isOpen && <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: `1px solid ${v.color}15` }}><p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7" }}>{td.tip}</p></div>}
                     </div>
                   );
                 })}
               </div>
-
-              {/* How to increase */}
               <div style={{ ...cardStyle, padding: "28px" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "20px", letterSpacing: "-0.02em" }}>How to increase your tier</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "20px" }}>How to increase your tier</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-                  {[
-                    { icon: "🔄", title: "Use DeFi", desc: "Swap, stake, and provide liquidity across protocols" },
-                    { icon: "📊", title: "Stay Active", desc: "Consistent on-chain activity over time" },
-                    { icon: "🏗️", title: "Complete Bounties", desc: "Successful completions build your reputation" },
-                    { icon: "⏰", title: "Wallet Age", desc: "Older wallets with history score higher" },
-                    { icon: "🌐", title: "Diversify", desc: "Spread activity across multiple protocols" },
-                    { icon: "🔗", title: "Connect Socials", desc: "Link your X account to boost social score" },
-                  ].map((item) => (
+                  {[{ icon: "🔄", title: "Use DeFi", desc: "Swap, stake, and provide liquidity" }, { icon: "📊", title: "Stay Active", desc: "Consistent on-chain activity" }, { icon: "🏗️", title: "Win Bounties", desc: "Successful completions build reputation" }, { icon: "⏰", title: "Wallet Age", desc: "Older wallets with history score higher" }, { icon: "🌐", title: "Diversify", desc: "Spread activity across protocols" }, { icon: "🔗", title: "Connect Socials", desc: "Link X to boost social score" }].map((item) => (
                     <div key={item.title} style={{ padding: "18px", background: "rgba(255,255,255,0.03)", borderRadius: "12px", border: `1px solid ${theme.primary}10` }}>
                       <div style={{ fontSize: "22px", marginBottom: "8px" }}>{item.icon}</div>
                       <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>{item.title}</div>
@@ -1567,9 +1425,7 @@ export default function FairBounty() {
                 </div>
               </div>
             </div>
-
           </div>
-
           <Footer />
         </div>
         <style>{globalStyles}</style>
@@ -1578,87 +1434,40 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // WALLET CONNECT
+  // CONNECT
   // ============================================================
   if (view === "connect") {
     const walletIcons = { jupiter: "🪐", phantom: "👻", solflare: "🔥", backpack: "🎒", glow: "✨", seedvault: "🔐" };
-
-    // Check which wallets are detected
     const isWalletDetected = (opt) => {
       if (opt.useStandard) return standardWallets.some((w) => w.name?.toLowerCase().includes(opt.name.toLowerCase()));
       if (opt.window) { const p = window[opt.window]; return p && (!opt.check || opt.check(p)); }
       return false;
     };
-
-    // Detect if MWA / Seed Vault is available
     const mwaAvailable = !!findMwaWallet();
-
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "460px", margin: "0 auto", padding: "60px 20px", ...fadeIn }}>
           <button onClick={() => setView("landing")} style={{ ...btnOutline, marginBottom: "40px", fontSize: "12px", padding: "8px 16px" }}>← Back</button>
           <h2 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Connect Wallet</h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "32px" }}>Choose your Solana wallet. Your FairScore will be fetched automatically.</p>
-
-          {loading && (
-            <div style={{ textAlign: "center", padding: "20px", color: theme.primary, fontSize: "14px" }}>
-              <div style={{ fontSize: "28px", marginBottom: "8px", animation: "pulse 1s ease-in-out infinite" }}>⏳</div>
-              Connecting wallet...
-            </div>
-          )}
-
-          {/* Seed Vault / MWA — prominent when detected */}
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "32px" }}>Choose your Solana wallet. FairScore fetched automatically.</p>
+          {loading && <div style={{ textAlign: "center", padding: "20px", color: theme.primary, fontSize: "14px" }}><div style={{ fontSize: "28px", marginBottom: "8px", animation: "pulse 1s ease-in-out infinite" }}>⏳</div>Connecting...</div>}
           {mwaAvailable && (
-            <div style={{
-              ...glassCard, marginBottom: "20px", padding: "20px", textAlign: "center",
-              border: `1px solid ${WALLET_THEMES.seedvault.primary}30`,
-            }}>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: WALLET_THEMES.seedvault.primary, marginBottom: "12px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                📱 Solana Mobile Detected
-              </div>
-              <button onClick={() => !loading && connectWallet("seedvault")} disabled={loading}
-                style={{
-                  ...btnPrimary, width: "100%", padding: "14px 24px", fontSize: "15px",
-                  background: `linear-gradient(135deg, ${WALLET_THEMES.seedvault.primary}, ${WALLET_THEMES.seedvault.accent})`,
-                  boxShadow: `0 2px 20px ${WALLET_THEMES.seedvault.primary}30`,
-                }}>
-                🔐 Connect with Seed Vault
-              </button>
+            <div style={{ ...glassCard, marginBottom: "20px", padding: "20px", textAlign: "center", border: `1px solid ${WALLET_THEMES.seedvault.primary}30` }}>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: WALLET_THEMES.seedvault.primary, marginBottom: "12px", letterSpacing: "0.05em", textTransform: "uppercase" }}>📱 Solana Mobile Detected</div>
+              <button onClick={() => !loading && connectWallet("seedvault")} disabled={loading} style={{ ...btnPrimary, width: "100%", padding: "14px 24px", fontSize: "15px", background: `linear-gradient(135deg, ${WALLET_THEMES.seedvault.primary}, ${WALLET_THEMES.seedvault.accent})`, boxShadow: `0 2px 20px ${WALLET_THEMES.seedvault.primary}30` }}>🔐 Connect with Seed Vault</button>
             </div>
           )}
-
-          {/* Tip for non-detected mobile */}
-          {isMobile && !mwaAvailable && (
-            <div style={{
-              ...cardStyle, marginBottom: "20px", padding: "14px 16px", textAlign: "center",
-              fontSize: "12px", color: "rgba(255,255,255,0.4)",
-            }}>
-              📱 Tap a wallet to open this site in that wallet's browser
-            </div>
-          )}
-
-          {/* Other wallets label when Seed Vault is shown */}
-          {mwaAvailable && (
-            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "12px", textAlign: "center" }}>Or select another wallet:</p>
-          )}
-
+          {isMobile && !mwaAvailable && <div style={{ ...cardStyle, marginBottom: "20px", padding: "14px 16px", textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>📱 Tap a wallet to open in that wallet's browser</div>}
+          {mwaAvailable && <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "12px", textAlign: "center" }}>Or select another wallet:</p>}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {walletOptions.filter((opt) => !opt.isMwa).map((opt) => {
               const wTheme = WALLET_THEMES[opt.id] || WALLET_THEMES.default;
               const detected = isWalletDetected(opt);
               return (
-                <button key={opt.id} onClick={() => !loading && connectWallet(opt.id)} disabled={loading}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px",
-                    background: `linear-gradient(135deg, ${wTheme.bg}, #0c0c14)`,
-                    border: `1px solid ${wTheme.primary}30`, borderRadius: "12px", color: "#E8E8ED",
-                    fontFamily: "inherit", cursor: loading ? "wait" : "pointer", fontSize: "15px", fontWeight: "600",
-                    transition: "all 0.2s ease", textAlign: "left", opacity: loading ? 0.5 : 1,
-                  }}
-                  onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.borderColor = wTheme.primary; e.currentTarget.style.transform = "translateX(4px)"; e.currentTarget.style.boxShadow = `0 0 20px ${wTheme.primary}20`; } }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${wTheme.primary}30`; e.currentTarget.style.transform = "translateX(0)"; e.currentTarget.style.boxShadow = "none"; }}
-                >
+                <button key={opt.id} onClick={() => !loading && connectWallet(opt.id)} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px", background: `linear-gradient(135deg, ${wTheme.bg}, #0c0c14)`, border: `1px solid ${wTheme.primary}30`, borderRadius: "12px", color: "#E8E8ED", fontFamily: "inherit", cursor: loading ? "wait" : "pointer", fontSize: "15px", fontWeight: "600", transition: "all 0.2s ease", textAlign: "left", opacity: loading ? 0.5 : 1 }}
+                  onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.borderColor = wTheme.primary; e.currentTarget.style.transform = "translateX(4px)"; } }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${wTheme.primary}30`; e.currentTarget.style.transform = "translateX(0)"; }}>
                   <span style={{ fontSize: "24px" }}>{walletIcons[opt.id] || "💳"}</span>
                   <span>{opt.name}</span>
                   <span style={{ marginLeft: "auto", fontSize: "10px", padding: "4px 10px", background: detected ? `${wTheme.primary}25` : "#ffffff08", color: detected ? wTheme.primary : "#666", borderRadius: "100px", fontWeight: "600" }}>
@@ -1668,7 +1477,6 @@ export default function FairBounty() {
               );
             })}
           </div>
-
         </div>
         <style>{globalStyles}</style>
       </div>
@@ -1676,168 +1484,68 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // ============================================================
-  // PROFILE SETUP — After wallet connect (tabbed form)
+  // PROFILE SETUP
   // ============================================================
   if (view === "profile-setup") {
     const setupTabs = ["Basics", "Socials", "Skills"];
-
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "540px", margin: "0 auto", padding: "40px 20px" }}>
           <div style={fadeIn}>
-            {/* Header */}
             <div style={{ textAlign: "center", marginBottom: "28px" }}>
               <div style={{ fontSize: "48px", marginBottom: "8px" }}>{TIER_CONFIG[fairScore]?.emoji}</div>
               <h2 style={{ fontSize: "26px", fontWeight: "800", marginBottom: "4px" }}>Set Up Your Profile</h2>
-              <p style={{ color: "#888", fontSize: "13px" }}>
-                You're <span style={{ color: TIER_CONFIG[fairScore]?.color, fontWeight: "700" }}>Tier {fairScore} — {TIER_CONFIG[fairScore]?.label}</span>
-              </p>
+              <p style={{ color: "#888", fontSize: "13px" }}>You're <span style={{ color: TIER_CONFIG[fairScore]?.color, fontWeight: "700" }}>Tier {fairScore} — {TIER_CONFIG[fairScore]?.label}</span></p>
             </div>
-
-            {/* Wallet summary */}
             <div style={{ ...cardStyle, marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", padding: "14px 18px" }}>
-              <div>
-                <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Wallet</div>
-                <div style={{ fontSize: "13px", color: theme.primary, fontWeight: "600", marginTop: "2px" }}>{wallet}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>FairScore</div>
-                <div style={{ fontSize: "13px", color: TIER_CONFIG[fairScore]?.color, fontWeight: "600", marginTop: "2px" }}>{scoreData?.score} pts</div>
-              </div>
+              <div><div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Wallet</div><div style={{ fontSize: "13px", color: theme.primary, fontWeight: "600", marginTop: "2px" }}>{wallet}</div></div>
+              <div style={{ textAlign: "right" }}><div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>FairScore</div><div style={{ fontSize: "13px", color: TIER_CONFIG[fairScore]?.color, fontWeight: "600", marginTop: "2px" }}>{scoreData?.score} pts</div></div>
             </div>
-
-            {/* Tabs */}
             <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {setupTabs.map((t) => (
-                <button key={t} onClick={() => setSetupTab(t)}
-                  style={{
-                    flex: 1, padding: "10px", fontSize: "13px", fontWeight: "600",
-                    background: setupTab === t ? `${theme.primary}20` : "transparent",
-                    border: setupTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent",
-                    borderRadius: "8px", color: setupTab === t ? theme.primary : "#888",
-                    cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease",
-                  }}>{t}</button>
+                <button key={t} onClick={() => setSetupTab(t)} style={{ flex: 1, padding: "10px", fontSize: "13px", fontWeight: "600", background: setupTab === t ? `${theme.primary}20` : "transparent", border: setupTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "8px", color: setupTab === t ? theme.primary : "#888", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease" }}>{t}</button>
               ))}
             </div>
-
             <div style={cardStyle}>
-              {/* BASICS TAB */}
               {setupTab === "Basics" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {/* PFP Upload */}
                   <div style={{ textAlign: "center" }}>
                     <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "8px" }}>Profile Picture</label>
-                    <div style={{
-                      width: "88px", height: "88px", borderRadius: "50%", margin: "0 auto 12px",
-                      background: profileForm.pfpUrl ? `url(${profileForm.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
-                      border: `3px solid ${theme.primary}40`, display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "32px", color: theme.primary, cursor: "pointer", position: "relative", overflow: "hidden",
-                    }} onClick={() => document.getElementById("pfp-upload")?.click()}>
+                    <div style={{ width: "88px", height: "88px", borderRadius: "50%", margin: "0 auto 12px", background: profileForm.pfpUrl ? `url(${profileForm.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`, border: `3px solid ${theme.primary}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", color: theme.primary, cursor: "pointer" }} onClick={() => document.getElementById("pfp-upload")?.click()}>
                       {!profileForm.pfpUrl && "👤"}
-                      {profileForm.pfpUrl && (
-                        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s" }}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
-                          <span style={{ fontSize: "14px", color: "#fff" }}>Change</span>
-                        </div>
-                      )}
                     </div>
-                    <input id="pfp-upload" type="file" accept="image/*" style={{ display: "none" }}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.size > 2 * 1024 * 1024) { notify("Image must be under 2MB"); return; }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setProfileForm((prev) => ({ ...prev, pfpUrl: ev.target.result }));
-                          reader.readAsDataURL(file);
-                        }
-                      }} />
-                    <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 16px", marginBottom: "8px" }}
-                      onClick={() => document.getElementById("pfp-upload")?.click()}>
-                      Upload Image
-                    </button>
+                    <input id="pfp-upload" type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const file = e.target.files?.[0]; if (file) { if (file.size > 2 * 1024 * 1024) { notify("Image must be under 2MB"); return; } const reader = new FileReader(); reader.onload = (ev) => setProfileForm((prev) => ({ ...prev, pfpUrl: ev.target.result })); reader.readAsDataURL(file); } }} />
+                    <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 16px", marginBottom: "8px" }} onClick={() => document.getElementById("pfp-upload")?.click()}>Upload Image</button>
                     <div style={{ fontSize: "10px", color: "#555", marginBottom: "6px" }}>or paste a URL below</div>
-                    <input style={{ ...inputStyle, fontSize: "12px" }} value={profileForm.pfpUrl?.startsWith("data:") ? "" : profileForm.pfpUrl}
-                      onChange={(e) => setProfileForm({ ...profileForm, pfpUrl: e.target.value })}
-                      placeholder="https://example.com/your-image.png" />
+                    <input style={{ ...inputStyle, fontSize: "12px" }} value={profileForm.pfpUrl?.startsWith("data:") ? "" : profileForm.pfpUrl} onChange={(e) => setProfileForm({ ...profileForm, pfpUrl: e.target.value })} placeholder="https://example.com/image.png" />
                   </div>
-                  <div>
-                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Display Name *</label>
-                    <input style={inputStyle} value={profileForm.displayName} onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })} placeholder="e.g. CryptoBuilder" />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Email *</label>
-                    <input style={inputStyle} type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="you@example.com" />
-                    <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>Used for notifications and newsletters. Never shared publicly.</div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Bio</label>
-                    <textarea style={{ ...inputStyle, minHeight: "70px", resize: "vertical" }} value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Solana builder, DeFi enthusiast..." />
-                  </div>
+                  <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Display Name *</label><input style={inputStyle} value={profileForm.displayName} onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })} placeholder="e.g. CryptoBuilder" /></div>
+                  <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Email</label><input style={inputStyle} type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="you@example.com" /></div>
+                  <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Bio</label><textarea style={{ ...inputStyle, minHeight: "70px", resize: "vertical" }} value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Solana builder, DeFi enthusiast..." /></div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Location</label>
-                      <input style={inputStyle} value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} placeholder="e.g. United States" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Works at</label>
-                      <input style={inputStyle} value={profileForm.worksAt} onChange={(e) => setProfileForm({ ...profileForm, worksAt: e.target.value })} placeholder="e.g. Marinade Finance" />
-                    </div>
-                  </div>
-
-                  <div style={{ padding: "10px 14px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}15`, borderRadius: "8px", fontSize: "11px", color: "#888", lineHeight: "1.6" }}>
-                    🔒 Your information is stored securely and never shared with third parties. Email is used only for platform notifications. Contact info is only visible on your public profile if you choose to add it.
+                    <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Location</label><input style={inputStyle} value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} placeholder="e.g. United States" /></div>
+                    <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Works at</label><input style={inputStyle} value={profileForm.worksAt} onChange={(e) => setProfileForm({ ...profileForm, worksAt: e.target.value })} placeholder="e.g. Marinade Finance" /></div>
                   </div>
                 </div>
               )}
-
-              {/* SOCIALS TAB */}
               {setupTab === "Socials" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
                   <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>Social Profiles</div>
-                  {[
-                    { key: "xHandle", label: "X / Twitter", prefix: "@", placeholder: "yourhandle", icon: "𝕏" },
-                    { key: "discord", label: "Discord", prefix: "", placeholder: "username", icon: "💬" },
-                    { key: "telegram", label: "Telegram", prefix: "@", placeholder: "yourhandle", icon: "✈️" },
-                    { key: "github", label: "GitHub", prefix: "", placeholder: "github.com/you", icon: "🐙" },
-                    { key: "linkedin", label: "LinkedIn", prefix: "", placeholder: "linkedin.com/in/you", icon: "💼" },
-                    { key: "website", label: "Website / Portfolio", prefix: "", placeholder: "https://yoursite.com", icon: "🌐" },
-                  ].map((s) => (
+                  {[{ key: "xHandle", label: "X / Twitter", prefix: "@", placeholder: "yourhandle", icon: "𝕏" }, { key: "discord", label: "Discord", prefix: "", placeholder: "username", icon: "💬" }, { key: "telegram", label: "Telegram", prefix: "@", placeholder: "yourhandle", icon: "✈️" }, { key: "github", label: "GitHub", prefix: "", placeholder: "github.com/you", icon: "🐙" }, { key: "linkedin", label: "LinkedIn", prefix: "", placeholder: "linkedin.com/in/you", icon: "💼" }, { key: "website", label: "Website / Portfolio", prefix: "", placeholder: "https://yoursite.com", icon: "🌐" }].map((s) => (
                     <div key={s.key} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <span style={{ fontSize: "18px", width: "24px", textAlign: "center" }}>{s.icon}</span>
                       <div style={{ flex: 1 }}>
                         <label style={{ fontSize: "11px", color: "#666", display: "block", marginBottom: "4px" }}>{s.label}</label>
                         <div style={{ position: "relative" }}>
                           {s.prefix && <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#555", fontSize: "13px" }}>{s.prefix}</span>}
-                          <input style={{ ...inputStyle, fontSize: "13px", padding: "10px 14px", paddingLeft: s.prefix ? "26px" : "14px" }}
-                            value={profileForm[s.key]} onChange={(e) => setProfileForm({ ...profileForm, [s.key]: e.target.value.replace(/^@/, "") })} placeholder={s.placeholder} />
+                          <input style={{ ...inputStyle, fontSize: "13px", padding: "10px 14px", paddingLeft: s.prefix ? "26px" : "14px" }} value={profileForm[s.key]} onChange={(e) => setProfileForm({ ...profileForm, [s.key]: e.target.value.replace(/^@/, "") })} placeholder={s.placeholder} />
                         </div>
                       </div>
                     </div>
                   ))}
-
-                  <div style={{ borderTop: `1px solid ${theme.primary}15`, paddingTop: "16px", marginTop: "4px" }}>
-                    <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "14px" }}>Contact Info</div>
-                    {[
-                      { key: "contact", label: "Phone / WhatsApp", prefix: "", placeholder: "+1 (555) 123-4567", icon: "📱" },
-                      { key: "email", label: "Public Email", prefix: "", placeholder: "contact@you.com", icon: "📧", note: "Separate from your account email — this one is visible on your profile" },
-                    ].map((s) => (
-                      <div key={s.key} style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "14px" }}>
-                        <span style={{ fontSize: "18px", width: "24px", textAlign: "center", marginTop: "6px" }}>{s.icon}</span>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: "11px", color: "#666", display: "block", marginBottom: "4px" }}>{s.label}</label>
-                          <input style={{ ...inputStyle, fontSize: "13px", padding: "10px 14px" }}
-                            value={profileForm[s.key]} onChange={(e) => setProfileForm({ ...profileForm, [s.key]: e.target.value })} placeholder={s.placeholder} />
-                          {s.note && <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{s.note}</div>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
-
-              {/* SKILLS TAB */}
               {setupTab === "Skills" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                   {profileForm.skills.length > 0 && (
@@ -1845,11 +1553,7 @@ export default function FairBounty() {
                       <div style={{ fontSize: "12px", color: "#888", marginBottom: "8px" }}>Selected ({profileForm.skills.length})</div>
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         {profileForm.skills.map((s) => (
-                          <button key={s} onClick={() => toggleSkill(s)} style={{
-                            padding: "6px 14px", background: `${theme.primary}20`, border: `1px solid ${theme.primary}40`,
-                            borderRadius: "100px", fontSize: "12px", color: theme.primary, cursor: "pointer",
-                            fontFamily: "inherit", fontWeight: "600", transition: "all 0.15s ease",
-                          }}>{s} ✕</button>
+                          <button key={s} onClick={() => toggleSkill(s)} style={{ padding: "6px 14px", background: `${theme.primary}20`, border: `1px solid ${theme.primary}40`, borderRadius: "100px", fontSize: "12px", color: theme.primary, cursor: "pointer", fontFamily: "inherit", fontWeight: "600" }}>{s} ✕</button>
                         ))}
                       </div>
                     </div>
@@ -1860,14 +1564,7 @@ export default function FairBounty() {
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         {skills.map((s) => {
                           const selected = profileForm.skills.includes(s);
-                          return (
-                            <button key={s} onClick={() => toggleSkill(s)} style={{
-                              padding: "5px 12px", background: selected ? `${theme.primary}20` : "#0c0c14",
-                              border: `1px solid ${selected ? theme.primary + "40" : theme.primary + "15"}`,
-                              borderRadius: "100px", fontSize: "11px", color: selected ? theme.primary : "#999",
-                              cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s ease",
-                            }}>{s}</button>
-                          );
+                          return <button key={s} onClick={() => toggleSkill(s)} style={{ padding: "5px 12px", background: selected ? `${theme.primary}20` : "#0c0c14", border: `1px solid ${selected ? theme.primary + "40" : theme.primary + "15"}`, borderRadius: "100px", fontSize: "11px", color: selected ? theme.primary : "#999", cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s ease" }}>{s}</button>;
                         })}
                       </div>
                     </div>
@@ -1875,23 +1572,10 @@ export default function FairBounty() {
                 </div>
               )}
             </div>
-
-            {/* Action buttons */}
             <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
-              <button style={{ ...btnPrimary, flex: 1 }} onClick={handleProfileSave}>
-                Save Profile & Enter →
-              </button>
+              <button style={{ ...btnPrimary, flex: 1 }} onClick={handleProfileSave}>Save Profile & Enter →</button>
             </div>
-            <button style={{ ...btnOutline, width: "100%", marginTop: "8px", fontSize: "12px" }} onClick={() => {
-              setProfile({
-                displayName: profileForm.displayName.trim() || wallet?.slice(0, 10) || "Anon",
-                xHandle: profileForm.xHandle.replace(/^@/, "").trim() || "",
-                bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "",
-                website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "",
-                skills: [], joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }),
-              });
-              setView("dashboard");
-            }}>Skip for now</button>
+            <button style={{ ...btnOutline, width: "100%", marginTop: "8px", fontSize: "12px" }} onClick={() => { setProfile({ displayName: profileForm.displayName.trim() || wallet?.slice(0, 10) || "Anon", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [], joinedDate: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }) }); setView("dashboard"); }}>Skip for now</button>
           </div>
         </div>
         <style>{globalStyles}</style>
@@ -1900,21 +1584,18 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // PROFILE VIEW (tabbed: Overview, Skills, Bookmarks)
+  // PROFILE VIEW
   // ============================================================
   if (view === "profile" && wallet) {
     const tier = TIER_CONFIG[fairScore];
-    const customReferral = `https://fairbounty.vercel.app/ref/${profile?.xHandle || wallet?.slice(0, 8)}`;
-    const xShareText = encodeURIComponent(`I'm a ${tier?.label} (Tier ${fairScore}) on @FairBounty — reputation-gated bounties on Solana powered by @fairscalexyz\n\nCheck your FairScore: ${customReferral}`);
-    const bookmarkedBounties = bounties.filter((b) => bookmarks.includes(b.id));
+    const bookmarkedBounties = allBounties.filter((b) => bookmarks.includes(b.id));
     const socials = [
       { key: "xHandle", icon: "𝕏", url: (v) => `https://x.com/${v}`, label: (v) => `@${v}` },
-      { key: "linkedin", icon: "💼", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: (v) => "LinkedIn" },
-      { key: "github", icon: "🐙", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: (v) => "GitHub" },
-      { key: "website", icon: "🌐", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: (v) => "Website" },
+      { key: "linkedin", icon: "💼", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: () => "LinkedIn" },
+      { key: "github", icon: "🐙", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: () => "GitHub" },
+      { key: "website", icon: "🌐", url: (v) => v.startsWith("http") ? v : `https://${v}`, label: () => "Website" },
       { key: "telegram", icon: "✈️", url: (v) => `https://t.me/${v}`, label: (v) => `@${v}` },
-      { key: "discord", icon: "💬", url: (v) => null, label: (v) => v },
-      { key: "contact", icon: "📱", url: (v) => null, label: (v) => v },
+      { key: "discord", icon: "💬", url: () => null, label: (v) => v },
       { key: "email", icon: "📧", url: (v) => `mailto:${v}`, label: (v) => v },
     ].filter((s) => profile?.[s.key]);
 
@@ -1924,77 +1605,43 @@ export default function FairBounty() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: "650px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel="Bounties" />
           <DemoModal />
-
+          <Notification />
           <div style={fadeIn}>
-            {/* Profile Header Card */}
+            {/* Profile header */}
             <div style={{ ...cardStyle, marginBottom: "20px", padding: "28px" }}>
               <div style={{ display: "flex", gap: "20px", alignItems: "flex-start", flexWrap: "wrap" }}>
-                {/* PFP */}
-                <div style={{
-                  width: "80px", height: "80px", borderRadius: "50%", flexShrink: 0,
-                  background: profile?.pfpUrl ? `url(${profile.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
-                  border: `3px solid ${tier?.color || theme.primary}`, display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "32px",
-                }}>
+                <div style={{ width: "80px", height: "80px", borderRadius: "50%", flexShrink: 0, background: profile?.pfpUrl ? `url(${profile.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`, border: `3px solid ${tier?.color || theme.primary}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px" }}>
                   {!profile?.pfpUrl && tier?.emoji}
                 </div>
                 <div style={{ flex: 1, minWidth: "200px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
                     <div>
                       <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "2px" }}>{profile?.displayName || "Anonymous"}</h2>
-                      {profile?.xHandle && (
-                        <a href={`https://x.com/${profile.xHandle}`} target="_blank" rel="noopener noreferrer"
-                          style={{ color: theme.primary, textDecoration: "none", fontSize: "13px" }}>@{profile.xHandle}</a>
-                      )}
+                      {profile?.xHandle && <a href={`https://x.com/${profile.xHandle}`} target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "13px" }}>@{profile.xHandle}</a>}
                     </div>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }} onClick={() => {
-                        setProfileForm({
-                          displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "",
-                          contact: profile?.contact || "", email: profile?.email || "", pfpUrl: profile?.pfpUrl || "",
-                          linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "",
-                          telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "",
-                          worksAt: profile?.worksAt || "", location: profile?.location || "", skills: profile?.skills || [],
-                        });
-                        setView("profile-setup");
-                      }}>Edit Profile</button>
-                    </div>
+                    <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }} onClick={() => { setProfileForm({ displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "", contact: profile?.contact || "", email: profile?.email || "", pfpUrl: profile?.pfpUrl || "", linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "", telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "", worksAt: profile?.worksAt || "", location: profile?.location || "", skills: profile?.skills || [] }); setView("profile-setup"); }}>Edit Profile</button>
                   </div>
                   {profile?.bio && <p style={{ color: "#999", fontSize: "13px", lineHeight: "1.6", marginTop: "8px" }}>{profile.bio}</p>}
-
-                  {/* Details row */}
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "10px", fontSize: "12px", color: "#888" }}>
                     {profile?.worksAt && <span>🏢 {profile.worksAt}</span>}
                     {profile?.location && <span>📍 {profile.location}</span>}
                   </div>
-
-                  {/* Socials row */}
                   {socials.length > 0 && (
                     <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
                       {socials.map((s) => {
                         const val = profile[s.key];
                         const href = s.url(val);
-                        return href ? (
-                          <a key={s.key} href={href} target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: "16px", textDecoration: "none", opacity: 0.7, transition: "opacity 0.2s" }}
-                            onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.7}
-                            title={s.label(val)}>{s.icon}</a>
-                        ) : (
-                          <span key={s.key} style={{ fontSize: "16px", opacity: 0.7 }} title={s.label(val)}>{s.icon}</span>
-                        );
+                        return href ? <a key={s.key} href={href} target="_blank" rel="noopener noreferrer" style={{ fontSize: "16px", textDecoration: "none", opacity: 0.7 }} title={s.label(val)}>{s.icon}</a> : <span key={s.key} style={{ fontSize: "16px", opacity: 0.7 }} title={s.label(val)}>{s.icon}</span>;
                       })}
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Stats row at bottom of card */}
               <div style={{ display: "flex", gap: "24px", marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15`, flexWrap: "wrap" }}>
                 {[
                   { value: `Tier ${fairScore}`, label: tier?.label, color: tier?.color },
                   { value: `${xp}`, label: "BXP", color: theme.primary },
-                  { value: "0", label: "Earned", color: "#888" },
-                  { value: "0", label: "Submissions", color: "#888" },
+                  { value: betaAccess ? "⚡ Active" : "—", label: "Beta", color: betaAccess ? theme.primary : "#666" },
                   { value: "0", label: "Won", color: "#888" },
                 ].map((s) => (
                   <div key={s.label} style={{ textAlign: "center" }}>
@@ -2005,133 +1652,66 @@ export default function FairBounty() {
               </div>
             </div>
 
-            {/* Profile Tabs */}
+            {/* Tabs */}
             <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {["overview", "skills", "bookmarks"].map((t) => (
-                <button key={t} onClick={() => setProfileTab(t)}
-                  style={{
-                    flex: 1, padding: "10px", fontSize: "12px", fontWeight: "600", textTransform: "capitalize",
-                    background: profileTab === t ? `${theme.primary}20` : "transparent",
-                    border: profileTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent",
-                    borderRadius: "8px", color: profileTab === t ? theme.primary : "#888",
-                    cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease",
-                  }}>
-                  {t === "bookmarks" ? `📌 Bookmarks (${bookmarks.length})` : t === "skills" ? `🛠 Skills` : `📊 Overview`}
+                <button key={t} onClick={() => setProfileTab(t)} style={{ flex: 1, padding: "10px", fontSize: "12px", fontWeight: "600", textTransform: "capitalize", background: profileTab === t ? `${theme.primary}20` : "transparent", border: profileTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "8px", color: profileTab === t ? theme.primary : "#888", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease" }}>
+                  {t === "bookmarks" ? `📌 Bookmarks (${bookmarks.length})` : t === "skills" ? "🛠 Skills" : "📊 Overview"}
                 </button>
               ))}
             </div>
 
-            {/* OVERVIEW TAB */}
             {profileTab === "overview" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {/* FairScore source */}
-                <div style={{
-                  padding: "10px 14px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}20`,
-                  borderRadius: "8px", fontSize: "11px", color: theme.primary, lineHeight: "1.6", textAlign: "center",
-                }}>
-                  ✅ Live FairScore data from <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "underline" }}>FairScale API</a> — your on-chain reputation, verified in real-time.
+                <div style={{ padding: "10px 14px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}20`, borderRadius: "8px", fontSize: "11px", color: theme.primary, textAlign: "center" }}>
+                  ✅ Live FairScore data from <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>FairScale API</a>
+                  {betaAccess && <span style={{ marginLeft: "12px" }}>⚡ Beta access active</span>}
                 </div>
-                {/* On-chain stats */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
-                  {[
-                    { label: "FairScore", value: scoreData?.score || 0, color: tier?.color },
-                    { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", color: theme.accent },
-                    { label: "BXP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary },
-                    { label: "Reward Bonus", value: `+${tier?.rewardBonus}%`, color: theme.primary },
-                    { label: "Risk Level", value: riskData.level, color: riskData.color },
-                  ].map((s) => (
+                  {[{ label: "FairScore", value: scoreData?.score || 0, color: tier?.color }, { label: "Max Bounty", value: tier?.maxBounty ? `$${tier.maxBounty.toLocaleString()}` : "∞", color: theme.accent }, { label: "BXP Multiplier", value: `${tier?.xpMultiplier}x`, color: theme.primary }, { label: "Vote Weight", value: `${tier?.voteWeight}x`, color: theme.primary }, { label: "Risk Level", value: riskData.level, color: riskData.color }].map((s) => (
                     <div key={s.label} style={{ ...cardStyle, padding: "14px", textAlign: "center" }}>
                       <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: "4px" }}>{s.label}</div>
                       <div style={{ fontSize: "16px", fontWeight: "800", color: s.color }}>{s.value}</div>
                     </div>
                   ))}
                 </div>
-
-                {/* On-chain activity */}
                 {scoreData && (
                   <div style={cardStyle}>
                     <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>On-Chain Activity</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                      {[
-                        { label: "FairScale Tier", value: scoreData.fairscaleTier },
-                        { label: "FairScore", value: Math.round(scoreData.score * 10) / 10 },
-                        { label: "Base Score", value: Math.round(scoreData.fairscoreBase * 10) / 10 },
-                        { label: "Social Score", value: Math.round(scoreData.socialScore * 10) / 10 },
-                        { label: "Transactions", value: Math.round(scoreData.txCount) },
-                        { label: "Active Days", value: Math.round(scoreData.activeDays) },
-                        { label: "Platforms", value: Math.round(scoreData.protocolsUsed) },
-                        { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` },
-                      ].map((d) => (
+                      {[{ label: "FairScale Tier", value: scoreData.fairscaleTier }, { label: "FairScore", value: Math.round(scoreData.score * 10) / 10 }, { label: "Base Score", value: Math.round(scoreData.fairscoreBase * 10) / 10 }, { label: "Social Score", value: Math.round(scoreData.socialScore * 10) / 10 }, { label: "Transactions", value: Math.round(scoreData.txCount) }, { label: "Active Days", value: Math.round(scoreData.activeDays) }, { label: "Platforms", value: Math.round(scoreData.protocolsUsed) }, { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` }].map((d) => (
                         <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                           <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.label}</div>
                           <div style={{ fontSize: "14px", fontWeight: "600" }}>{d.value}</div>
                         </div>
                       ))}
                     </div>
-                    {/* Platform Badges (Founder, etc) */}
                     {fullAddress && PLATFORM_BADGES[fullAddress] && (
                       <div style={{ marginTop: "12px" }}>
                         <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>Platform Badges</div>
                         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                           {PLATFORM_BADGES[fullAddress].map((badge) => (
-                            <span key={badge.id} style={{
-                              padding: "4px 14px", fontSize: "11px", borderRadius: "100px", fontWeight: "700",
-                              background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
-                              letterSpacing: "0.5px",
-                            }}>
-                              ★ {badge.label}
-                            </span>
+                            <span key={badge.id} style={{ padding: "4px 14px", fontSize: "11px", borderRadius: "100px", fontWeight: "700", background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>★ {badge.label}</span>
                           ))}
                         </div>
                       </div>
                     )}
-                    {/* FairScale Badges */}
-                    {scoreData.badges && scoreData.badges.length > 0 && (
+                    {scoreData.badges?.length > 0 && (
                       <div style={{ marginTop: "12px" }}>
-                        <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>Badges</div>
+                        <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>FairScale Badges</div>
                         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                           {scoreData.badges.map((badge) => (
-                            <span key={badge.id} style={{
-                              padding: "4px 12px", fontSize: "11px", borderRadius: "100px", fontWeight: "600",
-                              background: badge.tier === "gold" ? "#F59E0B15" : badge.tier === "silver" ? "#9CA3AF15" : `${theme.primary}15`,
-                              color: badge.tier === "gold" ? "#F59E0B" : badge.tier === "silver" ? "#9CA3AF" : theme.primary,
-                              border: `1px solid ${badge.tier === "gold" ? "#F59E0B30" : badge.tier === "silver" ? "#9CA3AF30" : theme.primary + "30"}`,
-                            }} title={badge.description}>
-                              {badge.label}
-                            </span>
+                            <span key={badge.id} style={{ padding: "4px 12px", fontSize: "11px", borderRadius: "100px", fontWeight: "600", background: badge.tier === "gold" ? "#F59E0B15" : badge.tier === "silver" ? "#9CA3AF15" : `${theme.primary}15`, color: badge.tier === "gold" ? "#F59E0B" : badge.tier === "silver" ? "#9CA3AF" : theme.primary, border: `1px solid ${badge.tier === "gold" ? "#F59E0B30" : badge.tier === "silver" ? "#9CA3AF30" : theme.primary + "30"}` }} title={badge.description}>{badge.label}</span>
                           ))}
                         </div>
-                      </div>
-                    )}
-                    {/* Actions — what FairScale recommends to improve score */}
-                    {scoreData.actions && scoreData.actions.length > 0 && (
-                      <div style={{ marginTop: "12px" }}>
-                        <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "6px" }}>Improve Your Score</div>
-                        {scoreData.actions.map((action) => (
-                          <div key={action.id} style={{
-                            padding: "8px 12px", marginBottom: "6px", background: "#0c0c14", borderRadius: "6px",
-                            borderLeft: `2px solid ${action.priority === "high" ? "#EF4444" : action.priority === "medium" ? "#F59E0B" : theme.primary}40`,
-                            fontSize: "12px", color: "#999",
-                          }}>
-                            <span style={{ fontWeight: "600", color: "#ccc" }}>{action.label}</span> — {action.cta}
-                          </div>
-                        ))}
                       </div>
                     )}
                   </div>
                 )}
-
-                {/* Referral */}
-                {/* BXP Breakdown */}
                 <div style={cardStyle}>
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>⭐ BXP Breakdown</h3>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    {[
-                      { label: "Welcome Bonus", value: bxpBreakdown.welcome, icon: "🎁" },
-                      { label: "Referral Earnings", value: bxpBreakdown.referrals, icon: "🔗" },
-                      { label: "Referred Bonus", value: bxpBreakdown.referred, icon: "🤝" },
-                      { label: "Submissions", value: bxpBreakdown.submissions, icon: "📝" },
-                    ].map((d) => (
+                    {[{ label: "Welcome Bonus", value: bxpBreakdown.welcome, icon: "🎁" }, { label: "Referral Earnings", value: bxpBreakdown.referrals, icon: "🔗" }, { label: "Referred Bonus", value: bxpBreakdown.referred, icon: "🤝" }, { label: "Submissions", value: bxpBreakdown.submissions, icon: "📝" }].map((d) => (
                       <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                         <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.icon} {d.label}</div>
                         <div style={{ fontSize: "14px", fontWeight: "600", color: d.value > 0 ? theme.primary : "#444" }}>{d.value} BXP</div>
@@ -2141,104 +1721,53 @@ export default function FairBounty() {
                   <div style={{ marginTop: "10px", padding: "10px", background: `${theme.primary}10`, borderRadius: "6px", textAlign: "center" }}>
                     <span style={{ fontSize: "12px", color: "#888" }}>Total: </span>
                     <span style={{ fontSize: "16px", fontWeight: "800", color: theme.primary }}>{xp} BXP</span>
-                    <span style={{ fontSize: "11px", color: "#666", marginLeft: "8px" }}>({tier?.xpMultiplier}x multiplier active)</span>
+                    <span style={{ fontSize: "11px", color: "#666", marginLeft: "8px" }}>({tier?.xpMultiplier}x multiplier)</span>
                   </div>
                 </div>
-
                 <div style={{ ...glassCard, padding: "24px" }}>
-                  <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.02em" }}>🔗 Invite & Earn BXP</h3>
+                  <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "6px" }}>🔗 Invite & Earn BXP</h3>
                   <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", marginBottom: "14px", lineHeight: "1.6" }}>
-                    Share your referral link — you earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> and they earn the same when they sign up.
+                    You earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> and they earn the same.
                     {referralCount > 0 && <span style={{ color: theme.primary, fontWeight: "600" }}> · {referralCount} referral{referralCount !== 1 ? "s" : ""} so far!</span>}
                   </p>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px", border: `1px solid ${theme.primary}15` }}>
-                    <input readOnly value={referralCode ? `fairbounty.vercel.app?ref=${referralCode}` : referralLink ? `fairbounty.vercel.app?ref=${fullAddress.slice(0, 4)}...${fullAddress.slice(-4)}` : ""} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "11px", color: "rgba(255,255,255,0.5)", padding: "0" }} />
-                    <button onClick={() => navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!"))}
-                      style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }}>📋 Copy</button>
+                    <input readOnly value={referralCode ? `fairbounty.vercel.app?ref=${referralCode}` : ""} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "11px", color: "rgba(255,255,255,0.5)", padding: "0" }} />
+                    <button onClick={() => navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!"))} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }}>📋 Copy</button>
                   </div>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(`I'm earning BXP on @FairBounty — reputation-gated bounties on Solana powered by @fairscalexyz\n\nJoin with my link and we both earn BXP:\n${referralLink}\n\nBuilt by @smsonx`)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ ...btnPrimary, fontSize: "12px", padding: "10px 20px", textDecoration: "none", flex: 1, textAlign: "center", display: "block" }}>Share on 𝕏</a>
-                    <a href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties on Solana powered by FairScale! We both earn BXP.")}`}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ ...btnOutline, fontSize: "12px", padding: "10px 20px", textDecoration: "none", flex: 1, textAlign: "center", display: "block" }}>Share on Telegram</a>
+                    <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(`I'm earning BXP on @FairBounty — reputation-gated bounties on Solana\n\nJoin with my link:\n${referralLink}\n\nBuilt by @smsonx`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnPrimary, fontSize: "12px", padding: "10px 20px", textDecoration: "none", flex: 1, textAlign: "center", display: "block" }}>Share on 𝕏</a>
+                    <a href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties on Solana! We both earn BXP.")}`} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, fontSize: "12px", padding: "10px 20px", textDecoration: "none", flex: 1, textAlign: "center", display: "block" }}>Telegram</a>
                   </div>
-                  {isMobile && (
-                    <button onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({ title: "FairBounty", text: "Join FairBounty — reputation-gated bounties on Solana. We both earn BXP!", url: referralLink });
-                      } else {
-                        navigator.clipboard.writeText(referralLink).then(() => notify("Link copied!"));
-                      }
-                    }} style={{ ...btnOutline, width: "100%", marginTop: "8px", fontSize: "12px", padding: "10px" }}>
-                      📱 Share via...
-                    </button>
-                  )}
                 </div>
               </div>
             )}
-
-            {/* SKILLS TAB */}
             {profileTab === "skills" && (
               <div style={cardStyle}>
-                {profile?.skills?.length > 0 ? (
-                  <div>
-                    {(() => {
-                      const grouped = {};
-                      profile.skills.forEach((s) => {
-                        const cat = Object.entries(SKILL_CATEGORIES).find(([, skills]) => skills.includes(s));
-                        const catName = cat ? cat[0] : "Other";
-                        if (!grouped[catName]) grouped[catName] = [];
-                        grouped[catName].push(s);
-                      });
-                      return Object.entries(grouped).map(([cat, skills]) => (
-                        <div key={cat} style={{ marginBottom: "16px" }}>
-                          <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat}</div>
-                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                            {skills.map((s) => (
-                              <span key={s} style={{
-                                padding: "5px 14px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}25`,
-                                borderRadius: "100px", fontSize: "12px", color: theme.primary,
-                              }}>{s}</span>
-                            ))}
-                          </div>
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                ) : (
-                  <div style={{ textAlign: "center", padding: "24px", color: "#666", fontSize: "13px" }}>
-                    No skills added yet.{" "}
-                    <button style={{ color: theme.primary, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", textDecoration: "underline" }}
-                      onClick={() => {
-                        setProfileForm({ ...profileForm, displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "", skills: profile?.skills || [], email: profile?.email || "", pfpUrl: profile?.pfpUrl || "", linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "", telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "", worksAt: profile?.worksAt || "", location: profile?.location || "", contact: profile?.contact || "" });
-                        setView("profile-setup");
-                      }}>Add skills</button>
-                  </div>
-                )}
+                {profile?.skills?.length > 0 ? (() => {
+                  const grouped = {};
+                  profile.skills.forEach((s) => { const cat = Object.entries(SKILL_CATEGORIES).find(([, skills]) => skills.includes(s)); const catName = cat ? cat[0] : "Other"; if (!grouped[catName]) grouped[catName] = []; grouped[catName].push(s); });
+                  return Object.entries(grouped).map(([cat, skills]) => (
+                    <div key={cat} style={{ marginBottom: "16px" }}>
+                      <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat}</div>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>{skills.map((s) => <span key={s} style={{ padding: "5px 14px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}25`, borderRadius: "100px", fontSize: "12px", color: theme.primary }}>{s}</span>)}</div>
+                    </div>
+                  ));
+                })() : <div style={{ textAlign: "center", padding: "24px", color: "#666", fontSize: "13px" }}>No skills added yet.</div>}
               </div>
             )}
-
-            {/* BOOKMARKS TAB */}
             {profileTab === "bookmarks" && (
               <div>
                 {bookmarkedBounties.length > 0 ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {bookmarkedBounties.map((b) => {
                       const bTier = TIER_CONFIG[b.minTier];
+                      const pt = PRIZE_TYPES[b.prizeType] || PRIZE_TYPES.USDC;
                       return (
-                        <div key={b.id} style={{ ...cardStyle, cursor: "pointer", padding: "16px" }}
-                          onClick={() => { setSelectedBounty(b); setView("bounty"); }}
-                          onMouseEnter={(e) => e.currentTarget.style.borderColor = theme.primary}
-                          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${theme.primary}30`}>
+                        <div key={b.id} style={{ ...cardStyle, cursor: "pointer", padding: "16px" }} onClick={() => { setSelectedBounty(b); setView("bounty"); }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                            <div>
-                              <div style={{ fontSize: "10px", color: "#666" }}>{b.project}</div>
-                              <div style={{ fontSize: "14px", fontWeight: "700" }}>{b.title}</div>
-                            </div>
+                            <div><div style={{ fontSize: "10px", color: "#666" }}>{b.project || b.projectName}</div><div style={{ fontSize: "14px", fontWeight: "700" }}>{b.title}</div></div>
                             <div style={{ textAlign: "right" }}>
-                              <div style={{ fontSize: "15px", fontWeight: "800", color: theme.primary }}>{b.reward} {b.currency}</div>
+                              <div style={{ fontSize: "15px", fontWeight: "800", color: pt.color }}>{pt.icon} {b.reward} {b.currency}</div>
                               <div style={{ fontSize: "10px", color: bTier.color }}>{bTier.emoji} Tier {b.minTier}+</div>
                             </div>
                           </div>
@@ -2246,17 +1775,11 @@ export default function FairBounty() {
                       );
                     })}
                   </div>
-                ) : (
-                  <div style={{ ...cardStyle, textAlign: "center", padding: "32px", color: "#666", fontSize: "13px" }}>
-                    📌 No bookmarked bounties yet. Tap the bookmark icon on any bounty to save it here.
-                  </div>
-                )}
+                ) : <div style={{ ...cardStyle, textAlign: "center", padding: "32px", color: "#666", fontSize: "13px" }}>📌 No bookmarked bounties yet.</div>}
               </div>
             )}
-
             <div style={{ marginTop: "16px", fontSize: "11px", color: "#555", textAlign: "center" }}>Joined {profile?.joinedDate || "Feb 2026"}</div>
           </div>
-
           <Footer />
         </div>
         <style>{globalStyles}</style>
@@ -2265,13 +1788,27 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // BOUNTY DETAIL
+  // BOUNTY DETAIL — with real submissions + voting
   // ============================================================
   if (view === "bounty" && selectedBounty) {
     const b = selectedBounty;
     const tier = TIER_CONFIG[b.minTier];
     const eligible = wallet ? canClaim(b) : false;
-    const bonusReward = wallet ? Math.floor(b.reward * (FairScoreAPI.getRewardBonus(fairScore) / 100)) : 0;
+    const bonusReward = wallet ? Math.floor((parseFloat(b.reward) || 0) * (FairScoreAPI.getRewardBonus(fairScore) / 100)) : 0;
+    const pt = PRIZE_TYPES[b.prizeType] || PRIZE_TYPES.USDC;
+    const isMyBounty = fullAddress && b.poster === fullAddress;
+    const sortedSubs = [...selectedBountySubmissions].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    // Load submissions when entering bounty detail
+    useEffect(() => {
+      if (selectedBounty && !selectedBounty.isDemo) {
+        DbAPI.getSubmissions(selectedBounty.id).then(subs => {
+          setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
+        });
+      } else {
+        setSelectedBountySubmissions([]);
+      }
+    }, [selectedBounty?.id]);
 
     return (
       <div style={pageStyle}>
@@ -2279,85 +1816,156 @@ export default function FairBounty() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel="Bounties" />
           <DemoModal />
+          <SubmitModal bounty={selectedBounty} />
+          <Notification />
 
           <div style={{ ...cardStyle, ...fadeIn }}>
+            {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
               <div>
-                <div style={{ fontSize: "12px", color: "#888", marginBottom: "4px" }}>{b.project}</div>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "11px", color: "#888" }}>{b.project || b.projectName}</span>
+                  {!b.isDemo && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "2px 8px", borderRadius: "100px", border: "1px solid #22C55E30" }}>✅ LIVE</span>}
+                  {b.isDemo && <span style={{ fontSize: "9px", fontWeight: "700", color: "#F59E0B", background: "#F59E0B15", padding: "2px 8px", borderRadius: "100px", border: "1px solid #F59E0B30" }}>⏳ DEMO</span>}
+                  {isMyBounty && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px" }}>Your Bounty</span>}
+                </div>
                 <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "8px" }}>{b.title}</h2>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "24px", fontWeight: "900", color: theme.primary }}>{b.reward} {b.currency}</div>
-                {bonusReward > 0 && (
-                  <div style={{ fontSize: "12px", color: theme.accent, fontWeight: "600" }}>+{bonusReward} bonus (Tier {fairScore})</div>
-                )}
+                <div style={{ fontSize: "24px", fontWeight: "900", color: pt.color }}>{pt.icon} {b.reward} {b.currency}</div>
+                {bonusReward > 0 && eligible && <div style={{ fontSize: "12px", color: theme.accent, fontWeight: "600" }}>+{bonusReward} tier bonus</div>}
               </div>
             </div>
 
             <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "1.7", marginBottom: "20px" }}>{b.description}</p>
 
+            {/* Tags */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
-              {b.tags.map((tag) => (
+              {(Array.isArray(b.tags) ? b.tags : []).map((tag) => (
                 <span key={tag} style={{ padding: "4px 12px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}20`, borderRadius: "100px", fontSize: "12px", color: theme.primary }}>{tag}</span>
               ))}
             </div>
 
+            {/* Meta */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "12px", marginBottom: "24px" }}>
               {[
+                { label: "Prize Type", value: `${pt.icon} ${pt.label}`, color: pt.color },
                 { label: "Min Tier", value: `${tier.emoji} ${tier.label}`, color: tier.color },
-                { label: "Submissions", value: b.submissions, color: "#888" },
-                { label: "Reward", value: `${b.reward} ${b.currency}`, color: theme.primary },
-                { label: "Deadline", value: b.deadline, color: "#888" },
+                { label: "Submissions", value: b.isDemo ? b.submissions : selectedBountySubmissions.length, color: "#888" },
+                { label: "Deadline", value: b.deadline || "Open", color: "#888" },
               ].map((m) => (
                 <div key={m.label} style={{ padding: "12px", background: "#0c0c14", borderRadius: "8px", textAlign: "center" }}>
                   <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{m.label}</div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: m.color }}>{m.value}</div>
+                  <div style={{ fontSize: "13px", fontWeight: "600", color: m.color }}>{m.value}</div>
                 </div>
               ))}
             </div>
 
-            {/* Risk Assessment */}
+            {/* Prize escrow note for live bounties */}
+            {!b.isDemo && (
+              <div style={{ padding: "12px 16px", marginBottom: "20px", borderRadius: "8px", background: "#22C55E10", border: "1px solid #22C55E30", fontSize: "12px", color: "#22C55E" }}>
+                🔐 Prize escrow coming soon — for now, prize release is coordinated directly between poster and winner. Contact info provided after selection.
+              </div>
+            )}
+
+            {/* Risk */}
             {wallet && scoreData && (
-              <div style={{
-                padding: "14px 16px", marginBottom: "20px", borderRadius: "8px",
-                background: `${riskData.color}10`, border: `1px solid ${riskData.color}30`,
-                display: "flex", alignItems: "center", gap: "12px",
-              }}>
-                <div style={{ fontSize: "11px", fontWeight: "700", color: riskData.color, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                  🛡️ Your Risk Level: {riskData.level}
-                </div>
+              <div style={{ padding: "14px 16px", marginBottom: "20px", borderRadius: "8px", background: `${riskData.color}10`, border: `1px solid ${riskData.color}30`, display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ fontSize: "11px", fontWeight: "700", color: riskData.color, textTransform: "uppercase" }}>🛡️ Your Risk Level: {riskData.level}</div>
                 <div style={{ fontSize: "11px", color: "#999" }}>{riskData.label}</div>
               </div>
             )}
 
+            {/* Actions */}
             <div style={{ display: "flex", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
-              {wallet && (
-                <button style={btnOutline} onClick={() => toggleBookmark(b.id)}
-                  onMouseEnter={(e) => e.target.style.background = `${theme.primary}10`}
-                  onMouseLeave={(e) => e.target.style.background = "transparent"}
-                >
-                  {bookmarks.includes(b.id) ? "📌 Bookmarked" : "🔖 Bookmark"}
-                </button>
+              {wallet && <button style={btnOutline} onClick={() => toggleBookmark(b.id)}>{bookmarks.includes(b.id) ? "📌 Bookmarked" : "🔖 Bookmark"}</button>}
+              {wallet && eligible && !b.isDemo && !isMyBounty && (
+                <button style={btnPrimary} onClick={() => setShowSubmitModal(true)}>Submit Work →</button>
+              )}
+              {wallet && !eligible && !b.isDemo && (
+                <div style={{ fontSize: "12px", color: "#ff4040", padding: "12px", background: "#ff404010", borderRadius: "8px", border: "1px solid #ff404030" }}>
+                  🔒 Requires Tier {b.minTier}+ (you're Tier {fairScore})
+                </div>
+              )}
+              {!wallet && !b.isDemo && (
+                <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet to Submit</button>
+              )}
+              {b.isDemo && (
+                <div style={{ padding: "14px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}20`, borderRadius: "10px", width: "100%", textAlign: "center" }}>
+                  <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px" }}>Example Bounty</div>
+                  <div style={{ fontSize: "12px", color: "#888" }}>This is a sample. Connect to see real bounties from beta users.</div>
+                </div>
               )}
             </div>
-
-            {wallet ? (
-              <div style={{
-                padding: "24px", background: `${theme.primary}08`, border: `1px solid ${theme.primary}20`,
-                borderRadius: "10px", textAlign: "center",
-              }}>
-                <div style={{ fontSize: "32px", marginBottom: "12px" }}>🚧</div>
-                <div style={{ fontSize: "15px", fontWeight: "700", marginBottom: "6px" }}>Submissions Coming Soon</div>
-                <div style={{ fontSize: "12px", color: "#888", lineHeight: "1.6" }}>
-                  This is an example bounty. Real bounty submissions will open once the platform launches.
-                  {eligible && <span style={{ color: theme.primary }}> Your Tier {fairScore} qualifies for this bounty!</span>}
-                  {!eligible && <span style={{ color: "#ff4040" }}> This bounty requires Tier {b.minTier}+.</span>}
-                </div>
-              </div>
-            ) : (
-              <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet to View</button>
-            )}
           </div>
+
+          {/* SUBMISSIONS + VOTING — only for live bounties */}
+          {!b.isDemo && (
+            <div style={{ marginTop: "24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: "700" }}>
+                  Submissions {selectedBountySubmissions.length > 0 && <span style={{ color: theme.primary }}>({selectedBountySubmissions.length})</span>}
+                </h3>
+                {isMyBounty && selectedBountySubmissions.length > 0 && (
+                  <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setShowWinnerModal(true)}>
+                    🏆 Select Winner
+                  </button>
+                )}
+              </div>
+
+              {selectedBountySubmissions.length === 0 ? (
+                <div style={{ ...cardStyle, textAlign: "center", padding: "32px" }}>
+                  <div style={{ fontSize: "32px", marginBottom: "12px" }}>📝</div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No submissions yet</div>
+                  <div style={{ fontSize: "12px", color: "#888" }}>Be the first to submit your work!</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {sortedSubs.map((sub, idx) => {
+                    const subTier = TIER_CONFIG[sub.tier] || TIER_CONFIG[1];
+                    const links = sub.links ? sub.links.split(",").map(l => l.trim()).filter(Boolean) : [];
+                    return (
+                      <div key={sub.id} style={{ ...cardStyle, border: idx === 0 ? `1px solid ${theme.primary}40` : cardStyle.border }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+                          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                            <span style={{ fontSize: "20px" }}>{subTier.emoji}</span>
+                            <div>
+                              <div style={{ fontSize: "14px", fontWeight: "600" }}>{sub.displayName || sub.wallet?.slice(0, 8) + "..."}</div>
+                              <div style={{ fontSize: "10px", color: "#888" }}>Tier {sub.tier} · {new Date(sub.createdAt).toLocaleDateString()}</div>
+                            </div>
+                            {idx === 0 && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px" }}>Top Voted</span>}
+                          </div>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                            <span style={{ fontSize: "13px", fontWeight: "700", color: theme.primary }}>Score: {sub.score || 0}</span>
+                            {betaAccess && sub.wallet !== fullAddress && (
+                              <div style={{ display: "flex", gap: "6px" }}>
+                                <button onClick={() => handleVote(sub.id, "up")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: "#22C55E", borderColor: "#22C55E40" }}>▲ Up ({FairScoreAPI.getVoteWeight(fairScore || 1)}x)</button>
+                                <button onClick={() => handleVote(sub.id, "down")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: "#EF4444", borderColor: "#EF444440" }}>▼ Down</button>
+                              </div>
+                            )}
+                            {!betaAccess && <button onClick={() => setShowDemoModal(true)} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }}>Vote (Beta)</button>}
+                          </div>
+                        </div>
+                        <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.7", marginBottom: links.length > 0 ? "12px" : "0" }}>{sub.content}</p>
+                        {links.length > 0 && (
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            {links.map((link, i) => (
+                              <a key={i} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: theme.primary, textDecoration: "none", padding: "4px 10px", background: `${theme.primary}10`, borderRadius: "6px", border: `1px solid ${theme.primary}20` }}>🔗 Link {i + 1}</a>
+                            ))}
+                          </div>
+                        )}
+                        {isMyBounty && (
+                          <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", marginTop: "12px" }} onClick={() => handleSelectWinner(b.id, sub.id)}>
+                            🏆 Select as Winner
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           <Footer />
         </div>
@@ -2367,56 +1975,230 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // POST BOUNTY
+  // POST BOUNTY — Beta users get real form, others get intake
   // ============================================================
-  if (view === "post") {
+  if (view === "post-bounty") {
+    const categories = ["Development", "Design", "Content", "Marketing", "Security Audit", "Community", "Research", "Other"];
+
+    // Beta real bounty form
+    if (betaAccess) {
+      return (
+        <div style={pageStyle}>
+          <div style={gridOverlay} />
+          <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
+            <Notification />
+            <NavBar />
+            <div style={{ ...fadeIn, marginTop: "20px" }}>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "8px" }}>
+                <h1 style={{ fontSize: "28px", fontWeight: "900" }}>Post a Bounty</h1>
+                <span style={{ fontSize: "11px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "4px 12px", borderRadius: "100px", border: `1px solid ${theme.primary}30` }}>⚡ Beta — Live</span>
+              </div>
+              <p style={{ color: "#888", fontSize: "14px", marginBottom: "32px" }}>Your bounty goes live on the board immediately. Beta is free — no listing fees during testing.</p>
+
+              <div style={{ ...cardStyle, padding: "28px" }}>
+                {/* Poster identity */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px", padding: "14px", background: `${theme.primary}08`, borderRadius: "8px", border: `1px solid ${theme.primary}15` }}>
+                  <span style={{ fontSize: "24px" }}>{TIER_CONFIG[fairScore]?.emoji}</span>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: "700" }}>{profile?.displayName}</div>
+                    <div style={{ fontSize: "11px", color: "#888" }}>Tier {fairScore} · FairScore: {scoreData?.score || 0} · ⚡ Beta Tester</div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {/* Prize Type Selection */}
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block" }}>Prize Type *</label>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+                      {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
+                        <button key={key} onClick={() => setBetaBountyForm({ ...betaBountyForm, prizeType: key, currency: key === "USDC" ? "USDC" : key === "SOL" ? "SOL" : betaBountyForm.currency })} style={{
+                          padding: "14px 10px", borderRadius: "12px", border: `2px solid ${betaBountyForm.prizeType === key ? pt.color : pt.color + "20"}`,
+                          background: betaBountyForm.prizeType === key ? `${pt.color}15` : "transparent",
+                          cursor: "pointer", fontFamily: "inherit", textAlign: "center", transition: "all 0.2s ease",
+                        }}>
+                          <div style={{ fontSize: "24px", marginBottom: "4px" }}>{pt.icon}</div>
+                          <div style={{ fontSize: "12px", fontWeight: "600", color: betaBountyForm.prizeType === key ? pt.color : "#888" }}>{pt.label}</div>
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#666", marginTop: "8px" }}>{PRIZE_TYPES[betaBountyForm.prizeType]?.description}</div>
+                  </div>
+
+                  {/* Prize details based on type */}
+                  {betaBountyForm.prizeType === "USDC" && (
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>USDC Amount *</label>
+                      <input style={inputStyle} type="number" placeholder="e.g. 500" value={betaBountyForm.reward} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, reward: e.target.value })} />
+                    </div>
+                  )}
+                  {betaBountyForm.prizeType === "SOL" && (
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>SOL Amount *</label>
+                      <input style={inputStyle} type="number" placeholder="e.g. 10" value={betaBountyForm.reward} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, reward: e.target.value, currency: "SOL" })} />
+                    </div>
+                  )}
+                  {betaBountyForm.prizeType === "MEMECOIN" && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Token Ticker *</label>
+                        <input style={inputStyle} placeholder="BONK, WIF, POPCAT..." value={betaBountyForm.memeToken} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, memeToken: e.target.value.toUpperCase() })} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Amount *</label>
+                        <input style={inputStyle} placeholder="e.g. 1000000" value={betaBountyForm.memeTokenAmount} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, memeTokenAmount: e.target.value })} />
+                      </div>
+                    </div>
+                  )}
+                  {betaBountyForm.prizeType === "NFT" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>NFT Name *</label>
+                        <input style={inputStyle} placeholder="e.g. Mad Lads #4200" value={betaBountyForm.nftName} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftName: e.target.value })} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Mint Address (optional)</label>
+                        <input style={inputStyle} placeholder="NFT mint address for verification" value={betaBountyForm.nftMint} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftMint: e.target.value })} />
+                      </div>
+                      <div style={{ padding: "10px 14px", background: "#EC489910", borderRadius: "8px", border: "1px solid #EC489930", fontSize: "12px", color: "#EC4899" }}>
+                        🖼️ NFT escrow via smart contract — coming soon. For now, prize transfer coordinated directly with winner.
+                      </div>
+                    </div>
+                  )}
+
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Project / Company *</label><input style={inputStyle} placeholder="Your project or company name" value={betaBountyForm.projectName} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, projectName: e.target.value })} /></div>
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Bounty Title *</label><input style={inputStyle} placeholder="What needs to be built/created?" value={betaBountyForm.title} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, title: e.target.value })} /></div>
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Description *</label><textarea style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }} placeholder="Describe the work, deliverables, requirements, tech specs..." value={betaBountyForm.description} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, description: e.target.value })} /></div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Category</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={betaBountyForm.category} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, category: e.target.value })}>
+                        <option value="">Select...</option>
+                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Min Tier</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={betaBountyForm.minTier} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, minTier: Number(e.target.value) })}>
+                        {Object.entries(TIER_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} Tier {k} — {v.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Tags</label><input style={inputStyle} placeholder="React, Design, Rust..." value={betaBountyForm.tags} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, tags: e.target.value })} /></div>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Deadline</label><input style={inputStyle} type="date" value={betaBountyForm.deadline} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, deadline: e.target.value })} /></div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Submission Requirements</label>
+                    <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }} placeholder="What should submissions include? Format, deliverables, quality bar..." value={betaBountyForm.submissionRequirements} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, submissionRequirements: e.target.value })} />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Contact Method</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={betaBountyForm.contactMethod} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, contactMethod: e.target.value })}>
+                        <option value="x">X / Twitter DM</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="email">Email</option>
+                        <option value="discord">Discord</option>
+                      </select>
+                    </div>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Contact Handle</label><input style={inputStyle} placeholder="@handle or address" value={betaBountyForm.contactValue} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, contactValue: e.target.value })} /></div>
+                  </div>
+                </div>
+
+                <button style={{ ...btnPrimary, width: "100%", marginTop: "24px", padding: "14px", fontSize: "15px" }} disabled={submitting} onClick={handleCreateBounty}>
+                  {submitting ? "Posting..." : "Post Live Bounty →"}
+                </button>
+              </div>
+            </div>
+            <Footer />
+          </div>
+          <style>{globalStyles}</style>
+        </div>
+      );
+    }
+
+    // Non-beta users: intake form
+    const [bountyForm, setBountyForm] = useState({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
+    const handleBountySubmit = () => {
+      if (!wallet || !profile) { notify("Please connect wallet first."); setView("connect"); return; }
+      if (!bountyForm.projectName.trim() || !bountyForm.title.trim() || !bountyForm.description.trim() || !bountyForm.reward) { notify("Please fill in all required fields."); return; }
+      const application = { ...bountyForm, id: `app_${Date.now()}`, wallet: fullAddress, displayName: profile.displayName, fairScore, submittedAt: new Date().toISOString(), status: "pending" };
+      const updated = [...bountyApplications, application];
+      setBountyApplications(updated);
+      try { localStorage.setItem("fb_bounty_applications", JSON.stringify(updated)); } catch (e) {}
+      DbAPI.submitBountyApp(fullAddress, profile.displayName, fairScore, bountyForm);
+      notify("Application submitted! We'll review within 24 hours.");
+      setView("dashboard");
+    };
+
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
-          <NavBar showBack backTo="dashboard" backLabel="Bounties" />
-
-          <div style={fadeIn}>
-            <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "8px" }}>Post a Bounty</h2>
-            <p style={{ color: "#888", fontSize: "13px", marginBottom: "32px" }}>Flat listing fee: 50 USDC per bounty. 5% commission on completed rewards.</p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Title *</label>
-                <input style={inputStyle} value={postForm.title} onChange={(e) => setPostForm({ ...postForm, title: e.target.value })} placeholder="e.g. Build a DeFi Dashboard" />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "680px", margin: "0 auto", padding: "20px" }}>
+          <Notification />
+          <NavBar />
+          <DemoBanner />
+          <div style={{ ...fadeIn, marginTop: "20px" }}>
+            <h1 style={{ fontSize: "28px", fontWeight: "900", marginBottom: "8px" }}>Post a Bounty</h1>
+            <p style={{ fontSize: "14px", color: "#888", marginBottom: "24px" }}>Fill out the intake form — we'll review and get your bounty live. Want instant posting? <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>DM @smsonx for beta access.</a></p>
+            {!wallet || !profile ? (
+              <div style={{ ...cardStyle, padding: "32px", textAlign: "center" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>Connect Wallet First</h3>
+                <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet →</button>
               </div>
-              <div>
-                <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Description *</label>
-                <textarea style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }} value={postForm.description} onChange={(e) => setPostForm({ ...postForm, description: e.target.value })} placeholder="Describe the bounty requirements..." />
+            ) : (
+              <div style={{ ...cardStyle, padding: "28px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", padding: "14px", background: `${theme.primary}08`, borderRadius: "8px", border: `1px solid ${theme.primary}15` }}>
+                  <span style={{ fontSize: "24px" }}>{TIER_CONFIG[fairScore]?.emoji}</span>
+                  <div><div style={{ fontSize: "14px", fontWeight: "700" }}>{profile.displayName}</div><div style={{ fontSize: "11px", color: "#888" }}>Tier {fairScore} · FairScore: {scoreData?.score || 0}</div></div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Project / Company *</label><input style={inputStyle} placeholder="Your project..." value={bountyForm.projectName} onChange={(e) => setBountyForm({ ...bountyForm, projectName: e.target.value })} /></div>
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Bounty Title *</label><input style={inputStyle} placeholder="What needs to be built?" value={bountyForm.title} onChange={(e) => setBountyForm({ ...bountyForm, title: e.target.value })} /></div>
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Description *</label><textarea style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }} placeholder="Describe requirements, deliverables..." value={bountyForm.description} onChange={(e) => setBountyForm({ ...bountyForm, description: e.target.value })} /></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Reward Amount *</label><input style={inputStyle} type="number" placeholder="500" value={bountyForm.reward} onChange={(e) => setBountyForm({ ...bountyForm, reward: e.target.value })} /></div>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Currency</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.currency} onChange={(e) => setBountyForm({ ...bountyForm, currency: e.target.value })}>
+                        <option value="USDC">USDC</option><option value="SOL">SOL</option><option value="USDT">USDT</option><option value="Other">Other Token</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Category</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.category} onChange={(e) => setBountyForm({ ...bountyForm, category: e.target.value })}>
+                        <option value="">Select...</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Min Tier</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.minTier} onChange={(e) => setBountyForm({ ...bountyForm, minTier: Number(e.target.value) })}>
+                        {Object.entries(TIER_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} Tier {k} — {v.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Deadline</label><input style={inputStyle} type="date" value={bountyForm.deadline} onChange={(e) => setBountyForm({ ...bountyForm, deadline: e.target.value })} /></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Best Contact</label>
+                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.contactMethod} onChange={(e) => setBountyForm({ ...bountyForm, contactMethod: e.target.value })}>
+                        <option value="">Select...</option><option value="telegram">Telegram</option><option value="x">X / Twitter DM</option><option value="email">Email</option><option value="discord">Discord</option>
+                      </select>
+                    </div>
+                    <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Contact Handle</label><input style={inputStyle} placeholder="@handle or email" value={bountyForm.contactValue} onChange={(e) => setBountyForm({ ...bountyForm, contactValue: e.target.value })} /></div>
+                  </div>
+                </div>
+                <div style={{ marginTop: "20px", padding: "14px", background: `${theme.primary}08`, borderRadius: "8px", border: `1px solid ${theme.primary}15`, fontSize: "12px", color: "#888" }}>
+                  <div style={{ fontWeight: "700", color: "#ccc", marginBottom: "6px" }}>How it works:</div>
+                  We review within 24hrs → bounty goes live → community votes on submissions → you pick the winner.
+                </div>
+                <button style={{ ...btnPrimary, width: "100%", marginTop: "20px", padding: "14px", fontSize: "15px" }} onClick={handleBountySubmit}>Submit Application →</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Reward (USDC) *</label>
-                  <input style={inputStyle} type="number" value={postForm.reward} onChange={(e) => setPostForm({ ...postForm, reward: e.target.value })} placeholder="500" />
-                </div>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Min FairScore Tier</label>
-                  <select style={{ ...inputStyle, cursor: "pointer" }} value={postForm.minTier} onChange={(e) => setPostForm({ ...postForm, minTier: Number(e.target.value) })}>
-                    {Object.entries(TIER_CONFIG).map(([k, v]) => (
-                      <option key={k} value={k}>{v.emoji} Tier {k} - {v.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Tags (comma separated)</label>
-                  <input style={inputStyle} value={postForm.tags} onChange={(e) => setPostForm({ ...postForm, tags: e.target.value })} placeholder="React, TypeScript, DeFi" />
-                </div>
-                <div>
-                  <label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Deadline</label>
-                  <input style={inputStyle} type="date" value={postForm.deadline} onChange={(e) => setPostForm({ ...postForm, deadline: e.target.value })} />
-                </div>
-              </div>
-              <button style={{ ...btnPrimary, marginTop: "8px" }} onClick={handlePostBounty}>Post Bounty (50 USDC listing fee)</button>
-            </div>
+            )}
           </div>
-
           <Footer />
         </div>
         <style>{globalStyles}</style>
@@ -2434,33 +2216,27 @@ export default function FairBounty() {
       { rank: 3, name: "RustWizard.sol", tier: 4, xp: 1650, bounties: 10, earned: "$21,000" },
       { rank: 4, name: "DeFiHacker.sol", tier: 3, xp: 980, bounties: 7, earned: "$9,100" },
       { rank: 5, name: "NFTArtisan.sol", tier: 3, xp: 750, bounties: 5, earned: "$4,800" },
-      ...(wallet ? [{ rank: 6, name: profile?.displayName || wallet, tier: fairScore, xp, bounties: 0, earned: "$0", xHandle: profile?.xHandle }] : []),
+      ...(wallet ? [{ rank: "?", name: profile?.displayName || wallet, tier: fairScore, xp, bounties: 0, earned: "$0" }] : []),
     ];
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel="Bounties" />
-
           <div style={fadeIn}>
-            <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "24px" }}>🏆 Leaderboard</h2>
+            <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "8px" }}>🏆 Leaderboard</h2>
+            <p style={{ fontSize: "12px", color: "#888", marginBottom: "24px" }}>Live leaderboard launching with full bounty system. Preview below.</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {leaders.map((l) => {
-                const t = TIER_CONFIG[l.tier];
+                const t = TIER_CONFIG[l.tier] || TIER_CONFIG[1];
                 const isYou = l.name === (profile?.displayName || wallet);
                 return (
-                  <div key={l.rank} style={{
-                    ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px",
-                    border: isYou ? `1px solid ${theme.primary}60` : cardStyle.border,
-                    background: isYou ? `${theme.primary}10` : cardStyle.background,
-                  }}>
-                    <div style={{ width: "32px", textAlign: "center", fontWeight: "900", fontSize: "16px", color: l.rank <= 3 ? "#FFD700" : "#666" }}>
-                      {l.rank <= 3 ? ["🥇", "🥈", "🥉"][l.rank - 1] : `#${l.rank}`}
+                  <div key={l.rank} style={{ ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px", border: isYou ? `1px solid ${theme.primary}60` : cardStyle.border, background: isYou ? `${theme.primary}10` : cardStyle.background }}>
+                    <div style={{ width: "32px", textAlign: "center", fontWeight: "900", fontSize: "16px", color: typeof l.rank === "number" && l.rank <= 3 ? "#FFD700" : "#666" }}>
+                      {typeof l.rank === "number" && l.rank <= 3 ? ["🥇", "🥈", "🥉"][l.rank - 1] : `#${l.rank}`}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: "600", fontSize: "14px" }}>
-                        {l.name} {isYou && <span style={{ color: theme.primary, fontSize: "11px" }}>(you)</span>}
-                      </div>
+                      <div style={{ fontWeight: "600", fontSize: "14px" }}>{l.name} {isYou && <span style={{ color: theme.primary, fontSize: "11px" }}>(you)</span>}</div>
                       <div style={{ fontSize: "11px", color: t.color }}>{t.emoji} {t.label} · {l.bounties} bounties · {l.earned} earned</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -2472,7 +2248,6 @@ export default function FairBounty() {
               })}
             </div>
           </div>
-
           <Footer />
         </div>
         <style>{globalStyles}</style>
@@ -2481,277 +2256,40 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // POST A BOUNTY — Client intake form
-  // ============================================================
-  if (view === "post-bounty") {
-    const handleBountySubmit = () => {
-      if (!wallet || !profile) {
-        notify("Please connect your wallet and set up a profile first.");
-        setView("connect");
-        return;
-      }
-      if (!bountyForm.projectName.trim() || !bountyForm.title.trim() || !bountyForm.description.trim() || !bountyForm.reward) {
-        notify("Please fill in all required fields.");
-        return;
-      }
-      const application = {
-        ...bountyForm,
-        id: `app_${Date.now()}`,
-        wallet: fullAddress,
-        displayName: profile.displayName,
-        fairScore: fairScore,
-        fairscaleTier: scoreData?.fairscaleTier || "unknown",
-        score: scoreData?.score || 0,
-        submittedAt: new Date().toISOString(),
-        status: "pending",
-      };
-      const updated = [...bountyApplications, application];
-      setBountyApplications(updated);
-      try { localStorage.setItem("fb_bounty_applications", JSON.stringify(updated)); } catch (e) {}
-      DbAPI.submitBountyApp(fullAddress, profile.displayName, fairScore, bountyForm);
-      setBountyForm({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
-      notify("Bounty application submitted! We'll review and get back to you.");
-      setView("dashboard");
-    };
-
-    const categories = ["Development", "Design", "Content", "Marketing", "Security Audit", "Community", "Research", "Other"];
-
-    return (
-      <div style={pageStyle}>
-        <div style={gridOverlay} />
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "680px", margin: "0 auto", padding: "20px" }}>
-          {notification && (
-            <div style={{
-              position: "fixed", top: "20px", right: "20px", zIndex: 100, padding: "12px 20px",
-              background: `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
-              border: `1px solid ${theme.primary}40`, borderRadius: "8px", fontSize: "13px",
-              color: theme.primary, fontWeight: "600", backdropFilter: "blur(10px)", animation: "slideIn 0.3s ease",
-            }}>
-              {notification}
-            </div>
-          )}
-          <NavBar />
-          <DemoBanner />
-
-          <div style={{ ...fadeIn, marginTop: "20px" }}>
-            <div style={{ textAlign: "center", marginBottom: "32px" }}>
-              <h1 style={{ fontSize: "28px", fontWeight: "900", marginBottom: "8px" }}>Post a Bounty</h1>
-              <p style={{ fontSize: "14px", color: "#888", lineHeight: "1.6" }}>
-                List your project's work on FairBounty. Submissions are gated by on-chain reputation
-                via <span style={{ color: theme.primary }}>FairScale</span>, so you only get quality contributors.
-              </p>
-            </div>
-
-            {!wallet || !profile ? (
-              <div style={{ ...cardStyle, padding: "32px", textAlign: "center" }}>
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>Connect & Create Profile First</h3>
-                <p style={{ fontSize: "13px", color: "#888", marginBottom: "20px" }}>
-                  You need a wallet and FairScore profile to post bounties. This helps us verify your on-chain reputation.
-                </p>
-                <button style={btnPrimary} onClick={() => setView("connect")}>Connect Wallet →</button>
-              </div>
-            ) : (
-              <div style={{ ...cardStyle, padding: "28px" }}>
-                {/* Poster identity */}
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px",
-                  padding: "14px", background: `${theme.primary}08`, borderRadius: "8px", border: `1px solid ${theme.primary}15`,
-                }}>
-                  <span style={{ fontSize: "24px" }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: "700" }}>{profile.displayName}</div>
-                    <div style={{ fontSize: "11px", color: "#888" }}>
-                      Tier {fairScore} ({TIER_CONFIG[fairScore]?.label}) · FairScore: {scoreData?.score || 0} · {scoreData?.fairscaleTier || "unranked"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form fields */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div>
-                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Project / Company Name *</label>
-                    <input style={inputStyle} placeholder="e.g. Jupiter, Marinade, your DAO..." value={bountyForm.projectName}
-                      onChange={(e) => setBountyForm({ ...bountyForm, projectName: e.target.value })} />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Bounty Title *</label>
-                    <input style={inputStyle} placeholder="e.g. Build a staking dashboard UI" value={bountyForm.title}
-                      onChange={(e) => setBountyForm({ ...bountyForm, title: e.target.value })} />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Description *</label>
-                    <textarea style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }}
-                      placeholder="Describe the work needed, deliverables, requirements, and any technical specs..."
-                      value={bountyForm.description}
-                      onChange={(e) => setBountyForm({ ...bountyForm, description: e.target.value })} />
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Reward Amount *</label>
-                      <input style={inputStyle} type="number" placeholder="500" value={bountyForm.reward}
-                        onChange={(e) => setBountyForm({ ...bountyForm, reward: e.target.value })} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Currency</label>
-                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.currency}
-                        onChange={(e) => setBountyForm({ ...bountyForm, currency: e.target.value })}>
-                        <option value="USDC">USDC</option>
-                        <option value="SOL">SOL</option>
-                        <option value="USDT">USDT</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Category</label>
-                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.category}
-                        onChange={(e) => setBountyForm({ ...bountyForm, category: e.target.value })}>
-                        <option value="">Select...</option>
-                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Minimum Tier Required</label>
-                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.minTier}
-                        onChange={(e) => setBountyForm({ ...bountyForm, minTier: Number(e.target.value) })}>
-                        {Object.entries(TIER_CONFIG).map(([k, v]) => (
-                          <option key={k} value={k}>{v.emoji} Tier {k} — {v.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Deadline</label>
-                    <input style={inputStyle} type="date" value={bountyForm.deadline}
-                      onChange={(e) => setBountyForm({ ...bountyForm, deadline: e.target.value })} />
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Best Way to Reach You</label>
-                      <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.contactMethod}
-                        onChange={(e) => setBountyForm({ ...bountyForm, contactMethod: e.target.value })}>
-                        <option value="">Select...</option>
-                        <option value="telegram">Telegram</option>
-                        <option value="x">X / Twitter DM</option>
-                        <option value="email">Email</option>
-                        <option value="discord">Discord</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Contact Handle / Address</label>
-                      <input style={inputStyle} placeholder="@yourhandle or email" value={bountyForm.contactValue}
-                        onChange={(e) => setBountyForm({ ...bountyForm, contactValue: e.target.value })} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pricing info */}
-                <div style={{
-                  marginTop: "20px", padding: "14px", background: `${theme.primary}08`,
-                  borderRadius: "8px", border: `1px solid ${theme.primary}15`, fontSize: "12px", color: "#888",
-                }}>
-                  <div style={{ fontWeight: "700", color: "#ccc", marginBottom: "6px" }}>How it works:</div>
-                  <div style={{ lineHeight: "1.8" }}>
-                    → We review your application within 24 hours<br />
-                    → Approved bounties go live on the board<br />
-                    → Contributors submit work, community votes on best submissions<br />
-                    → You pick the winner and release payment<br />
-                    → <span style={{ color: theme.primary }}>Listing fee: 50 USDC</span> · <span style={{ color: theme.primary }}>Commission: 5% of reward</span>
-                  </div>
-                </div>
-
-                <button style={{ ...btnPrimary, width: "100%", marginTop: "20px", padding: "14px", fontSize: "15px" }}
-                  onClick={handleBountySubmit}>
-                  Submit Bounty Application →
-                </button>
-              </div>
-            )}
-          </div>
-
-          <Footer />
-        </div>
-        <style>{globalStyles}</style>
-      </div>
-    );
-  }
-
-  // ============================================================
-  // DASHBOARD
+  // DASHBOARD — Main bounty board
   // ============================================================
   return (
     <div style={pageStyle}>
       <div style={gridOverlay} />
       <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
-        {notification && (
-          <div style={{
-            position: "fixed", top: "20px", right: "20px", zIndex: 100, padding: "12px 20px",
-            background: `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
-            border: `1px solid ${theme.primary}40`, borderRadius: "8px", fontSize: "13px",
-            color: theme.primary, fontWeight: "600", backdropFilter: "blur(10px)", animation: "slideIn 0.3s ease",
-          }}>
-            {notification}
-          </div>
-        )}
-
+        <Notification />
         <NavBar />
         <DemoModal />
         <WelcomeModal />
         <DemoBanner />
 
-        {/* Referral */}
+        {/* Referral panel */}
         {showReferral && wallet && (
           <div style={{ ...cardStyle, marginBottom: "20px", padding: "20px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
               <div>
                 <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px" }}>🔗 Refer Friends → Earn BXP</div>
-                <div style={{ fontSize: "12px", color: "#888" }}>
-                  You earn <span style={{ color: theme.primary, fontWeight: "600" }}>+{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> per referral · They earn <span style={{ color: theme.primary, fontWeight: "600" }}>+{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> too
-                </div>
+                <div style={{ fontSize: "12px", color: "#888" }}>You earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> per referral · They earn the same</div>
               </div>
-              {referralCount > 0 && (
-                <div style={{ padding: "6px 14px", background: `${theme.primary}15`, borderRadius: "100px", fontSize: "12px", fontWeight: "700", color: theme.primary }}>
-                  {referralCount} referral{referralCount !== 1 ? "s" : ""}
-                </div>
-              )}
+              {referralCount > 0 && <div style={{ padding: "6px 14px", background: `${theme.primary}15`, borderRadius: "100px", fontSize: "12px", fontWeight: "700", color: theme.primary }}>{referralCount} referral{referralCount !== 1 ? "s" : ""}</div>}
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0c0c14", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
-              <input
-                readOnly
-                value={referralLink}
-                style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "12px", color: "#aaa", padding: "0" }}
-              />
-              <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }}
-                onClick={() => {
-                  navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!"));
-                }}>
-                📋 Copy
-              </button>
+              <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "12px", color: "#aaa", padding: "0" }} />
+              <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }} onClick={() => { navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!")); }}>📋 Copy</button>
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
-              <a
-                href={`https://x.com/intent/tweet?text=${encodeURIComponent(`I'm building my on-chain reputation on FairBounty — a trust-gated bounty platform powered by @FairScale_xyz.\n\nJoin with my link and we both earn BXP:\n${referralLink}`)}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px", textDecoration: "none", textAlign: "center" }}>
-                Share on 𝕏
-              </a>
-              <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties powered by FairScale. We both earn BXP!")}`}
-                target="_blank" rel="noopener noreferrer"
-                style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px", textDecoration: "none", textAlign: "center" }}>
-                Telegram
-              </a>
+              <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Building reputation on @FairBounty — trust-gated bounties on Solana 🔥\n\nJoin with my link, we both earn BXP:\n${referralLink}`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px", textDecoration: "none", textAlign: "center" }}>Share on 𝕏</a>
+              <a href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties on Solana. We both earn BXP!")}`} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px", textDecoration: "none", textAlign: "center" }}>Telegram</a>
             </div>
           </div>
         )}
 
-        {/* Score Card */}
+        {/* Score card */}
         {wallet && (
           <div style={{ ...cardStyle, marginBottom: "24px", ...fadeIn, transitionDelay: "0.1s" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px" }}>
@@ -2771,77 +2309,61 @@ export default function FairBounty() {
                 <div style={{ marginTop: "6px", height: "4px", background: "#1a1a2a", borderRadius: "2px", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${Math.min(100, (xp % 200) / 2)}%`, background: `linear-gradient(90deg, ${theme.primary}, ${theme.accent})`, borderRadius: "2px", transition: "width 0.5s ease" }} />
                 </div>
-                <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{FairScoreAPI.getXpMultiplier(fairScore)}x multiplier active</div>
+                <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{FairScoreAPI.getXpMultiplier(fairScore)}x multiplier</div>
               </div>
               <div style={{ padding: "8px" }}>
-                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Max Bounty</div>
-                <div style={{ fontSize: "20px", fontWeight: "900", color: theme.accent }}>
-                  {TIER_CONFIG[fairScore]?.maxBounty ? `$${TIER_CONFIG[fairScore].maxBounty.toLocaleString()}` : "Unlimited"}
-                </div>
+                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Vote Weight</div>
+                <div style={{ fontSize: "20px", fontWeight: "900", color: theme.accent }}>{FairScoreAPI.getVoteWeight(fairScore || 1)}x</div>
                 <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>+{rewardBonus}% reward bonus</div>
               </div>
               <div style={{ padding: "8px" }}>
-                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Risk Level</div>
-                <div style={{ fontSize: "16px", fontWeight: "900", color: riskData.color }}>{riskData.level}</div>
-                <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>Tier {fairScore} risk assessment</div>
+                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Access</div>
+                <div style={{ fontSize: "14px", fontWeight: "900", color: betaAccess ? theme.primary : "#888" }}>{betaAccess ? "⚡ Beta" : "🔍 Browse"}</div>
+                <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{betaAccess ? "Submit · Vote · Post" : "DM @smsonx for beta"}</div>
               </div>
             </div>
-
-            {/* On-chain stats from FairScore */}
             {scoreData && (
               <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}15` }}>
-                <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", fontSize: "11px", color: "#888", marginBottom: "10px" }}>
+                <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", fontSize: "11px", color: "#888" }}>
                   <span>🏆 FairScale: <span style={{ color: theme.primary, fontWeight: "600" }}>{scoreData.fairscaleTier}</span></span>
-                  <span>📊 Score: {Math.round(scoreData.score * 10) / 10} (base: {Math.round(scoreData.fairscoreBase * 10) / 10})</span>
+                  <span>📊 Score: {Math.round(scoreData.score * 10) / 10}</span>
                   <span>🔗 Platforms: {Math.round(scoreData.protocolsUsed)}</span>
                   <span>📈 Active days: {Math.round(scoreData.activeDays)}</span>
                   <span>💰 Txns: {Math.round(scoreData.txCount)}</span>
                 </div>
-                {/* Badges */}
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  {/* Platform badges */}
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "8px" }}>
                   {fullAddress && PLATFORM_BADGES[fullAddress] && PLATFORM_BADGES[fullAddress].map((badge) => (
-                    <span key={badge.id} style={{
-                      padding: "3px 10px", fontSize: "10px", borderRadius: "100px", fontWeight: "700",
-                      background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
-                    }}>
-                      ★ {badge.label}
-                    </span>
+                    <span key={badge.id} style={{ padding: "3px 10px", fontSize: "10px", borderRadius: "100px", fontWeight: "700", background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>★ {badge.label}</span>
                   ))}
-                  {/* FairScale badges */}
-                  {scoreData.badges && scoreData.badges.length > 0 && scoreData.badges.map((badge) => (
-                      <span key={badge.id} style={{
-                        padding: "3px 10px", fontSize: "10px", borderRadius: "100px", fontWeight: "600",
-                        background: badge.tier === "gold" ? "#F59E0B15" : badge.tier === "silver" ? "#9CA3AF15" : badge.tier === "platinum" ? "#818CF815" : `${theme.primary}15`,
-                        color: badge.tier === "gold" ? "#F59E0B" : badge.tier === "silver" ? "#9CA3AF" : badge.tier === "platinum" ? "#818CF8" : theme.primary,
-                        border: `1px solid ${badge.tier === "gold" ? "#F59E0B30" : badge.tier === "silver" ? "#9CA3AF30" : badge.tier === "platinum" ? "#818CF830" : theme.primary + "30"}`,
-                      }} title={badge.description}>
-                        {badge.label}
-                      </span>
-                    ))}
+                  {scoreData.badges?.map((badge) => (
+                    <span key={badge.id} style={{ padding: "3px 10px", fontSize: "10px", borderRadius: "100px", fontWeight: "600", background: `${theme.primary}15`, color: theme.primary, border: `1px solid ${theme.primary}30` }} title={badge.description}>{badge.label}</span>
+                  ))}
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Bounty Board Header */}
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          marginBottom: "20px", flexWrap: "wrap", gap: "12px", ...fadeIn, transitionDelay: "0.2s",
-        }}>
+        {/* Bounty board header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px", ...fadeIn, transitionDelay: "0.2s" }}>
           <div>
-            <h2 style={{ fontSize: "20px", fontWeight: "800" }}>Example Bounties</h2>
-            <p style={{ fontSize: "12px", color: "#888" }}>{filteredBounties.length} sample bounties — real ones coming soon</p>
+            <h2 style={{ fontSize: "20px", fontWeight: "800" }}>
+              Bounty Board
+              {liveBounties.length > 0 && <span style={{ marginLeft: "10px", fontSize: "12px", fontWeight: "600", color: "#22C55E", background: "#22C55E15", padding: "2px 10px", borderRadius: "100px", border: "1px solid #22C55E30" }}>✅ {liveBounties.length} Live</span>}
+            </h2>
+            <p style={{ fontSize: "12px", color: "#888" }}>{filteredBounties.length} bounties{filterType === "all" ? " (live + demo)" : filterType === "live" ? " (live only)" : " (demo only)"}</p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowReferral(!showReferral)}>🔗 Refer</button>
-            <select style={{ ...inputStyle, width: "auto", fontSize: "12px", padding: "8px 12px", cursor: "pointer" }}
-              value={filterTier} onChange={(e) => setFilterTier(Number(e.target.value))}>
-              <option value={0}>All Tiers</option>
-              {Object.entries(TIER_CONFIG).map(([k, v]) => (
-                <option key={k} value={k}>{v.emoji} Tier {k}</option>
+            {/* Filter by type */}
+            <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "8px", padding: "3px" }}>
+              {[["all", "All"], ["live", "Live ✅"], ["demo", "Demo"]].map(([v, l]) => (
+                <button key={v} onClick={() => setFilterType(v)} style={{ padding: "5px 10px", fontSize: "11px", background: filterType === v ? `${theme.primary}20` : "transparent", border: filterType === v ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "6px", color: filterType === v ? theme.primary : "#666", cursor: "pointer", fontFamily: "inherit", fontWeight: "500" }}>{l}</button>
               ))}
+            </div>
+            <select style={{ ...inputStyle, width: "auto", fontSize: "12px", padding: "8px 12px", cursor: "pointer" }} value={filterTier} onChange={(e) => setFilterTier(Number(e.target.value))}>
+              <option value={0}>All Tiers</option>
+              {Object.entries(TIER_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} Tier {k}</option>)}
             </select>
             {wallet && (
               <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("post-bounty")}>+ Post Bounty</button>
@@ -2849,44 +2371,46 @@ export default function FairBounty() {
           </div>
         </div>
 
-        {/* Bounty List */}
+        {/* Bounty list */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", ...fadeIn, transitionDelay: "0.3s" }}>
           {filteredBounties.map((b) => {
             const tier = TIER_CONFIG[b.minTier];
             const eligible = wallet ? canClaim(b) : true;
             const bonus = wallet ? FairScoreAPI.getRewardBonus(fairScore) : 0;
+            const pt = PRIZE_TYPES[b.prizeType] || PRIZE_TYPES.USDC;
+            const isMyBounty = fullAddress && b.poster === fullAddress;
             return (
-              <div key={b.id} style={{ ...cardStyle, cursor: "pointer", opacity: eligible ? 1 : 0.5, position: "relative", overflow: "hidden" }}
+              <div key={b.id} style={{ ...cardStyle, cursor: "pointer", opacity: eligible ? 1 : 0.55, position: "relative", overflow: "hidden", border: b.isDemo ? cardStyle.border : `1px solid ${theme.primary}30` }}
                 onClick={() => { setSelectedBounty(b); setView("bounty"); }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primary; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${theme.primary}30`; e.currentTarget.style.transform = "translateY(0)"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = b.isDemo ? theme.primary : theme.primary; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = b.isDemo ? `${theme.primary}18` : `${theme.primary}30`; e.currentTarget.style.transform = "translateY(0)"; }}
               >
-                {!eligible && (
-                  <div style={{ position: "absolute", top: "12px", right: "12px", fontSize: "11px", color: "#ff4040", padding: "2px 8px", background: "#ff004015", borderRadius: "4px" }}>🔒 Locked</div>
-                )}
+                {!eligible && <div style={{ position: "absolute", top: "12px", right: "12px", fontSize: "11px", color: "#ff4040", padding: "2px 8px", background: "#ff004015", borderRadius: "4px" }}>🔒 Locked</div>}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "11px", color: "#666", marginBottom: "4px" }}>{b.project}</div>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "4px" }}>
+                      <span style={{ fontSize: "11px", color: "#666" }}>{b.project || b.projectName}</span>
+                      {!b.isDemo && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px" }}>✅ LIVE</span>}
+                      {isMyBounty && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "1px 6px", borderRadius: "4px" }}>Your Bounty</span>}
+                    </div>
                     <div style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>{b.title}</div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                      {b.tags.map((tag) => (
+                      {(Array.isArray(b.tags) ? b.tags : []).slice(0, 4).map((tag) => (
                         <span key={tag} style={{ padding: "2px 8px", background: `${theme.primary}10`, borderRadius: "4px", fontSize: "11px", color: `${theme.primary}BB` }}>{tag}</span>
                       ))}
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "18px", fontWeight: "900", color: theme.primary }}>{b.reward} {b.currency}</div>
+                    <div style={{ fontSize: "18px", fontWeight: "900", color: pt.color }}>{pt.icon} {b.reward} {b.currency}</div>
                     {bonus > 0 && eligible && <div style={{ fontSize: "10px", color: theme.accent }}>+{bonus}% bonus</div>}
                     <div style={{ fontSize: "11px", color: tier.color, marginTop: "4px" }}>{tier.emoji} Tier {b.minTier}+</div>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "11px", color: "#666", alignItems: "center" }}>
-                  <span>📝 {b.submissions} submissions</span>
-                  <span>⏰ {b.deadline}</span>
+                  <span>📝 {b.isDemo ? b.submissions : (b.submissionCount || 0)} submissions</span>
+                  <span>⏰ {b.deadline || "Open"}</span>
                   {wallet && (
-                    <button onClick={(e) => { e.stopPropagation(); toggleBookmark(b.id); }}
-                      style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "0", fontFamily: "inherit" }}
-                      title={bookmarks.includes(b.id) ? "Remove bookmark" : "Bookmark"}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleBookmark(b.id); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "0", fontFamily: "inherit" }} title={bookmarks.includes(b.id) ? "Remove bookmark" : "Bookmark"}>
                       {bookmarks.includes(b.id) ? "📌" : "🔖"}
                     </button>
                   )}
@@ -2894,8 +2418,14 @@ export default function FairBounty() {
               </div>
             );
           })}
+          {filteredBounties.length === 0 && (
+            <div style={{ ...cardStyle, textAlign: "center", padding: "40px" }}>
+              <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔍</div>
+              <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No bounties found</div>
+              <div style={{ fontSize: "12px", color: "#888" }}>Try adjusting your filters</div>
+            </div>
+          )}
         </div>
-
         <Footer />
       </div>
       <style>{globalStyles}</style>
