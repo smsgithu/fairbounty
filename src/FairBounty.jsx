@@ -1232,12 +1232,16 @@ export default function FairBounty() {
             <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.55s" }}>
               <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Prize Types</h2>
               <p style={{ fontSize: "13px", color: "#888", marginBottom: "24px" }}>Post bounties with stablecoins, memecoins, NFTs, or collectibles as prizes</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "nowrap" }}>
                 {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
-                  <div key={key} style={{ ...cardStyle, padding: "20px", textAlign: "center", border: `1px solid ${pt.color}20` }}>
-                    <div style={{ fontSize: "28px", marginBottom: "8px" }}>{pt.icon}</div>
-                    <div style={{ fontSize: "14px", fontWeight: "700", color: pt.color, marginBottom: "4px" }}>{pt.label}</div>
-                    <div style={{ fontSize: "11px", color: "#888" }}>{pt.description}</div>
+                  <div key={key} style={{
+                    ...cardStyle, padding: "18px 14px", textAlign: "center",
+                    border: `1px solid ${pt.color}25`, flex: "1", minWidth: "0",
+                    background: `linear-gradient(135deg, ${pt.color}08, ${pt.color}03)`,
+                  }}>
+                    <div style={{ fontSize: "26px", marginBottom: "8px" }}>{pt.icon}</div>
+                    <div style={{ fontSize: "13px", fontWeight: "700", color: pt.color, marginBottom: "4px", whiteSpace: "nowrap" }}>{pt.label}</div>
+                    <div style={{ fontSize: "10px", color: "#777", lineHeight: "1.4" }}>{pt.description}</div>
                   </div>
                 ))}
               </div>
