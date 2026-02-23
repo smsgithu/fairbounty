@@ -82,8 +82,14 @@ export default async function handler(req, res) {
 
     if (action === "get-referrals") {
       const { wallet } = req.query;
-      const rows = await sql`SELECT COUNT(*) as count FROM fb_referrals WHERE referrer_wallet = ${wallet}`;
-      return res.json({ count: parseInt(rows[0].count) || 0 });
+      const rows = await sql`
+        SELECT r.referred_wallet, r.created_at, p.display_name
+        FROM fb_referrals r
+        LEFT JOIN fb_profiles p ON p.wallet = r.referred_wallet
+        WHERE r.referrer_wallet = ${wallet}
+        ORDER BY r.created_at DESC
+      `;
+      return res.json({ count: rows.length, referrals: rows });
     }
 
     if (action === "track-wallet") {
