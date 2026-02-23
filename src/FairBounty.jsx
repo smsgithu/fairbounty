@@ -307,9 +307,7 @@ export default function FairBounty() {
   const [view, setView] = useState("landing");
   const [wallet, setWallet] = useState(null);
   const [walletType, setWalletType] = useState("default");
-  const [colorMode, setColorMode] = useState(() => {
-    try { return localStorage.getItem("fb_color_mode") || "dark"; } catch { return "dark"; }
-  });
+
   const [fairScore, setFairScore] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [xp, setXp] = useState(0);
@@ -830,33 +828,15 @@ export default function FairBounty() {
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
 
-  // Resolve system preference
-  const systemDark = typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-  const isDark = colorMode === "dark" || (colorMode === "system" && systemDark);
-
-  const bg = isDark ? "#0b0b18" : "#f0f2f8";
-  const bgCard = isDark ? "#0e0e1c" : "#ffffff";
-  const bgSub = isDark ? "#131320" : "#e8eaf2";
-  const textPrimary = isDark ? "#E8E8ED" : "#0f0f1a";
-  const textMuted = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
-  const borderColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)";
-
-  const cycleMode = () => {
-    const next = colorMode === "dark" ? "light" : colorMode === "light" ? "system" : "dark";
-    setColorMode(next);
-    try { localStorage.setItem("fb_color_mode", next); } catch {}
-  };
-  const modeIcon = colorMode === "dark" ? "🌙" : colorMode === "light" ? "☀️" : "⚙️";
-  const modeLabel = colorMode === "dark" ? "Dark" : colorMode === "light" ? "Light" : "System";
 
   // ============================================================
   // STYLES
   // ============================================================
   const pageStyle = {
-    minHeight: "100vh", background: bg, color: textPrimary,
+    minHeight: "100vh", background: "#0b0b18", color: "#E8E8ED",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
     position: "relative", overflow: "hidden", WebkitFontSmoothing: "antialiased",
-    transition: "background 0.3s ease, color 0.3s ease",
+    
   };
   const gridOverlay = {
     position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
@@ -864,29 +844,21 @@ export default function FairBounty() {
     pointerEvents: "none", zIndex: 0,
   };
   const cardStyle = {
-    background: isDark
-      ? `linear-gradient(135deg, ${theme.primary}08, ${theme.accent}04)`
-      : `linear-gradient(135deg, ${theme.primary}06, ${bgCard})`,
-    border: `1px solid ${isDark ? theme.primary + "18" : theme.primary + "22"}`, borderRadius: "16px", padding: "20px",
+    background: `linear-gradient(135deg, ${theme.primary}08, ${theme.accent}04)`,
+    border: `1px solid ${theme.primary}18`, borderRadius: "16px", padding: "20px",
     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
     transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-    boxShadow: isDark
-      ? `0 0 0 0.5px ${theme.primary}0A, 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 ${theme.primary}08`
-      : `0 0 0 0.5px ${theme.primary}10, 0 4px 24px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)`,
+    boxShadow: `0 0 0 0.5px ${theme.primary}0A, 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 ${theme.primary}08`,
   };
   const glassCard = {
     ...cardStyle,
-    background: isDark
-      ? `linear-gradient(135deg, ${theme.primary}0C, ${theme.accent}06, rgba(255,255,255,0.02))`
-      : `linear-gradient(135deg, ${theme.primary}08, ${bgCard}, rgba(255,255,255,0.9))`,
-    border: `1px solid ${isDark ? theme.primary + "20" : theme.primary + "28"}`,
-    boxShadow: isDark
-      ? `0 0 0 0.5px ${theme.primary}0C, 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 ${theme.primary}0C`
-      : `0 0 0 0.5px ${theme.primary}14, 0 8px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`,
+    background: `linear-gradient(135deg, ${theme.primary}0C, ${theme.accent}06, rgba(255,255,255,0.02))`,
+    border: `1px solid ${theme.primary}20`,
+    boxShadow: `0 0 0 0.5px ${theme.primary}0C, 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 ${theme.primary}0C`,
   };
   const btnPrimary = {
     background: `linear-gradient(135deg, ${theme.primary}, ${theme.accent})`,
-    border: "none", borderRadius: "12px", padding: "12px 28px", color: isDark ? "#070710" : "#ffffff",
+    border: "none", borderRadius: "12px", padding: "12px 28px", color: "#070710",
     fontWeight: "600", fontFamily: "inherit", cursor: "pointer", fontSize: "14px",
     transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
     boxShadow: `0 2px 20px ${theme.primary}30, 0 0 40px ${theme.primary}10`,
@@ -923,8 +895,8 @@ export default function FairBounty() {
     @keyframes betaPulse { 0%, 100% { box-shadow: 0 0 0 0 ${theme.primary}40; } 50% { box-shadow: 0 0 0 6px ${theme.primary}00; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body { background: ${bg}; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: ${textPrimary}; transition: background 0.3s ease, color 0.3s ease; }
-    select option { background: ${bgCard}; color: ${textPrimary}; }
+    body { background: #0b0b18; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+    select option { background: #111; color: #E8E8ED; }
     ::selection { background: ${theme.primary}30; color: white; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1056,7 +1028,7 @@ export default function FairBounty() {
               { icon: "📝", action: "Submit Work", amount: "25 BXP", note: "per bounty submission", color: "#8B5CF6" },
               { icon: "🏆", action: "Win a Bounty", amount: "100 BXP", note: "plus the reward payout", color: "#F59E0B" },
             ].map((item) => (
-              <div key={item.action} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px", background: bgSub, borderRadius: "8px", border: `1px solid ${item.color}20` }}>
+              <div key={item.action} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px", background: "#0c0c14", borderRadius: "8px", border: `1px solid ${item.color}20` }}>
                 <span style={{ fontSize: "20px" }}>{item.icon}</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: "13px", fontWeight: "600" }}>{item.action}</span>
@@ -1141,17 +1113,7 @@ export default function FairBounty() {
             ) : (
               <div style={{ width: "1px" }} />
             )}
-            {/* Theme toggle */}
-            <button onClick={cycleMode} title={`Mode: ${modeLabel}`} style={{
-              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.12)"}`,
-              borderRadius: "8px", padding: "4px 8px", cursor: "pointer",
-              fontSize: "13px", display: "flex", alignItems: "center", gap: "4px",
-              color: textMuted, fontFamily: "inherit", transition: "all 0.2s ease",
-            }}>
-              {modeIcon} <span className="nav-label" style={{ fontSize: "10px", fontWeight: "600" }}>{modeLabel}</span>
-            </button>
-          </div>
+            </div>
           {/* Wallet pill — always right-aligned, always same row */}
           {wallet ? (
             <div style={{
@@ -1408,7 +1370,7 @@ export default function FairBounty() {
                   {s.items && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {s.items.map((item, i) => (
-                        <div key={i} style={{ padding: "10px 14px", background: bgSub, borderRadius: "6px", fontSize: "12px", color: "#bbb", lineHeight: "1.6", borderLeft: `2px solid ${theme.primary}40` }}>{item}</div>
+                        <div key={i} style={{ padding: "10px 14px", background: "#0c0c14", borderRadius: "6px", fontSize: "12px", color: "#bbb", lineHeight: "1.6", borderLeft: `2px solid ${theme.primary}40` }}>{item}</div>
                       ))}
                     </div>
                   )}
@@ -1416,13 +1378,13 @@ export default function FairBounty() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {s.links.map((link, i) => (
                         <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
-                          padding: "10px 14px", background: bgSub, borderRadius: "6px",
+                          padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
                           fontSize: "12px", color: theme.primary, lineHeight: "1.6",
                           borderLeft: `2px solid ${theme.primary}40`, textDecoration: "none",
                           display: "block", transition: "background 0.2s ease",
                         }}
                           onMouseEnter={(e) => e.currentTarget.style.background = `${theme.primary}10`}
-                          onMouseLeave={(e) => e.currentTarget.style.background = bgSub}
+                          onMouseLeave={(e) => e.currentTarget.style.background = "#0c0c14"}
                         >{link.label} ↗</a>
                       ))}
                     </div>
@@ -1486,7 +1448,7 @@ export default function FairBounty() {
                         <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", marginBottom: "16px" }}>{step.desc}</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                           {step.details.map((d, j) => (
-                            <div key={j} style={{ padding: "10px 14px", background: bgSub, borderRadius: "6px", fontSize: "12px", color: "#999", lineHeight: "1.5", borderLeft: `2px solid ${theme.primary}40`, display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div key={j} style={{ padding: "10px 14px", background: "#0c0c14", borderRadius: "6px", fontSize: "12px", color: "#999", lineHeight: "1.5", borderLeft: `2px solid ${theme.primary}40`, display: "flex", alignItems: "center", gap: "8px" }}>
                               <span style={{ color: theme.primary }}>›</span> {d}
                             </div>
                           ))}
@@ -1610,7 +1572,7 @@ export default function FairBounty() {
               <div><div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Wallet</div><div style={{ fontSize: "13px", color: theme.primary, fontWeight: "600", marginTop: "2px" }}>{wallet}</div></div>
               <div style={{ textAlign: "right" }}><div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>FairScore</div><div style={{ fontSize: "13px", color: TIER_CONFIG[fairScore]?.color, fontWeight: "600", marginTop: "2px" }}>{scoreData?.score} pts</div></div>
             </div>
-            <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: bgSub, borderRadius: "10px", padding: "4px" }}>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {setupTabs.map((t) => (
                 <button key={t} onClick={() => setSetupTab(t)} style={{ flex: 1, padding: "10px", fontSize: "13px", fontWeight: "600", background: setupTab === t ? `${theme.primary}20` : "transparent", border: setupTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "8px", color: setupTab === t ? theme.primary : "#888", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease" }}>{t}</button>
               ))}
@@ -1761,7 +1723,7 @@ export default function FairBounty() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: bgSub, borderRadius: "10px", padding: "4px" }}>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {["overview", "skills", "bookmarks"].map((t) => (
                 <button key={t} onClick={() => setProfileTab(t)} style={{ flex: 1, padding: "10px", fontSize: "12px", fontWeight: "600", textTransform: "capitalize", background: profileTab === t ? `${theme.primary}20` : "transparent", border: profileTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "8px", color: profileTab === t ? theme.primary : "#888", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease" }}>
                   {t === "bookmarks" ? `📌 Bookmarks (${bookmarks.length})` : t === "skills" ? "🛠 Skills" : "📊 Overview"}
@@ -1788,7 +1750,7 @@ export default function FairBounty() {
                     <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>On-Chain Activity</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                       {[{ label: "FairScale Tier", value: scoreData.fairscaleTier }, { label: "FairScore", value: Math.round(scoreData.score * 10) / 10 }, { label: "Base Score", value: Math.round(scoreData.fairscoreBase * 10) / 10 }, { label: "Social Score", value: Math.round(scoreData.socialScore * 10) / 10 }, { label: "Transactions", value: Math.round(scoreData.txCount) }, { label: "Active Days", value: Math.round(scoreData.activeDays) }, { label: "Platforms", value: Math.round(scoreData.protocolsUsed) }, { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` }].map((d) => (
-                        <div key={d.label} style={{ padding: "10px", background: bgSub, borderRadius: "6px" }}>
+                        <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                           <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.label}</div>
                           <div style={{ fontSize: "14px", fontWeight: "600" }}>{d.value}</div>
                         </div>
@@ -1820,7 +1782,7 @@ export default function FairBounty() {
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>⭐ BXP Breakdown</h3>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                     {[{ label: "Welcome Bonus", value: bxpBreakdown.welcome, icon: "🎁" }, { label: "Referral Earnings", value: bxpBreakdown.referrals, icon: "🔗" }, { label: "Referred Bonus", value: bxpBreakdown.referred, icon: "🤝" }, { label: "Submissions", value: bxpBreakdown.submissions, icon: "📝" }].map((d) => (
-                      <div key={d.label} style={{ padding: "10px", background: bgSub, borderRadius: "6px" }}>
+                      <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                         <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.icon} {d.label}</div>
                         <div style={{ fontSize: "14px", fontWeight: "600", color: d.value > 0 ? theme.primary : "#444" }}>{d.value} BXP</div>
                       </div>
@@ -1897,7 +1859,7 @@ export default function FairBounty() {
                       <div style={{ fontSize: "10px", color: "#555", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>Who you've referred</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "200px", overflowY: "auto" }}>
                         {referralList.map((r, i) => (
-                          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: bgSub, borderRadius: "8px", border: `1px solid ${theme.primary}10` }}>
+                          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "#0c0c14", borderRadius: "8px", border: `1px solid ${theme.primary}10` }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                               <span style={{ fontSize: "12px" }}>👤</span>
                               <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", fontWeight: "500" }}>
@@ -2029,7 +1991,7 @@ export default function FairBounty() {
                 { label: "Submissions", value: b.isDemo ? b.submissions : selectedBountySubmissions.length, color: "#888" },
                 { label: "Deadline", value: b.deadline || "Open", color: "#888" },
               ].map((m) => (
-                <div key={m.label} style={{ padding: "12px", background: bgSub, borderRadius: "8px", textAlign: "center" }}>
+                <div key={m.label} style={{ padding: "12px", background: "#0c0c14", borderRadius: "8px", textAlign: "center" }}>
                   <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{m.label}</div>
                   <div style={{ fontSize: "13px", fontWeight: "600", color: m.color }}>{m.value}</div>
                 </div>
@@ -2468,7 +2430,7 @@ export default function FairBounty() {
               </div>
               {referralCount > 0 && <div style={{ padding: "6px 14px", background: `${theme.primary}15`, borderRadius: "100px", fontSize: "12px", fontWeight: "700", color: theme.primary }}>{referralCount} referral{referralCount !== 1 ? "s" : ""}</div>}
             </div>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", background: bgSub, borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0c0c14", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
               <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "12px", color: "#aaa", padding: "0" }} />
               <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }} onClick={() => { navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!")); }}>📋 Copy</button>
             </div>
@@ -2546,7 +2508,7 @@ export default function FairBounty() {
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowReferral(!showReferral)}>🔗 Refer</button>
             {/* Filter by type */}
-            <div style={{ display: "flex", gap: "4px", background: bgSub, borderRadius: "8px", padding: "3px" }}>
+            <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "8px", padding: "3px" }}>
               {[["all", "All"], ["live", "Live ✅"], ["demo", "Demo"]].map(([v, l]) => (
                 <button key={v} onClick={() => setFilterType(v)} style={{ padding: "5px 10px", fontSize: "11px", background: filterType === v ? `${theme.primary}20` : "transparent", border: filterType === v ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "6px", color: filterType === v ? theme.primary : "#666", cursor: "pointer", fontFamily: "inherit", fontWeight: "500" }}>{l}</button>
               ))}
