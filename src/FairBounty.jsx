@@ -1122,7 +1122,6 @@ export default function FairBounty() {
       </div>
     );
   };
-  );
 
   const Footer = () => (
     <div style={{ marginTop: "60px", paddingTop: "32px", borderTop: `1px solid rgba(255,255,255,0.06)`, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "16px", fontSize: "12px", color: "rgba(255,255,255,0.3)", paddingBottom: "32px" }}>
