@@ -1037,67 +1037,91 @@ export default function FairBounty() {
     </div>
   ) : null;
 
-  const NavBar = ({ showBack, backTo, backLabel }) => (
-    <div style={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
-      padding: "16px 0", marginBottom: "24px", borderBottom: `1px solid ${theme.primary}15`,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {showBack && (
-          <button onClick={() => setView(backTo || "dashboard")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>← {backLabel || "Back"}</button>
-        )}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }} onClick={() => setView("landing")}>
-          <Logo size={24} />
-          <span style={{ fontSize: "15px", fontWeight: "600", letterSpacing: "-0.03em" }}>FairBounty</span>
-          <span style={{ fontSize: "8px", fontWeight: "600", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-            {betaAccess ? "Beta ⚡" : "Beta"}
-          </span>
+  const NavBar = ({ showBack, backTo, backLabel }) => {
+    const tabStyle = (tabView) => ({
+      background: view === tabView ? `${theme.primary}18` : "transparent",
+      border: view === tabView ? `1px solid ${theme.primary}30` : "1px solid transparent",
+      borderRadius: "10px", padding: "7px 13px",
+      color: view === tabView ? "#fff" : "rgba(255,255,255,0.45)",
+      fontFamily: "inherit", cursor: "pointer", fontSize: "12px", fontWeight: "500",
+      transition: "all 0.2s ease", whiteSpace: "nowrap",
+      backdropFilter: view === tabView ? "blur(10px)" : "none",
+    });
+    const disconnectFn = (e) => {
+      e.stopPropagation();
+      setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null);
+      setScoreData(null); setXp(0); setProfile(null); setBetaAccess(false);
+      setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] });
+      setBookmarks([]); setView("landing");
+    };
+    return (
+      <div style={{ marginBottom: "24px", borderBottom: `1px solid ${theme.primary}15` }}>
+        {/* ROW 1: Logo left — Nav tabs right. Identical on every page. */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "52px" }}>
+          {/* Logo — always same width */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flexShrink: 0 }} onClick={() => setView("landing")}>
+            <Logo size={22} />
+            <span style={{ fontSize: "14px", fontWeight: "700", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>FairBounty</span>
+            <span style={{ fontSize: "8px", fontWeight: "700", color: theme.primary, background: `${theme.primary}18`, padding: "2px 6px", borderRadius: "100px", letterSpacing: "0.05em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+              {betaAccess ? "Beta ⚡" : "Beta"}
+            </span>
+          </div>
+          {/* Nav tabs — always same, always right */}
+          <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+            {[
+              { label: "Bounties", view: wallet && profile ? "dashboard" : "landing" },
+              { label: "Post Bounty", view: "post-bounty" },
+              { label: "How It Works", view: "how-it-works" },
+              { label: "About", view: "about" },
+              { label: "🏆", view: "leaderboard" },
+            ].map((tab) => (
+              <button key={tab.label} style={tabStyle(tab.view)} onClick={() => setView(tab.view)}>{tab.label}</button>
+            ))}
+            {wallet && profile && (
+              <button style={tabStyle("profile")} onClick={() => setView("profile")}>👤</button>
+            )}
+          </div>
+        </div>
+
+        {/* ROW 2: Back button left — Wallet pill right. Always same height whether or not content exists. */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "38px", paddingBottom: "8px" }}>
+          {/* Back button or empty spacer */}
+          <div style={{ flexShrink: 0 }}>
+            {showBack ? (
+              <button onClick={() => setView(backTo || "dashboard")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 12px", whiteSpace: "nowrap" }}>← {backLabel || "Back"}</button>
+            ) : (
+              <div style={{ width: "1px" }} />
+            )}
+          </div>
+          {/* Wallet pill — always right-aligned, always same row */}
+          {wallet ? (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "6px", padding: "5px 11px",
+              background: `${theme.primary}0C`, border: `1px solid ${theme.primary}20`,
+              borderRadius: "12px", fontSize: "11px", cursor: profile ? "pointer" : "default",
+              backdropFilter: "blur(16px)", boxShadow: `inset 0 1px 0 ${theme.primary}08`,
+              flexShrink: 0, whiteSpace: "nowrap",
+            }} onClick={() => profile && setView("profile")}>
+              <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
+              <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: "600", maxWidth: "80px", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {profile ? profile.displayName : wallet}
+              </span>
+              {fullAddress && PLATFORM_BADGES[fullAddress] && (
+                <span style={{ fontSize: "8px", fontWeight: "700", color: "#FFD700", background: "rgba(255,215,0,0.12)", padding: "2px 6px", borderRadius: "100px" }}>★ Founder</span>
+              )}
+              {betaAccess && (
+                <span style={{ fontSize: "8px", fontWeight: "700", color: theme.primary, background: `${theme.primary}20`, padding: "2px 6px", borderRadius: "100px" }}>⚡ Beta</span>
+              )}
+              <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} BXP</span>
+              <button onClick={disconnectFn} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: "12px", padding: "0", fontFamily: "inherit", lineHeight: "1" }} title="Disconnect">✕</button>
+            </div>
+          ) : (
+            <button style={{ ...btnPrimary, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("connect")}>Connect</button>
+          )}
         </div>
       </div>
-      <div style={{ display: "flex", gap: "4px", alignItems: "center", flexWrap: "wrap" }}>
-        {[
-          { label: "Bounties", view: wallet && profile ? "dashboard" : "landing" },
-          { label: "Post Bounty", view: "post-bounty" },
-          { label: "How It Works", view: "how-it-works" },
-          { label: "About", view: "about" },
-          { label: "🏆", view: "leaderboard" },
-        ].map((tab) => (
-          <button key={tab.label} style={{
-            background: view === tab.view ? `${theme.primary}18` : "transparent",
-            border: view === tab.view ? `1px solid ${theme.primary}30` : "1px solid transparent",
-            borderRadius: "10px", padding: "7px 14px",
-            color: view === tab.view ? "#fff" : "rgba(255,255,255,0.45)",
-            fontFamily: "inherit", cursor: "pointer", fontSize: "12px", fontWeight: "500",
-            transition: "all 0.2s ease", backdropFilter: view === tab.view ? "blur(10px)" : "none",
-          }} onClick={() => setView(tab.view)}>{tab.label}</button>
-        ))}
-        {wallet && profile && (
-          <button style={{ background: view === "profile" ? `rgba(255,255,255,0.08)` : "transparent", border: "none", borderRadius: "10px", padding: "7px 12px", color: view === "profile" ? "#fff" : "rgba(255,255,255,0.45)", fontFamily: "inherit", cursor: "pointer", fontSize: "12px", transition: "all 0.2s ease" }} onClick={() => setView("profile")}>👤</button>
-        )}
-        {wallet ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px", background: `${theme.primary}0C`, border: `1px solid ${theme.primary}20`, borderRadius: "12px", fontSize: "12px", cursor: profile ? "pointer" : "default", backdropFilter: "blur(16px)", marginLeft: "4px", boxShadow: `inset 0 1px 0 ${theme.primary}08` }} onClick={() => profile && setView("profile")}>
-            <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-            <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: "500" }}>{profile ? profile.displayName : wallet}</span>
-            {fullAddress && PLATFORM_BADGES[fullAddress] && (
-              <span style={{ fontSize: "9px", fontWeight: "600", color: "#FFD700", background: "rgba(255,215,0,0.1)", padding: "2px 8px", borderRadius: "100px" }}>★ Founder</span>
-            )}
-            {betaAccess && (
-              <span style={{ fontSize: "9px", fontWeight: "600", color: theme.primary, background: `${theme.primary}20`, padding: "2px 8px", borderRadius: "100px" }}>⚡ Beta</span>
-            )}
-            <span style={{ color: theme.primary, fontWeight: "600", fontSize: "11px" }}>{xp} BXP</span>
-            <button onClick={(e) => {
-              e.stopPropagation();
-              setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null);
-              setScoreData(null); setXp(0); setProfile(null); setBetaAccess(false);
-              setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] });
-              setBookmarks([]); setView("landing");
-            }} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "14px", padding: "0 0 0 4px", fontFamily: "inherit", lineHeight: "1" }} title="Disconnect">✕</button>
-          </div>
-        ) : (
-          <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("connect")}>Connect</button>
-        )}
-      </div>
-    </div>
+    );
+  };
   );
 
   const Footer = () => (
@@ -1356,7 +1380,7 @@ export default function FairBounty() {
   if (view === "how-it-works") {
     const howSteps = [
       { num: "01", icon: "🔗", title: "Connect Your Wallet", desc: "Connect your Solana wallet. We automatically fetch your FairScore from the FairScale API. Your on-chain history determines your tier (1–5), which unlocks bounties, perks, and earning potential.", details: ["Jupiter, Phantom, Solflare, Backpack, Glow, Seed Vault supported", "FairScore fetched automatically on connect", "Set up your profile — display name, skills, socials", "Profile persists across devices via Neon Postgres"] },
-      { num: "02", icon: "🎯", title: "Find & Claim Bounties", desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger bounties. Prizes include USDC, memecoins, and NFTs.", details: ["Filter by tier, tags, prize type", "Bookmark bounties to save for later", "Real bounties posted by beta users now live", "Locked bounties show the tier needed to unlock"] },
+      { num: "02", icon: "🎯", title: "Find & Claim Bounties", desc: "Browse the bounty board. Each bounty has a minimum tier requirement — you can only claim bounties your FairScore qualifies you for. Higher tier = access to bigger bounties. Prizes include USDC, memecoins, and NFTs.", details: ["Filter by tier, tags, prize type", "Bookmark bounties to save for later", "Beta testers can post real bounties — coming to everyone soon", "Locked bounties show the tier needed to unlock"] },
       { num: "03", icon: "⚖️", title: "Community Reviews Submissions", desc: "Contributors submit work. The community votes — your tier determines how much your vote counts. Higher-tier wallets carry more influence. The client then picks the winner from top-voted submissions.", details: ["Upvote/downvote submissions with FairScore-weighted votes", "Tier 5 vote = 8x weight vs Tier 1 = 1x", "Client picks winner from top-ranked submissions", "No single person controls the outcome"] },
       { num: "04", icon: "💰", title: "Submit & Earn", desc: "Complete bounties, refer friends, build BXP. All BXP multiplied by your tier.", details: ["🎁 Welcome: 100 BXP × tier multiplier", "🔗 Referrals: 50 BXP × multiplier (both parties)", "📝 Submissions: 25 BXP × multiplier", "🏆 Wins: 100 BXP + prize + tier bonus"] },
     ];
