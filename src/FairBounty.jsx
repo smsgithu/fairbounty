@@ -901,7 +901,11 @@ export default function FairBounty() {
     button:hover { transform: translateY(-1px); }
     button:active { transform: translateY(0); }
     .beta-badge { animation: betaPulse 2s ease-in-out infinite; }
+    .nav-icon { display: none !important; }
+    .nav-label { display: inline; }
     @media (max-width: 640px) {
+      .nav-icon { display: inline !important; }
+      .nav-label { display: none !important; }
       .prize-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
       .stats-grid { gap: 10px !important; }
       .stats-grid > div { padding: 14px 8px !important; }
@@ -1073,16 +1077,19 @@ export default function FairBounty() {
               {betaAccess ? "Beta ⚡" : "Beta"}
             </span>
           </div>
-          {/* Nav tabs — always same, always right */}
+          {/* Nav tabs — icons always visible, labels hidden on mobile */}
           <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             {[
-              { label: "Bounties", view: wallet && profile ? "dashboard" : "landing" },
-              { label: "Post Bounty", view: "post-bounty" },
-              { label: "How It Works", view: "how-it-works" },
-              { label: "About", view: "about" },
-              { label: "🏆", view: "leaderboard" },
+              { label: "Bounties", icon: "🎯", view: wallet && profile ? "dashboard" : "landing" },
+              { label: "Post Bounty", icon: "📋", view: "post-bounty" },
+              { label: "How It Works", icon: "📖", view: "how-it-works" },
+              { label: "About", icon: "ℹ️", view: "about" },
+              { label: "🏆", icon: "🏆", view: "leaderboard" },
             ].map((tab) => (
-              <button key={tab.label} style={tabStyle(tab.view)} onClick={() => setView(tab.view)}>{tab.label}</button>
+              <button key={tab.label} style={tabStyle(tab.view)} onClick={() => setView(tab.view)}>
+                <span style={{ display: "none" }} className="nav-icon">{tab.icon}</span>
+                <span className="nav-label">{tab.label === "🏆" ? "🏆" : tab.label}</span>
+              </button>
             ))}
             {wallet && profile && (
               <button style={tabStyle("profile")} onClick={() => setView("profile")}>👤</button>
@@ -1103,22 +1110,24 @@ export default function FairBounty() {
           {/* Wallet pill — always right-aligned, always same row */}
           {wallet ? (
             <div style={{
-              display: "flex", alignItems: "center", gap: "6px", padding: "5px 11px",
+              display: "flex", alignItems: "center", gap: "5px", padding: "5px 10px",
               background: `${theme.primary}0C`, border: `1px solid ${theme.primary}20`,
               borderRadius: "12px", fontSize: "11px", cursor: profile ? "pointer" : "default",
               backdropFilter: "blur(16px)", boxShadow: `inset 0 1px 0 ${theme.primary}08`,
               flexShrink: 0, whiteSpace: "nowrap",
             }} onClick={() => profile && setView("profile")}>
               <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-              <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: "600", maxWidth: "80px", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span className="nav-label" style={{ color: "rgba(255,255,255,0.75)", fontWeight: "600", maxWidth: "80px", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {profile ? profile.displayName : wallet}
               </span>
-              {fullAddress && PLATFORM_BADGES[fullAddress] && (
-                <span style={{ fontSize: "8px", fontWeight: "700", color: "#FFD700", background: "rgba(255,215,0,0.12)", padding: "2px 6px", borderRadius: "100px" }}>★ Founder</span>
-              )}
-              {betaAccess && (
-                <span style={{ fontSize: "8px", fontWeight: "700", color: theme.primary, background: `${theme.primary}20`, padding: "2px 6px", borderRadius: "100px" }}>⚡ Beta</span>
-              )}
+              <span className="nav-label">
+                {fullAddress && PLATFORM_BADGES[fullAddress] && (
+                  <span style={{ fontSize: "8px", fontWeight: "700", color: "#FFD700", background: "rgba(255,215,0,0.12)", padding: "2px 5px", borderRadius: "100px" }}>★</span>
+                )}
+                {betaAccess && (
+                  <span style={{ fontSize: "8px", fontWeight: "700", color: theme.primary, background: `${theme.primary}20`, padding: "2px 5px", borderRadius: "100px" }}>⚡</span>
+                )}
+              </span>
               <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} BXP</span>
               <button onClick={disconnectFn} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: "12px", padding: "0", fontFamily: "inherit", lineHeight: "1" }} title="Disconnect">✕</button>
             </div>
