@@ -728,7 +728,7 @@ export default function FairBounty() {
     setSubmitting(false);
 
     if (result.success || result.id) {
-      notify("🎉 Bounty posted! It's live on the board.");
+      notify("✅ Bounty submitted for review! We'll get it live soon.");
       // Refresh live bounties
       const updated = await DbAPI.getBounties();
       if (Array.isArray(updated)) setLiveBounties(updated);
@@ -2135,7 +2135,7 @@ export default function FairBounty() {
                 <h1 style={{ fontSize: "28px", fontWeight: "900" }}>Post a Bounty</h1>
                 <span style={{ fontSize: "11px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "4px 12px", borderRadius: "100px", border: `1px solid ${theme.primary}30` }}>⚡ Beta — Live</span>
               </div>
-              <p style={{ color: "#888", fontSize: "14px", marginBottom: "32px" }}>Your bounty goes live on the board immediately. Beta is free — no listing fees during testing.</p>
+              <p style={{ color: "#888", fontSize: "14px", marginBottom: "32px" }}>Submit your bounty for review. We'll verify the details and get it live on the board. No listing fees during beta.</p>
 
               <div style={{ ...cardStyle, padding: "28px" }}>
                 {/* Poster identity */}
@@ -2151,15 +2151,15 @@ export default function FairBounty() {
                   {/* Prize Type Selection */}
                   <div>
                     <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block" }}>Prize Type *</label>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+                    <div style={{ display: "flex", gap: "8px" }}>
                       {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
                         <button key={key} onClick={() => setBetaBountyForm({ ...betaBountyForm, prizeType: key, currency: key === "USDC" ? "USDC" : key === "SOL" ? "SOL" : betaBountyForm.currency })} style={{
-                          padding: "14px 10px", borderRadius: "12px", border: `2px solid ${betaBountyForm.prizeType === key ? pt.color : pt.color + "20"}`,
+                          flex: 1, padding: "12px 6px", borderRadius: "12px", border: `2px solid ${betaBountyForm.prizeType === key ? pt.color : pt.color + "20"}`,
                           background: betaBountyForm.prizeType === key ? `${pt.color}15` : "transparent",
                           cursor: "pointer", fontFamily: "inherit", textAlign: "center", transition: "all 0.2s ease",
                         }}>
-                          <div style={{ marginBottom: "4px", display: "flex", justifyContent: "center" }}><PrizeIcon pt={pt} size={24} /></div>
-                          <div style={{ fontSize: "12px", fontWeight: "600", color: betaBountyForm.prizeType === key ? pt.color : "#888" }}>{pt.label}</div>
+                          <div style={{ marginBottom: "4px", display: "flex", justifyContent: "center" }}><PrizeIcon pt={pt} size={22} /></div>
+                          <div style={{ fontSize: "11px", fontWeight: "600", color: betaBountyForm.prizeType === key ? pt.color : "#888", whiteSpace: "nowrap" }}>{pt.label}</div>
                         </button>
                       ))}
                     </div>
@@ -2268,7 +2268,7 @@ export default function FairBounty() {
                 </div>
 
                 <button style={{ ...btnPrimary, width: "100%", marginTop: "24px", padding: "14px", fontSize: "15px" }} disabled={submitting} onClick={handleCreateBounty}>
-                  {submitting ? "Posting..." : "Post Live Bounty →"}
+                  {submitting ? "Submitting..." : "Submit for Review →"}
                 </button>
               </div>
             </div>
@@ -2301,7 +2301,7 @@ export default function FairBounty() {
           <DemoBanner />
           <div style={{ ...fadeIn, marginTop: "20px" }}>
             <h1 style={{ fontSize: "28px", fontWeight: "900", marginBottom: "8px" }}>Post a Bounty</h1>
-            <p style={{ fontSize: "14px", color: "#888", marginBottom: "24px" }}>Fill out the intake form — we'll review and get your bounty live. Want instant posting? <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>DM @smsonx for beta access.</a></p>
+            <p style={{ fontSize: "14px", color: "#888", marginBottom: "24px" }}>Fill out the form and submit for review. We'll check the details and get your bounty live. Questions? <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>DM @smsonx on X.</a></p>
             {!wallet || !profile ? (
               <div style={{ ...cardStyle, padding: "32px", textAlign: "center" }}>
                 <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔐</div>
