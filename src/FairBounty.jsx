@@ -41,7 +41,7 @@ const RISK_LEVELS = {
 // Prize type config
 const PRIZE_TYPES = {
   USDC: { label: "Stablecoin", icon: "💵", color: "#2775CA", description: "USDC, USDT, or any stablecoin" },
-  SOL: { label: "SOL", icon: "◎", color: "#9945FF", description: "Native Solana token" },
+  SOL: { label: "SOL", icon: "◎", color: "#9945FF", description: "Native Solana token", img: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" },
   MEMECOIN: { label: "Memecoin", icon: "🐸", color: "#F59E0B", description: "BONK, WIF, POPCAT, etc." },
   NFT: { label: "NFT / cNFT", icon: "🖼️", color: "#EC4899", description: "NFT or compressed NFT as prize" },
   COLLECTIBLE: { label: "Collectible", icon: "📦", color: "#10B981", description: "Card packs, Pokémon, physical or digital collectibles" },
@@ -94,6 +94,11 @@ const GlitchText = ({ text }) => {
     </span>
   );
 };
+
+const PrizeIcon = ({ pt, size = 24, style = {} }) =>
+  pt?.img
+    ? <img src={pt.img} alt={pt.label} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", ...style }} />
+    : <span style={{ fontSize: size, lineHeight: 1, ...style }}>{pt?.icon}</span>;
 
 const Logo = ({ size = 28 }) => (
   <img src="/logo.png" alt="FairBounty" style={{
@@ -1261,7 +1266,7 @@ export default function FairBounty() {
                     border: `1px solid ${pt.color}25`, flex: "1", minWidth: "0",
                     background: `linear-gradient(135deg, ${pt.color}08, ${pt.color}03)`,
                   }}>
-                    <div style={{ fontSize: "24px", marginBottom: "6px" }}>{pt.icon}</div>
+                    <div style={{ marginBottom: "6px", display: "flex", justifyContent: "center" }}><PrizeIcon pt={pt} size={28} /></div>
                     <div style={{ fontSize: "12px", fontWeight: "700", color: pt.color, marginBottom: "3px" }}>{pt.label}</div>
                     <div style={{ fontSize: "10px", color: "#777", lineHeight: "1.4" }}>{pt.description}</div>
                   </div>
@@ -1904,7 +1909,7 @@ export default function FairBounty() {
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
                             <div><div style={{ fontSize: "10px", color: "#666" }}>{b.project || b.projectName}</div><div style={{ fontSize: "14px", fontWeight: "700" }}>{b.title}</div></div>
                             <div style={{ textAlign: "right" }}>
-                              <div style={{ fontSize: "15px", fontWeight: "800", color: pt.color }}>{pt.icon} {b.reward} {b.currency}</div>
+                              <div style={{ fontSize: "15px", fontWeight: "800", color: pt.color }}><><PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency}</></div>
                               <div style={{ fontSize: "10px", color: bTier.color }}>{bTier.emoji} Tier {b.minTier}+</div>
                             </div>
                           </div>
@@ -1969,7 +1974,7 @@ export default function FairBounty() {
                 <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "8px" }}>{b.title}</h2>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "24px", fontWeight: "900", color: pt.color }}>{pt.icon} {b.reward} {b.currency}</div>
+                <div style={{ fontSize: "24px", fontWeight: "900", color: pt.color }}><><PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency}</></div>
                 {bonusReward > 0 && eligible && <div style={{ fontSize: "12px", color: theme.accent, fontWeight: "600" }}>+{bonusReward} tier bonus</div>}
               </div>
             </div>
@@ -1986,7 +1991,7 @@ export default function FairBounty() {
             {/* Meta */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "12px", marginBottom: "24px" }}>
               {[
-                { label: "Prize Type", value: `${pt.icon} ${pt.label}`, color: pt.color },
+                { label: "Prize Type", value: pt.label, color: pt.color },
                 { label: "Min Tier", value: `${tier.emoji} ${tier.label}`, color: tier.color },
                 { label: "Submissions", value: b.isDemo ? b.submissions : selectedBountySubmissions.length, color: "#888" },
                 { label: "Deadline", value: b.deadline || "Open", color: "#888" },
@@ -2153,7 +2158,7 @@ export default function FairBounty() {
                           background: betaBountyForm.prizeType === key ? `${pt.color}15` : "transparent",
                           cursor: "pointer", fontFamily: "inherit", textAlign: "center", transition: "all 0.2s ease",
                         }}>
-                          <div style={{ fontSize: "24px", marginBottom: "4px" }}>{pt.icon}</div>
+                          <div style={{ marginBottom: "4px", display: "flex", justifyContent: "center" }}><PrizeIcon pt={pt} size={24} /></div>
                           <div style={{ fontSize: "12px", fontWeight: "600", color: betaBountyForm.prizeType === key ? pt.color : "#888" }}>{pt.label}</div>
                         </button>
                       ))}
@@ -2553,7 +2558,7 @@ export default function FairBounty() {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "18px", fontWeight: "900", color: pt.color }}>{pt.icon} {b.reward} {b.currency}</div>
+                    <div style={{ fontSize: "18px", fontWeight: "900", color: pt.color }}><><PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency}</></div>
                     {bonus > 0 && eligible && <div style={{ fontSize: "10px", color: theme.accent }}>+{bonus}% bonus</div>}
                     <div style={{ fontSize: "11px", color: tier.color, marginTop: "4px" }}>{tier.emoji} Tier {b.minTier}+</div>
                   </div>
