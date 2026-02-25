@@ -310,6 +310,8 @@ export default function FairBounty() {
   // STATE
   // ============================================================
   const [view, setView] = useState("landing");
+  const [adminData, setAdminData] = useState(null);
+  const [adminLoading, setAdminLoading] = useState(false);
   const [wallet, setWallet] = useState(null);
   const [walletType, setWalletType] = useState("default");
 
@@ -1105,6 +1107,9 @@ export default function FairBounty() {
             ))}
             {wallet && profile && (
               <button style={{ ...tabStyle("profile"), color: view === "profile" ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" }} onClick={() => setView("profile")}>👤</button>
+            )}
+            {fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD" && (
+              <button style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)", fontSize: "14px" }} onClick={() => setView("admin")}>⚡</button>
             )}
           </div>
         </div>
@@ -2420,8 +2425,248 @@ export default function FairBounty() {
   }
 
   // ============================================================
-  // DASHBOARD — Main bounty board
+  // ADMIN VIEW — Founder wallet only
   // ============================================================
+  if (view === "admin") {
+    const isFounder = fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD";
+    if (!isFounder) return (
+      <div style={pageStyle}>
+        <div style={gridOverlay} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
+          <NavBar showBack backTo="dashboard" backLabel="Back" />
+          <div style={{ ...cardStyle, padding: "40px", textAlign: "center" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔒</div>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px" }}>Admin Only</h2>
+            <p style={{ color: "#888" }}>This page is restricted to the founder wallet.</p>
+          </div>
+        </div>
+        <style>{globalStyles}</style>
+      </div>
+    );
+
+    const loadAdmin = async () => {
+      setAdminLoading(true);
+      try {
+        const res = await fetch(`/api/db?action=admin-get-all&wallet=${fullAddress}`);
+        const data = await res.json();
+        setAdminData(data);
+      } catch (e) { notify("Failed to load admin data"); }
+      setAdminLoading(false);
+    };
+
+    const updateBounty = async (id, status) => {
+      await fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      notify(status === "open" ? "✅ Bounty approved & live!" : status === "rejected" ? "❌ Bounty rejected" : "Updated");
+      loadAdmin();
+    };
+
+    const deleteBounty = async (id) => {
+      if (!window.confirm("Delete this bounty permanently?")) return;
+      await fetch(`/api/db?action=admin-delete-bounty&wallet=${fullAddress}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      notify("🗑️ Bounty deleted");
+      loadAdmin();
+    };
+
+    const [adminTab, setAdminTab] = useState("bounties");
+
+    if (!adminData && !adminLoading) loadAdmin();
+
+    const pendingBounties = (adminData?.bounties || []).filter(b => b.status === "pending");
+    const liveBountiesAdmin = (adminData?.bounties || []).filter(b => b.status === "open");
+    const rejectedBounties = (adminData?.bounties || []).filter(b => b.status === "rejected");
+    const pendingApps = (adminData?.apps || []).filter(a => a.status === "pending");
+
+    const tabBtn = (t, label, count) => (
+      <button onClick={() => setAdminTab(t)} style={{
+        padding: "8px 16px", borderRadius: "8px", border: "none", fontFamily: "inherit",
+        cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s",
+        background: adminTab === t ? `${theme.primary}20` : "transparent",
+        color: adminTab === t ? theme.primary : "#666",
+      }}>
+        {label} {count > 0 && <span style={{ background: adminTab === t ? theme.primary : "#444", color: adminTab === t ? "#000" : "#fff", borderRadius: "100px", padding: "1px 6px", fontSize: "10px", marginLeft: "4px" }}>{count}</span>}
+      </button>
+    );
+
+    const BountyRow = ({ b }) => (
+      <div style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <span style={{ fontSize: "13px", fontWeight: "700" }}>{b.title}</span>
+              <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "100px", background: b.status === "open" ? "#22C55E20" : b.status === "rejected" ? "#EF444420" : `${theme.primary}20`, color: b.status === "open" ? "#22C55E" : b.status === "rejected" ? "#EF4444" : theme.primary, fontWeight: "600" }}>{b.status}</span>
+            </div>
+            <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
+              {b.project_name} · {b.poster_name} · {b.prize_type} {b.reward} · Tier {b.min_tier}+
+            </div>
+            <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.5", maxHeight: "48px", overflow: "hidden" }}>{b.description}</div>
+            {b.contact_value && <div style={{ fontSize: "11px", color: "#555", marginTop: "4px" }}>📬 {b.contact_method}: {b.contact_value}</div>}
+            <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>{new Date(b.created_at).toLocaleString()}</div>
+          </div>
+          <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+            {b.status !== "open" && (
+              <button onClick={() => updateBounty(b.id, "open")} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>✅ Approve</button>
+            )}
+            {b.status === "open" && (
+              <button onClick={() => updateBounty(b.id, "pending")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>⏸ Unpublish</button>
+            )}
+            {b.status !== "rejected" && (
+              <button onClick={() => updateBounty(b.id, "rejected")} style={{ background: "#EF444420", border: "1px solid #EF444440", borderRadius: "8px", color: "#EF4444", fontSize: "11px", padding: "6px 12px", cursor: "pointer", fontFamily: "inherit" }}>❌ Reject</button>
+            )}
+            <button onClick={() => deleteBounty(b.id)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#666", fontSize: "11px", padding: "6px 10px", cursor: "pointer", fontFamily: "inherit" }}>🗑️</button>
+          </div>
+        </div>
+      </div>
+    );
+
+    return (
+      <div style={pageStyle}>
+        <div style={gridOverlay} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+          <Notification />
+          <NavBar showBack backTo="dashboard" backLabel="Bounties" />
+
+          <div style={{ marginBottom: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
+              <h1 style={{ fontSize: "22px", fontWeight: "900" }}>⚡ Admin Panel</h1>
+              <span style={{ fontSize: "10px", fontWeight: "700", color: "#FFD700", background: "rgba(255,215,0,0.1)", padding: "3px 10px", borderRadius: "100px", border: "1px solid rgba(255,215,0,0.2)" }}>★ Founder</span>
+            </div>
+            <p style={{ fontSize: "12px", color: "#666" }}>fairbounty.vercel.app · {adminData ? `${adminData.bounties?.length || 0} bounties · ${adminData.profiles?.length || 0} profiles` : "Loading..."}</p>
+          </div>
+
+          {/* Stats row */}
+          {adminData && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "24px" }}>
+              {[
+                { label: "Pending Review", value: pendingBounties.length + pendingApps.length, color: theme.primary, icon: "⏳" },
+                { label: "Live Bounties", value: liveBountiesAdmin.length, color: "#22C55E", icon: "✅" },
+                { label: "Total Profiles", value: adminData.profiles?.length || 0, color: "#8B5CF6", icon: "👤" },
+                { label: "Total BXP Issued", value: (adminData.bxpRows || []).reduce((sum, r) => sum + Object.values(r.bxp || {}).reduce((a, b) => a + b, 0), 0), color: "#F59E0B", icon: "⭐" },
+              ].map(s => (
+                <div key={s.label} style={{ ...cardStyle, padding: "14px", textAlign: "center" }}>
+                  <div style={{ fontSize: "20px", marginBottom: "4px" }}>{s.icon}</div>
+                  <div style={{ fontSize: "22px", fontWeight: "800", color: s.color }}>{s.value}</div>
+                  <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "10px", padding: "4px", marginBottom: "20px" }}>
+            {tabBtn("bounties", "Pending Bounties", pendingBounties.length)}
+            {tabBtn("live", "Live", liveBountiesAdmin.length)}
+            {tabBtn("rejected", "Rejected", rejectedBounties.length)}
+            {tabBtn("apps", "Intake Forms", pendingApps.length)}
+            {tabBtn("profiles", "Profiles", adminData?.profiles?.length || 0)}
+          </div>
+
+          {adminLoading && <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>Loading...</div>}
+
+          {!adminLoading && adminTab === "bounties" && (
+            <div>
+              {pendingBounties.length === 0
+                ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No pending bounties</div>
+                : pendingBounties.map(b => <BountyRow key={b.id} b={b} />)
+              }
+            </div>
+          )}
+
+          {!adminLoading && adminTab === "live" && (
+            <div>
+              {liveBountiesAdmin.length === 0
+                ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No live bounties</div>
+                : liveBountiesAdmin.map(b => <BountyRow key={b.id} b={b} />)
+              }
+            </div>
+          )}
+
+          {!adminLoading && adminTab === "rejected" && (
+            <div>
+              {rejectedBounties.length === 0
+                ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No rejected bounties</div>
+                : rejectedBounties.map(b => <BountyRow key={b.id} b={b} />)
+              }
+            </div>
+          )}
+
+          {!adminLoading && adminTab === "apps" && (
+            <div>
+              {pendingApps.length === 0
+                ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No intake form submissions</div>
+                : pendingApps.map(app => (
+                  <div key={app.id} style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: "700", fontSize: "13px", marginBottom: "4px" }}>{app.form_data?.title || "Untitled"}</div>
+                        <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
+                          {app.display_name} · FairScore Tier {app.fair_score} · {app.form_data?.reward} {app.form_data?.currency}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#666" }}>{app.form_data?.description}</div>
+                        <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>{new Date(app.created_at).toLocaleString()}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button onClick={async () => {
+                          await fetch(`/api/db?action=admin-update-app&wallet=${fullAddress}`, {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: app.id, status: "approved" }),
+                          });
+                          notify("✅ App marked approved");
+                          loadAdmin();
+                        }} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>✅ Approve</button>
+                        <button onClick={async () => {
+                          await fetch(`/api/db?action=admin-update-app&wallet=${fullAddress}`, {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: app.id, status: "rejected" }),
+                          });
+                          notify("❌ Rejected");
+                          loadAdmin();
+                        }} style={{ background: "#EF444420", border: "1px solid #EF444440", borderRadius: "8px", color: "#EF4444", fontSize: "11px", padding: "6px 12px", cursor: "pointer", fontFamily: "inherit" }}>❌ Reject</button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          )}
+
+          {!adminLoading && adminTab === "profiles" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {(adminData?.profiles || []).map(p => {
+                const prof = p.profile || {};
+                const bxpRow = adminData.bxpRows?.find(b => b.wallet === p.wallet);
+                const totalBxp = bxpRow ? Object.values(bxpRow.bxp || {}).reduce((a, b) => a + b, 0) : 0;
+                return (
+                  <div key={p.wallet} style={{ ...cardStyle, padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: "600", fontSize: "13px" }}>{prof.displayName || "—"}</div>
+                      <div style={{ fontSize: "10px", color: "#666", fontFamily: "monospace" }}>{p.wallet?.slice(0, 16)}...{p.wallet?.slice(-8)}</div>
+                      {prof.xHandle && <div style={{ fontSize: "11px", color: theme.primary }}>@{prof.xHandle}</div>}
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div style={{ fontSize: "13px", fontWeight: "700", color: theme.primary }}>{totalBxp} BXP</div>
+                      <div style={{ fontSize: "10px", color: "#555" }}>{new Date(p.updated_at).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ marginTop: "16px", textAlign: "right" }}>
+            <button onClick={loadAdmin} style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }}>🔄 Refresh</button>
+          </div>
+          <Footer />
+        </div>
+        <style>{globalStyles}</style>
+      </div>
+    );
+  }
   return (
     <div style={pageStyle}>
       <div style={gridOverlay} />
