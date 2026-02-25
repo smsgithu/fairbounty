@@ -313,6 +313,8 @@ export default function FairBounty() {
   const [adminData, setAdminData] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminTab, setAdminTab] = useState("bounties");
+  const [betaInputWallet, setBetaInputWallet] = useState("");
+  const [betaInputNote, setBetaInputNote] = useState("");
   const [wallet, setWallet] = useState(null);
   const [walletType, setWalletType] = useState("default");
 
@@ -732,7 +734,7 @@ export default function FairBounty() {
       poster: fullAddress,
       posterName: profile?.displayName || wallet,
       posterTier: fairScore,
-      status: "open",
+      status: fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD" ? "open" : "pending",
       isBeta: true,
       isDemo: false,
       createdAt: new Date().toISOString(),
@@ -2685,27 +2687,32 @@ export default function FairBounty() {
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px" }}>⚡ Grant Beta Access</h3>
                   <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                     <input
-                      id="betaWalletInput"
+                      value={betaInputWallet}
+                      onChange={e => setBetaInputWallet(e.target.value.trim())}
                       placeholder="Wallet address (44 chars)"
                       style={{ ...inputStyle, flex: 1, fontSize: "12px", fontFamily: "monospace" }}
                     />
                     <input
-                      id="betaNoteInput"
+                      value={betaInputNote}
+                      onChange={e => setBetaInputNote(e.target.value)}
                       placeholder="Note (optional)"
                       style={{ ...inputStyle, width: "160px", fontSize: "12px" }}
                     />
                     <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 18px", whiteSpace: "nowrap" }} onClick={async () => {
-                      const w = document.getElementById("betaWalletInput").value.trim();
-                      const note = document.getElementById("betaNoteInput").value.trim();
-                      if (!w || w.length < 32) { notify("Enter a valid wallet address"); return; }
-                      await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
+                      if (!betaInputWallet || betaInputWallet.length < 32) { notify("Enter a valid wallet address"); return; }
+                      const res = await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
                         method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ targetWallet: w, note }),
+                        body: JSON.stringify({ targetWallet: betaInputWallet, note: betaInputNote }),
                       });
-                      document.getElementById("betaWalletInput").value = "";
-                      document.getElementById("betaNoteInput").value = "";
-                      notify("✅ Beta access granted!");
-                      loadAdmin();
+                      const data = await res.json();
+                      if (data.success) {
+                        setBetaInputWallet("");
+                        setBetaInputNote("");
+                        notify("✅ Beta access granted!");
+                        loadAdmin();
+                      } else {
+                        notify("❌ Failed — " + (data.error || "unknown error"));
+                      }
                     }}>Grant</button>
                   </div>
                   <p style={{ fontSize: "11px", color: "#555" }}>Grants full access: post bounties, submit work, vote.</p>
