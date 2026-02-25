@@ -2047,7 +2047,7 @@ export default function FairBounty() {
             <div style={{ display: "flex", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
               {wallet && <button style={btnOutline} onClick={() => toggleBookmark(b.id)}>{bookmarks.includes(b.id) ? "📌 Bookmarked" : "🔖 Bookmark"}</button>}
               {wallet && eligible && !b.isDemo && !isMyBounty && (
-                <button style={btnPrimary} onClick={() => setShowSubmitModal(true)}>Submit Work →</button>
+                <button style={btnPrimary} onClick={() => { if (!betaAccess) { setShowDemoModal(true); } else { setShowSubmitModal(true); } }}>Submit Work →</button>
               )}
               {wallet && !eligible && !b.isDemo && (
                 <div style={{ fontSize: "12px", color: "#ff4040", padding: "12px", background: "#ff404010", borderRadius: "8px", border: "1px solid #ff404030" }}>
