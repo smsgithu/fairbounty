@@ -82,6 +82,15 @@ export default async function handler(req, res) {
 
     if (action === "get-referrals") {
       const { wallet } = req.query;
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_referrals (
+          id SERIAL PRIMARY KEY,
+          referrer_wallet TEXT NOT NULL,
+          referred_wallet TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(referrer_wallet, referred_wallet)
+        )
+      `;
       const rows = await sql`
         SELECT r.referred_wallet, r.created_at, p.display_name
         FROM fb_referrals r
@@ -128,6 +137,24 @@ export default async function handler(req, res) {
 
     if (action === "set-referral-code") {
       const { wallet, code } = req.body;
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_referral_codes (
+          wallet TEXT PRIMARY KEY,
+          code TEXT UNIQUE NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+      // Also ensure fb_referrals exists
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_referrals (
+          id SERIAL PRIMARY KEY,
+          referrer_wallet TEXT NOT NULL,
+          referred_wallet TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(referrer_wallet, referred_wallet)
+        )
+      `;
       // Check if code already taken by another wallet
       const existing = await sql`SELECT wallet FROM fb_referral_codes WHERE code = ${code} AND wallet != ${wallet} LIMIT 1`;
       let finalCode = code;
@@ -145,13 +172,28 @@ export default async function handler(req, res) {
 
     if (action === "get-referral-code") {
       const { wallet } = req.query;
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_referral_codes (
+          wallet TEXT PRIMARY KEY,
+          code TEXT UNIQUE NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
       const rows = await sql`SELECT code FROM fb_referral_codes WHERE wallet = ${wallet} LIMIT 1`;
       return res.json({ code: rows[0]?.code || null });
     }
 
     if (action === "resolve-referral") {
       const { code } = req.query;
-      // Check referral codes table first
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_referral_codes (
+          wallet TEXT PRIMARY KEY,
+          code TEXT UNIQUE NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
       const codeRows = await sql`SELECT wallet FROM fb_referral_codes WHERE code = ${code} LIMIT 1`;
       if (codeRows.length > 0) return res.json({ wallet: codeRows[0].wallet });
       // Fallback: check if it's a wallet address directly in profiles
