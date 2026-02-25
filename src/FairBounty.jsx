@@ -828,7 +828,14 @@ export default function FairBounty() {
 
   // Combined bounty board — live first, then demo
   const allBounties = useMemo(() => {
-    const live = liveBounties.map(b => ({ ...b, isDemo: false }));
+    const live = liveBounties.map(b => ({
+      ...b,
+      isDemo: false,
+      minTier: b.minTier ?? b.min_tier ?? 1,
+      prizeType: b.prizeType ?? b.prize_type ?? "USDC",
+      projectName: b.projectName ?? b.project_name ?? b.project ?? "",
+      posterName: b.posterName ?? b.poster_name ?? "",
+    }));
     const demo = SAMPLE_BOUNTIES;
     return [...live, ...demo];
   }, [liveBounties]);
