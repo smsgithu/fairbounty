@@ -424,6 +424,65 @@ export default async function handler(req, res) {
       return res.json({ success: true });
     }
 
+    // ============================================================
+    // ADMIN ENDPOINTS — founder wallet only
+    // ============================================================
+    const FOUNDER_WALLET = "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD";
+
+    if (action === "admin-get-all") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+
+      // Ensure tables exist
+      await sql`CREATE TABLE IF NOT EXISTS fb_bounties (
+        id SERIAL PRIMARY KEY, title TEXT, description TEXT, project_name TEXT,
+        category TEXT, prize_type TEXT DEFAULT 'USDC', reward TEXT, currency TEXT DEFAULT 'USDC',
+        meme_token TEXT, nft_mint TEXT, nft_name TEXT, min_tier INTEGER DEFAULT 1,
+        tags JSONB DEFAULT '[]', deadline TEXT, poster TEXT, poster_name TEXT, poster_tier INTEGER DEFAULT 1,
+        status TEXT DEFAULT 'pending', contact_method TEXT, contact_value TEXT,
+        submission_requirements TEXT, evaluation_criteria TEXT,
+        submission_count INTEGER DEFAULT 0, winner_submission_id INTEGER,
+        is_beta BOOLEAN DEFAULT false, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
+      )`;
+      await sql`CREATE TABLE IF NOT EXISTS fb_bounty_apps (
+        id SERIAL PRIMARY KEY, wallet TEXT, display_name TEXT, fair_score INTEGER,
+        form_data JSONB, created_at TIMESTAMPTZ DEFAULT NOW(), status TEXT DEFAULT 'pending'
+      )`;
+
+      const [bounties, apps, profiles, bxpRows] = await Promise.all([
+        sql`SELECT * FROM fb_bounties ORDER BY created_at DESC`,
+        sql`SELECT * FROM fb_bounty_apps ORDER BY created_at DESC`,
+        sql`SELECT wallet, profile, updated_at FROM fb_profiles ORDER BY updated_at DESC LIMIT 50`,
+        sql`SELECT wallet, bxp FROM fb_bxp`,
+      ]);
+
+      return res.json({ bounties, apps, profiles, bxpRows });
+    }
+
+    if (action === "admin-update-bounty") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      const { id, status } = req.body;
+      await sql`UPDATE fb_bounties SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
+      return res.json({ success: true });
+    }
+
+    if (action === "admin-delete-bounty") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      const { id } = req.body;
+      await sql`DELETE FROM fb_bounties WHERE id = ${id}`;
+      return res.json({ success: true });
+    }
+
+    if (action === "admin-update-app") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      const { id, status } = req.body;
+      await sql`UPDATE fb_bounty_apps SET status = ${status} WHERE id = ${id}`;
+      return res.json({ success: true });
+    }
+
     return res.status(400).json({ error: `Unknown action: ${action}` });
   } catch (error) {
     console.error("DB API error:", error);
