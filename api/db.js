@@ -424,6 +424,41 @@ export default async function handler(req, res) {
       return res.json({ success: true });
     }
 
+    if (action === "admin-get-beta") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      await sql`CREATE TABLE IF NOT EXISTS fb_beta_access (
+        wallet TEXT PRIMARY KEY, active BOOLEAN DEFAULT true,
+        added_by TEXT, added_at TIMESTAMPTZ DEFAULT NOW(), note TEXT
+      )`;
+      const rows = await sql`SELECT * FROM fb_beta_access ORDER BY added_at DESC`;
+      return res.json({ rows });
+    }
+
+    if (action === "admin-add-beta") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      const { targetWallet, note } = req.body;
+      await sql`CREATE TABLE IF NOT EXISTS fb_beta_access (
+        wallet TEXT PRIMARY KEY, active BOOLEAN DEFAULT true,
+        added_by TEXT, added_at TIMESTAMPTZ DEFAULT NOW(), note TEXT
+      )`;
+      await sql`
+        INSERT INTO fb_beta_access (wallet, active, added_by, note)
+        VALUES (${targetWallet}, true, ${wallet}, ${note || ""})
+        ON CONFLICT (wallet) DO UPDATE SET active = true, note = ${note || ""}
+      `;
+      return res.json({ success: true });
+    }
+
+    if (action === "admin-remove-beta") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      const { targetWallet } = req.body;
+      await sql`UPDATE fb_beta_access SET active = false WHERE wallet = ${targetWallet}`;
+      return res.json({ success: true });
+    }
+
     // ============================================================
     // ADMIN ENDPOINTS — founder wallet only
     // ============================================================
