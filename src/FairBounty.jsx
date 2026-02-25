@@ -2448,9 +2448,13 @@ export default function FairBounty() {
     const loadAdmin = async () => {
       setAdminLoading(true);
       try {
-        const res = await fetch(`/api/db?action=admin-get-all&wallet=${fullAddress}`);
-        const data = await res.json();
-        setAdminData(data);
+        const [mainRes, betaRes] = await Promise.all([
+          fetch(`/api/db?action=admin-get-all&wallet=${fullAddress}`),
+          fetch(`/api/db?action=admin-get-beta&wallet=${fullAddress}`),
+        ]);
+        const main = await mainRes.json();
+        const beta = await betaRes.json();
+        setAdminData({ ...main, betaRows: beta.rows || [] });
       } catch (e) { notify("Failed to load admin data"); }
       setAdminLoading(false);
     };
@@ -2559,12 +2563,13 @@ export default function FairBounty() {
           )}
 
           {/* Tabs */}
-          <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "10px", padding: "4px", marginBottom: "20px" }}>
-            {tabBtn("bounties", "Pending Bounties", pendingBounties.length)}
+          <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "10px", padding: "4px", marginBottom: "20px", flexWrap: "wrap" }}>
+            {tabBtn("bounties", "Pending", pendingBounties.length)}
             {tabBtn("live", "Live", liveBountiesAdmin.length)}
             {tabBtn("rejected", "Rejected", rejectedBounties.length)}
             {tabBtn("apps", "Intake Forms", pendingApps.length)}
             {tabBtn("profiles", "Profiles", adminData?.profiles?.length || 0)}
+            {tabBtn("beta", "⚡ Beta Access", adminData?.betaRows?.filter(r => r.active)?.length || 0)}
           </div>
 
           {adminLoading && <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>Loading...</div>}
@@ -2658,6 +2663,94 @@ export default function FairBounty() {
               })}
             </div>
           )}
+
+          {!adminLoading && adminTab === "beta" && (() => {
+            const betaRows = adminData?.betaRows || [];
+            const active = betaRows.filter(r => r.active);
+            const inactive = betaRows.filter(r => !r.active);
+            return (
+              <div>
+                {/* Add new wallet */}
+                <div style={{ ...glassCard, padding: "20px", marginBottom: "16px" }}>
+                  <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px" }}>⚡ Grant Beta Access</h3>
+                  <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                    <input
+                      id="betaWalletInput"
+                      placeholder="Wallet address (44 chars)"
+                      style={{ ...inputStyle, flex: 1, fontSize: "12px", fontFamily: "monospace" }}
+                    />
+                    <input
+                      id="betaNoteInput"
+                      placeholder="Note (optional)"
+                      style={{ ...inputStyle, width: "160px", fontSize: "12px" }}
+                    />
+                    <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 18px", whiteSpace: "nowrap" }} onClick={async () => {
+                      const w = document.getElementById("betaWalletInput").value.trim();
+                      const note = document.getElementById("betaNoteInput").value.trim();
+                      if (!w || w.length < 32) { notify("Enter a valid wallet address"); return; }
+                      await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ targetWallet: w, note }),
+                      });
+                      document.getElementById("betaWalletInput").value = "";
+                      document.getElementById("betaNoteInput").value = "";
+                      notify("✅ Beta access granted!");
+                      loadAdmin();
+                    }}>Grant</button>
+                  </div>
+                  <p style={{ fontSize: "11px", color: "#555" }}>Founder wallet is always beta — no need to add it here.</p>
+                </div>
+
+                {/* Active list */}
+                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+                  Active ({active.length})
+                </div>
+                {active.length === 0
+                  ? <div style={{ ...cardStyle, padding: "20px", textAlign: "center", color: "#555", marginBottom: "16px" }}>No beta users yet</div>
+                  : active.map(r => (
+                    <div key={r.wallet} style={{ ...cardStyle, padding: "12px 16px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "12px" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "monospace", fontSize: "12px", color: theme.primary }}>{r.wallet?.slice(0, 20)}...{r.wallet?.slice(-8)}</div>
+                        <div style={{ fontSize: "10px", color: "#555" }}>{r.note || "—"} · Added {new Date(r.added_at).toLocaleDateString()}</div>
+                      </div>
+                      <button onClick={async () => {
+                        await fetch(`/api/db?action=admin-remove-beta&wallet=${fullAddress}`, {
+                          method: "POST", headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ targetWallet: r.wallet }),
+                        });
+                        notify("Removed beta access");
+                        loadAdmin();
+                      }} style={{ background: "#EF444415", border: "1px solid #EF444430", borderRadius: "8px", color: "#EF4444", fontSize: "11px", padding: "5px 12px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                        Revoke
+                      </button>
+                    </div>
+                  ))
+                }
+
+                {/* Inactive */}
+                {inactive.length > 0 && (
+                  <>
+                    <div style={{ fontSize: "11px", color: "#444", textTransform: "uppercase", letterSpacing: "0.5px", margin: "16px 0 8px" }}>Revoked ({inactive.length})</div>
+                    {inactive.map(r => (
+                      <div key={r.wallet} style={{ ...cardStyle, padding: "10px 16px", marginBottom: "6px", display: "flex", alignItems: "center", gap: "12px", opacity: 0.5 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontFamily: "monospace", fontSize: "11px", color: "#666" }}>{r.wallet?.slice(0, 20)}...{r.wallet?.slice(-8)}</div>
+                        </div>
+                        <button onClick={async () => {
+                          await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ targetWallet: r.wallet, note: r.note }),
+                          });
+                          notify("✅ Re-granted beta access");
+                          loadAdmin();
+                        }} style={{ ...btnOutline, fontSize: "10px", padding: "4px 10px" }}>Re-grant</button>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
           <div style={{ marginTop: "16px", textAlign: "right" }}>
             <button onClick={loadAdmin} style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }}>🔄 Refresh</button>
