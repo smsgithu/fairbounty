@@ -316,6 +316,8 @@ export default function FairBounty() {
   const [betaInputWallet, setBetaInputWallet] = useState("");
   const [betaInputNote, setBetaInputNote] = useState("");
   const [lang, setLang] = useState("en");
+  const [translatedBounty, setTranslatedBounty] = useState(null);
+  const [translating, setTranslating] = useState(false);
 
   const t = {
     en: {
@@ -544,6 +546,49 @@ export default function FairBounty() {
       setSelectedBountySubmissions([]);
     }
   }, [view, selectedBounty?.id]);
+
+  // Translate bounty content when lang = es
+  useEffect(() => {
+    if (lang !== "es" || view !== "bounty" || !selectedBounty) {
+      setTranslatedBounty(null);
+      return;
+    }
+    const cacheKey = `fb_tx_es_${selectedBounty.id || selectedBounty.title}`;
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) { setTranslatedBounty(JSON.parse(cached)); return; }
+    } catch (e) {}
+    setTranslating(true);
+    const fieldsToTranslate = {
+      title: selectedBounty.title,
+      description: selectedBounty.description,
+      submissionRequirements: selectedBounty.submissionRequirements || selectedBounty.submission_requirements || "",
+      evaluationCriteria: selectedBounty.evaluationCriteria || selectedBounty.evaluation_criteria || "",
+      tags: (selectedBounty.tags || []).join(", "),
+    };
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Translate the following bounty fields from English to Spanish. Return ONLY a JSON object with the same keys. Keep technical terms, brand names, wallet addresses, and emojis as-is. Be natural and professional.\n\n${JSON.stringify(fieldsToTranslate)}`,
+        }],
+      }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      const text = (data.content || []).map(c => c.text || "").join("");
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setTranslatedBounty(parsed);
+      try { sessionStorage.setItem(cacheKey, JSON.stringify(parsed)); } catch (e) {}
+    })
+    .catch(() => setTranslatedBounty(null))
+    .finally(() => setTranslating(false));
+  }, [lang, view, selectedBounty?.id]);
 
   const notify = useCallback((msg) => {
     setNotification(msg);
@@ -1317,15 +1362,21 @@ export default function FairBounty() {
                 <span style={{ fontSize: "9px", fontWeight: "700", color: "#0c0c14", background: theme.primary, padding: "2px 6px", borderRadius: "4px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Beta</span>
               </div>
               <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                <button style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }} onClick={() => setView("about")}>About</button>
-                <button style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }} onClick={() => setView("how-it-works")}>How It Works</button>
+                <button style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }} onClick={() => setView("about")}>{lang === "es" ? "Acerca de" : "About"}</button>
+                <button style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }} onClick={() => setView("how-it-works")}>{lang === "es" ? "Cómo Funciona" : "How It Works"}</button>
                 <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "12px", opacity: 0.8 }}>FairScale ↗</a>
+                <button onClick={() => setLang(l => l === "en" ? "es" : "en")} style={{
+                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: "8px", color: "rgba(255,255,255,0.7)", fontSize: "11px",
+                  fontWeight: "700", padding: "5px 9px", cursor: "pointer", fontFamily: "inherit",
+                  letterSpacing: "0.5px",
+                }}>{lang === "en" ? "ES" : "EN"}</button>
               </div>
             </div>
 
             <div style={{ ...fadeIn, transitionDelay: "0.1s" }}>
               <div style={{ display: "inline-block", padding: "6px 16px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "100px", fontSize: "12px", color: theme.primary, marginBottom: "24px", letterSpacing: "1px", textTransform: "uppercase" }}>
-                Reputation-Gated Bounties on Solana
+                Reputation-Gated Bounties on Solana{lang === "es" && " · Recompensas en Solana"}
               </div>
             </div>
 
@@ -1333,17 +1384,20 @@ export default function FairBounty() {
               <GlitchText text="Earn." /> <span style={{ color: theme.primary }}>Prove.</span><br />Build <span style={{ color: theme.accent }}>Reputation.</span>
             </h1>
             <p style={{ fontSize: "17px", lineHeight: "1.7", color: "#9999A8", maxWidth: "550px", margin: "0 auto 40px", ...fadeIn, transitionDelay: "0.3s" }}>
-              A bounty board where your on-chain reputation unlocks opportunities. Prizes in stablecoins, memecoins, NFTs, or collectibles. Community votes. Client picks the winner.
+              {lang === "es"
+                ? "Un tablero de recompensas donde tu reputación on-chain desbloquea oportunidades. Premios en stablecoins, memecoins, NFTs o coleccionables. La comunidad vota. El cliente elige al ganador."
+                : "A bounty board where your on-chain reputation unlocks opportunities. Prizes in stablecoins, memecoins, NFTs, or collectibles. Community votes. Client picks the winner."
+              }
             </p>
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", ...fadeIn, transitionDelay: "0.4s" }}>
               <button style={btnPrimary} onClick={() => setView("connect")}
                 onMouseEnter={(e) => { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = `0 8px 30px ${theme.primary}40`; }}
                 onMouseLeave={(e) => { e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "none"; }}
-              >Connect Wallet →</button>
+              >{lang === "es" ? "Conectar Wallet →" : "Connect Wallet →"}</button>
               <button style={btnOutline} onClick={() => setView("dashboard")}
                 onMouseEnter={(e) => e.target.style.background = `${theme.primary}10`}
                 onMouseLeave={(e) => e.target.style.background = "transparent"}
-              >Browse Bounties</button>
+              >{lang === "es" ? "Ver Recompensas" : "Browse Bounties"}</button>
             </div>
 
             {/* Stats */}
@@ -2046,6 +2100,7 @@ export default function FairBounty() {
   // ============================================================
   if (view === "bounty" && selectedBounty) {
     const b = selectedBounty;
+    const tx = translatedBounty; // Spanish translations if available
     const tier = TIER_CONFIG[b.minTier];
     const eligible = wallet ? canClaim(b) : false;
     const bonusReward = wallet ? Math.floor((parseFloat(b.reward) || 0) * (FairScoreAPI.getRewardBonus(fairScore) / 100)) : 0;
@@ -2075,7 +2130,9 @@ export default function FairBounty() {
                   {b.isDemo && <span style={{ fontSize: "9px", fontWeight: "700", color: "#F59E0B", background: "#F59E0B15", padding: "2px 8px", borderRadius: "100px", border: "1px solid #F59E0B30" }}>⏳ DEMO</span>}
                   {isMyBounty && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "2px 8px", borderRadius: "100px" }}>Your Bounty</span>}
                 </div>
-                <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "8px" }}>{b.title}</h2>
+                <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "8px" }}>
+                  {translating ? <span style={{ color: "#555" }}>Traduciendo... ⏳</span> : (tx?.title || b.title)}
+                </h2>
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "24px", fontWeight: "900", color: pt.color }}><><PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency}</></div>
@@ -2083,11 +2140,13 @@ export default function FairBounty() {
               </div>
             </div>
 
-            <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "1.7", marginBottom: "20px" }}>{b.description}</p>
+            <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "1.7", marginBottom: "20px" }}>
+              {translating ? <span style={{ color: "#555", fontStyle: "italic" }}>Traduciendo contenido... ⏳</span> : (tx?.description || b.description)}
+            </p>
 
             {/* Tags */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
-              {(Array.isArray(b.tags) ? b.tags : []).map((tag) => (
+              {(tx?.tags ? tx.tags.split(",").map(t => t.trim()) : Array.isArray(b.tags) ? b.tags : []).map((tag) => (
                 <span key={tag} style={{ padding: "4px 12px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}20`, borderRadius: "100px", fontSize: "12px", color: theme.primary }}>{tag}</span>
               ))}
             </div>
@@ -2095,10 +2154,10 @@ export default function FairBounty() {
             {/* Meta */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "12px", marginBottom: "24px" }}>
               {[
-                { label: "Prize Type", value: pt.label, color: pt.color },
-                { label: "Min Tier", value: `${tier.emoji} ${tier.label}`, color: tier.color },
-                { label: "Submissions", value: b.isDemo ? b.submissions : selectedBountySubmissions.length, color: "#888" },
-                { label: "Deadline", value: b.deadline || "Open", color: "#888" },
+                { label: lang === "es" ? "Tipo de Premio" : "Prize Type", value: pt.label, color: pt.color },
+                { label: lang === "es" ? "Nivel Mín." : "Min Tier", value: `${tier.emoji} ${tier.label}`, color: tier.color },
+                { label: lang === "es" ? "Envíos" : "Submissions", value: b.isDemo ? b.submissions : selectedBountySubmissions.length, color: "#888" },
+                { label: lang === "es" ? "Fecha Límite" : "Deadline", value: b.deadline || (lang === "es" ? "Abierto" : "Open"), color: "#888" },
               ].map((m) => (
                 <div key={m.label} style={{ padding: "12px", background: "#0c0c14", borderRadius: "8px", textAlign: "center" }}>
                   <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{m.label}</div>
@@ -2119,6 +2178,32 @@ export default function FairBounty() {
               <div style={{ padding: "14px 16px", marginBottom: "20px", borderRadius: "8px", background: `${riskData.color}10`, border: `1px solid ${riskData.color}30`, display: "flex", alignItems: "center", gap: "12px" }}>
                 <div style={{ fontSize: "11px", fontWeight: "700", color: riskData.color, textTransform: "uppercase" }}>🛡️ Your Risk Level: {riskData.level}</div>
                 <div style={{ fontSize: "11px", color: "#999" }}>{riskData.label}</div>
+              </div>
+            )}
+
+            {/* Requirements & Criteria — live bounties */}
+            {!b.isDemo && (b.submissionRequirements || b.submission_requirements || b.evaluationCriteria || b.evaluation_criteria) && (
+              <div style={{ marginBottom: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                {(b.submissionRequirements || b.submission_requirements) && (
+                  <div style={{ padding: "16px", background: "#0c0c14", borderRadius: "10px", border: `1px solid ${theme.primary}15` }}>
+                    <div style={{ fontSize: "11px", color: theme.primary, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: "700", marginBottom: "8px" }}>
+                      {lang === "es" ? "📋 Requisitos de Envío" : "📋 Submission Requirements"}
+                    </div>
+                    <p style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.6" }}>
+                      {translating ? "⏳" : (tx?.submissionRequirements || b.submissionRequirements || b.submission_requirements)}
+                    </p>
+                  </div>
+                )}
+                {(b.evaluationCriteria || b.evaluation_criteria) && (
+                  <div style={{ padding: "16px", background: "#0c0c14", borderRadius: "10px", border: `1px solid ${theme.primary}15` }}>
+                    <div style={{ fontSize: "11px", color: theme.accent, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: "700", marginBottom: "8px" }}>
+                      {lang === "es" ? "🏆 Criterios de Evaluación" : "🏆 Evaluation Criteria"}
+                    </div>
+                    <p style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.6" }}>
+                      {translating ? "⏳" : (tx?.evaluationCriteria || b.evaluationCriteria || b.evaluation_criteria)}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2150,11 +2235,11 @@ export default function FairBounty() {
             <div style={{ marginTop: "24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <h3 style={{ fontSize: "18px", fontWeight: "700" }}>
-                  Submissions {selectedBountySubmissions.length > 0 && <span style={{ color: theme.primary }}>({selectedBountySubmissions.length})</span>}
+                  {lang === "es" ? "Envíos" : "Submissions"} {selectedBountySubmissions.length > 0 && <span style={{ color: theme.primary }}>({selectedBountySubmissions.length})</span>}
                 </h3>
                 {isMyBounty && selectedBountySubmissions.length > 0 && (
                   <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setShowWinnerModal(true)}>
-                    🏆 Select Winner
+                    🏆 {lang === "es" ? "Seleccionar Ganador" : "Select Winner"}
                   </button>
                 )}
               </div>
@@ -2162,8 +2247,8 @@ export default function FairBounty() {
               {selectedBountySubmissions.length === 0 ? (
                 <div style={{ ...cardStyle, textAlign: "center", padding: "32px" }}>
                   <div style={{ fontSize: "32px", marginBottom: "12px" }}>📝</div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No submissions yet</div>
-                  <div style={{ fontSize: "12px", color: "#888" }}>Be the first to submit your work!</div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>{lang === "es" ? "Aún no hay envíos" : "No submissions yet"}</div>
+                  <div style={{ fontSize: "12px", color: "#888" }}>{lang === "es" ? "¡Sé el primero en enviar tu trabajo!" : "Be the first to submit your work!"}</div>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -2969,6 +3054,7 @@ export default function FairBounty() {
                       <span style={{ fontSize: "11px", color: "#666" }}>{b.project || b.projectName}</span>
                       {!b.isDemo && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px" }}>✅ LIVE</span>}
                       {isMyBounty && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "1px 6px", borderRadius: "4px" }}>Your Bounty</span>}
+                      {lang === "es" && <span style={{ fontSize: "9px", color: "#888", background: "rgba(255,255,255,0.06)", padding: "1px 6px", borderRadius: "4px" }}>🌐 ES disponible</span>}
                     </div>
                     <div style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>{b.title}</div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
