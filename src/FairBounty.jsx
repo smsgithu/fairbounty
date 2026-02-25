@@ -315,6 +315,58 @@ export default function FairBounty() {
   const [adminTab, setAdminTab] = useState("bounties");
   const [betaInputWallet, setBetaInputWallet] = useState("");
   const [betaInputNote, setBetaInputNote] = useState("");
+  const [lang, setLang] = useState("en");
+
+  const t = {
+    en: {
+      bounties: "Bounties", postBounty: "Post Bounty", howItWorks: "How It Works",
+      about: "About", leaderboard: "Leaderboard", connect: "Connect Wallet",
+      disconnect: "Disconnect", submitWork: "Submit Work →", bookmark: "Bookmark",
+      bookmarked: "Bookmarked", tierRequired: "Tier Required", allTiers: "All Tiers",
+      liveOnly: "Live Only", demoOnly: "Examples", filterType: "Filter",
+      noBounties: "No bounties match your filters.", viewDetails: "View Details",
+      deadline: "Deadline", submissions: "Submissions", minTier: "Min Tier",
+      prize: "Prize", postedBy: "Posted by", betaOnly: "Beta Access Only",
+      betaDesc: "Submissions and voting are live for beta testers. Want in?",
+      dmUs: "DM @smsonx on X.", gotIt: "Got it",
+      noBookmarks: "No bookmarked bounties yet.", editProfile: "Edit Profile",
+      overview: "Overview", skills: "Skills", referrals: "Referrals",
+      yourLink: "Your referral link", copy: "Copy", shareX: "Share on X",
+      telegram: "Telegram", earned: "BXP earned", joinedDate: "Joined",
+      won: "Won", beta: "Beta", tier: "Tier", bxp: "BXP",
+      submitForReview: "Submit for Review →", postingAs: "Posting as",
+      titleLabel: "Bounty Title", descLabel: "Description", projectLabel: "Project Name",
+      rewardLabel: "Prize Amount", deadlineLabel: "Deadline", categoryLabel: "Category",
+      contactLabel: "Contact Method", requirementsLabel: "Submission Requirements",
+      criteriaLabel: "Evaluation Criteria", cancel: "Cancel",
+      approved: "✅ Approved & live!", rejected: "❌ Rejected",
+      pending: "Pending", live: "Live", refresh: "🔄 Refresh",
+    },
+    es: {
+      bounties: "Recompensas", postBounty: "Publicar", howItWorks: "Cómo Funciona",
+      about: "Acerca de", leaderboard: "Clasificación", connect: "Conectar Wallet",
+      disconnect: "Desconectar", submitWork: "Enviar Trabajo →", bookmark: "Guardar",
+      bookmarked: "Guardado", tierRequired: "Nivel Requerido", allTiers: "Todos los Niveles",
+      liveOnly: "Solo Activos", demoOnly: "Ejemplos", filterType: "Filtrar",
+      noBounties: "No hay recompensas que coincidan.", viewDetails: "Ver Detalles",
+      deadline: "Fecha Límite", submissions: "Envíos", minTier: "Nivel Mín.",
+      prize: "Premio", postedBy: "Publicado por", betaOnly: "Solo Acceso Beta",
+      betaDesc: "Los envíos y votos son en vivo para testers beta. ¿Quieres entrar?",
+      dmUs: "DM @smsonx en X.", gotIt: "Entendido",
+      noBookmarks: "Aún no hay recompensas guardadas.", editProfile: "Editar Perfil",
+      overview: "Resumen", skills: "Habilidades", referrals: "Referidos",
+      yourLink: "Tu enlace de referido", copy: "Copiar", shareX: "Compartir en X",
+      telegram: "Telegram", earned: "BXP ganado", joinedDate: "Se unió",
+      won: "Ganado", beta: "Beta", tier: "Nivel", bxp: "BXP",
+      submitForReview: "Enviar para Revisión →", postingAs: "Publicando como",
+      titleLabel: "Título de la Recompensa", descLabel: "Descripción", projectLabel: "Nombre del Proyecto",
+      rewardLabel: "Monto del Premio", deadlineLabel: "Fecha Límite", categoryLabel: "Categoría",
+      contactLabel: "Método de Contacto", requirementsLabel: "Requisitos de Envío",
+      criteriaLabel: "Criterios de Evaluación", cancel: "Cancelar",
+      approved: "✅ ¡Aprobado y en vivo!", rejected: "❌ Rechazado",
+      pending: "Pendiente", live: "En Vivo", refresh: "🔄 Actualizar",
+    },
+  }[lang];
   const [wallet, setWallet] = useState(null);
   const [walletType, setWalletType] = useState("default");
 
@@ -569,6 +621,12 @@ export default function FairBounty() {
         }
 
         DbAPI.trackWallet(pubkey);
+
+        // Load bookmarks
+        try {
+          const saved = localStorage.getItem(`fb_bookmarks_${pubkey}`);
+          if (saved) setBookmarks(JSON.parse(saved));
+        } catch (e) {}
 
         // Check beta access
         const hasBeta = await DbAPI.checkBetaAccess(pubkey);
@@ -987,12 +1045,12 @@ export default function FairBounty() {
     }} onClick={() => setShowDemoModal(false)}>
       <div style={{ ...glassCard, maxWidth: "420px", width: "100%", padding: "36px", textAlign: "center", animation: "slideIn 0.3s ease" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ fontSize: "40px", marginBottom: "16px" }}>🔒</div>
-        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Beta Access Only</h3>
+        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>{t.betaOnly}</h3>
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "24px" }}>
           Submissions and voting are live for beta testers. Want in? DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>@smsonx</a> on X.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-          <button style={btnPrimary} onClick={() => setShowDemoModal(false)}>Got it</button>
+          <button style={btnPrimary} onClick={() => setShowDemoModal(false)}>{t.gotIt}</button>
           <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer"
             style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>DM @smsonx</a>
         </div>
@@ -1036,7 +1094,7 @@ export default function FairBounty() {
 
         <div style={{ display: "flex", gap: "12px" }}>
           <button style={{ ...btnPrimary, flex: 1 }} disabled={submitting} onClick={() => handleSubmitWork(bounty?.id)}>
-            {submitting ? "Submitting..." : "Submit Work →"}
+            {submitting ? "Submitting..." : t.submitWork}
           </button>
           <button style={btnOutline} onClick={() => setShowSubmitModal(false)}>Cancel</button>
         </div>
@@ -1105,7 +1163,7 @@ export default function FairBounty() {
     const disconnectFn = (e) => {
       e.stopPropagation();
       setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null);
-      setScoreData(null); setXp(0); setProfile(null); setBetaAccess(false);
+      setScoreData(null); setXp(0); setProfile(null); setBetaAccess(false); setBookmarks([]);
       setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] });
       setBookmarks([]); setView("landing");
     };
@@ -1124,14 +1182,14 @@ export default function FairBounty() {
           {/* Nav tabs — icons always visible, labels hidden on mobile */}
           <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             {[
-              { label: "Bounties", icon: "🎯", view: wallet && profile ? "dashboard" : "landing" },
-              { label: "Post Bounty", icon: "📋", view: "post-bounty" },
-              { label: "How It Works", icon: "📖", view: "how-it-works" },
-              { label: "About", icon: "ℹ️", view: "about" },
+              { label: t.bounties, icon: "🎯", view: wallet && profile ? "dashboard" : "landing" },
+              { label: t.postBounty, icon: "📋", view: "post-bounty" },
+              { label: t.howItWorks, icon: "📖", view: "how-it-works" },
+              { label: t.about, icon: "ℹ️", view: "about" },
               { label: "🏆", icon: "🏆", view: "leaderboard" },
             ].map((tab) => (
               <button key={tab.label} style={{ ...tabStyle(tab.view), ...(tab.label === "🏆" ? { color: view === tab.view ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" } : {}) }} onClick={() => {
-                if (tab.label === "Post Bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
+                if (tab.view === "post-bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
                 setView(tab.view);
               }}>
                 <span style={{ display: "none" }} className="nav-icon">{tab.icon}</span>
@@ -1144,6 +1202,15 @@ export default function FairBounty() {
             {fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD" && (
               <button style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)", fontSize: "14px" }} onClick={() => setView("admin")}>⚡</button>
             )}
+            {/* Language toggle */}
+            <button onClick={() => setLang(l => l === "en" ? "es" : "en")} style={{
+              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "8px", color: "rgba(255,255,255,0.7)", fontSize: "11px",
+              fontWeight: "700", padding: "5px 9px", cursor: "pointer", fontFamily: "inherit",
+              letterSpacing: "0.5px", transition: "all 0.2s",
+            }}>
+              {lang === "en" ? "ES" : "EN"}
+            </button>
           </div>
         </div>
 
@@ -1732,7 +1799,7 @@ export default function FairBounty() {
                       <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "2px" }}>{profile?.displayName || "Anonymous"}</h2>
                       {profile?.xHandle && <a href={`https://x.com/${profile.xHandle}`} target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontSize: "13px" }}>@{profile.xHandle}</a>}
                     </div>
-                    <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }} onClick={() => { setProfileForm({ displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "", contact: profile?.contact || "", email: profile?.email || "", pfpUrl: profile?.pfpUrl || "", linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "", telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "", worksAt: profile?.worksAt || "", location: profile?.location || "", skills: profile?.skills || [] }); setView("profile-setup"); }}>Edit Profile</button>
+                    <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }} onClick={() => { setProfileForm({ displayName: profile?.displayName || "", xHandle: profile?.xHandle || "", bio: profile?.bio || "", contact: profile?.contact || "", email: profile?.email || "", pfpUrl: profile?.pfpUrl || "", linkedin: profile?.linkedin || "", github: profile?.github || "", website: profile?.website || "", telegram: profile?.telegram || "", discord: profile?.discord || "", lookingFor: profile?.lookingFor || "", worksAt: profile?.worksAt || "", location: profile?.location || "", skills: profile?.skills || [] }); setView("profile-setup"); }}>{ t.editProfile}</button>
                   </div>
                   {profile?.bio && <p style={{ color: "#999", fontSize: "13px", lineHeight: "1.6", marginTop: "8px" }}>{profile.bio}</p>}
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "10px", fontSize: "12px", color: "#888" }}>
@@ -1769,7 +1836,7 @@ export default function FairBounty() {
             <div style={{ display: "flex", gap: "4px", marginBottom: "16px", background: "#0c0c14", borderRadius: "10px", padding: "4px" }}>
               {["overview", "skills", "bookmarks"].map((t) => (
                 <button key={t} onClick={() => setProfileTab(t)} style={{ flex: 1, padding: "10px", fontSize: "12px", fontWeight: "600", textTransform: "capitalize", background: profileTab === t ? `${theme.primary}20` : "transparent", border: profileTab === t ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "8px", color: profileTab === t ? theme.primary : "#888", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease" }}>
-                  {t === "bookmarks" ? `📌 Bookmarks (${bookmarks.length})` : t === "skills" ? "🛠 Skills" : "📊 Overview"}
+                  {t === "bookmarks" ? `📌 ${t.referrals === "Referidos" ? "Guardados" : "Bookmarks"} (${bookmarks.length})` : t === "skills" ? `🛠 ${lang === "es" ? "Habilidades" : "Skills"}` : `📊 ${lang === "es" ? "Resumen" : "Overview"}`}
                 </button>
               ))}
             </div>
@@ -1962,7 +2029,7 @@ export default function FairBounty() {
                       );
                     })}
                   </div>
-                ) : <div style={{ ...cardStyle, textAlign: "center", padding: "32px", color: "#666", fontSize: "13px" }}>📌 No bookmarked bounties yet.</div>}
+                ) : <div style={{ ...cardStyle, textAlign: "center", padding: "32px", color: "#666", fontSize: "13px" }}>📌 {t.noBookmarks}</div>}
               </div>
             )}
             <div style={{ marginTop: "16px", fontSize: "11px", color: "#555", textAlign: "center" }}>Joined {profile?.joinedDate || "Feb 2026"}</div>
@@ -2059,7 +2126,7 @@ export default function FairBounty() {
             <div style={{ display: "flex", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
               {wallet && <button style={btnOutline} onClick={() => toggleBookmark(b.id)}>{bookmarks.includes(b.id) ? "📌 Bookmarked" : "🔖 Bookmark"}</button>}
               {wallet && eligible && !b.isDemo && !isMyBounty && (
-                <button style={btnPrimary} onClick={() => { if (!betaAccess) { setShowDemoModal(true); } else { setShowSubmitModal(true); } }}>Submit Work →</button>
+                <button style={btnPrimary} onClick={() => { if (!betaAccess) { setShowDemoModal(true); } else { setShowSubmitModal(true); } }}>{t.submitWork}</button>
               )}
               {wallet && !eligible && !b.isDemo && (
                 <div style={{ fontSize: "12px", color: "#ff4040", padding: "12px", background: "#ff404010", borderRadius: "8px", border: "1px solid #ff404030" }}>
@@ -2867,12 +2934,12 @@ export default function FairBounty() {
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {/* Filter by type */}
             <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "8px", padding: "3px" }}>
-              {[["all", "All"], ["live", "Live ✅"], ["demo", "Demo"]].map(([v, l]) => (
+              {[["all", lang === "es" ? "Todo" : "All"], ["live", `Live ✅`], ["demo", lang === "es" ? "Ejemplos" : "Demo"]].map(([v, l]) => (
                 <button key={v} onClick={() => setFilterType(v)} style={{ padding: "5px 10px", fontSize: "11px", background: filterType === v ? `${theme.primary}20` : "transparent", border: filterType === v ? `1px solid ${theme.primary}30` : "1px solid transparent", borderRadius: "6px", color: filterType === v ? theme.primary : "#666", cursor: "pointer", fontFamily: "inherit", fontWeight: "500" }}>{l}</button>
               ))}
             </div>
             <select style={{ ...inputStyle, width: "auto", fontSize: "12px", padding: "8px 12px", cursor: "pointer" }} value={filterTier} onChange={(e) => setFilterTier(Number(e.target.value))}>
-              <option value={0}>All Tiers</option>
+              <option value={0}>{t.allTiers}</option>
               {Object.entries(TIER_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} Tier {k}</option>)}
             </select>
             {wallet && (
@@ -2931,7 +2998,7 @@ export default function FairBounty() {
           {filteredBounties.length === 0 && (
             <div style={{ ...cardStyle, textAlign: "center", padding: "40px" }}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔍</div>
-              <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No bounties found</div>
+              <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>{t.noBounties}</div>
               <div style={{ fontSize: "12px", color: "#888" }}>Try adjusting your filters</div>
             </div>
           )}
