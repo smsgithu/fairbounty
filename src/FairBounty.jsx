@@ -2698,7 +2698,7 @@ export default function FairBounty() {
                       loadAdmin();
                     }}>Grant</button>
                   </div>
-                  <p style={{ fontSize: "11px", color: "#555" }}>Founder wallet is always beta — no need to add it here.</p>
+                  <p style={{ fontSize: "11px", color: "#555" }}>Grants full access: post bounties, submit work, vote.</p>
                 </div>
 
                 {/* Active list */}
