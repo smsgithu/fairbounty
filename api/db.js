@@ -279,6 +279,7 @@ export default async function handler(req, res) {
         const rows = await sql`
           SELECT *, project_name as "projectName", prize_type as "prizeType",
             poster_name as "posterName", poster_tier as "posterTier",
+            min_tier as "minTier",
             submission_count as "submissionCount",
             winner_submission_id as "winnerSubmissionId",
             contact_method as "contactMethod", contact_value as "contactValue",
@@ -485,7 +486,7 @@ export default async function handler(req, res) {
       )`;
 
       const [bounties, apps, profiles, bxpRows] = await Promise.all([
-        sql`SELECT * FROM fb_bounties ORDER BY created_at DESC`,
+        sql`SELECT *, project_name as "projectName", prize_type as "prizeType", poster_name as "posterName", min_tier as "minTier", contact_method as "contactMethod", contact_value as "contactValue", is_beta as "isBeta", created_at as "createdAt" FROM fb_bounties ORDER BY created_at DESC`,
         sql`SELECT * FROM fb_bounty_apps ORDER BY created_at DESC`,
         sql`SELECT wallet, profile, updated_at FROM fb_profiles ORDER BY updated_at DESC LIMIT 50`,
         sql`SELECT wallet, bxp FROM fb_bxp`,
