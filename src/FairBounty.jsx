@@ -1121,7 +1121,10 @@ export default function FairBounty() {
               { label: "About", icon: "ℹ️", view: "about" },
               { label: "🏆", icon: "🏆", view: "leaderboard" },
             ].map((tab) => (
-              <button key={tab.label} style={{ ...tabStyle(tab.view), ...(tab.label === "🏆" ? { color: view === tab.view ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" } : {}) }} onClick={() => setView(tab.view)}>
+              <button key={tab.label} style={{ ...tabStyle(tab.view), ...(tab.label === "🏆" ? { color: view === tab.view ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" } : {}) }} onClick={() => {
+                if (tab.label === "Post Bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
+                setView(tab.view);
+              }}>
                 <span style={{ display: "none" }} className="nav-icon">{tab.icon}</span>
                 <span className="nav-label">{tab.label === "🏆" ? "🏆" : tab.label}</span>
               </button>
@@ -2864,7 +2867,7 @@ export default function FairBounty() {
               {Object.entries(TIER_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} Tier {k}</option>)}
             </select>
             {wallet && (
-              <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => setView("post-bounty")}>+ Post Bounty</button>
+              <button style={{ ...btnPrimary, fontSize: "12px", padding: "8px 16px" }} onClick={() => { if (!betaAccess) { setShowDemoModal(true); } else { setView("post-bounty"); } }}>+ Post Bounty</button>
             )}
           </div>
         </div>
