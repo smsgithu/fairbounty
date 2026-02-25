@@ -12,6 +12,7 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const { action } = req.query;
+  const FOUNDER_WALLET = "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD";
 
   try {
     // ============================================================
@@ -459,11 +460,6 @@ export default async function handler(req, res) {
       await sql`UPDATE fb_beta_access SET active = false WHERE wallet = ${targetWallet}`;
       return res.json({ success: true });
     }
-
-    // ============================================================
-    // ADMIN ENDPOINTS — founder wallet only
-    // ============================================================
-    const FOUNDER_WALLET = "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD";
 
     if (action === "admin-get-all") {
       const { wallet } = req.query;
