@@ -136,20 +136,20 @@ const DbAPI = {
       return await res.json();
     } catch (e) { return null; }
   },
-  async claimWelcome(wallet, amount) {
+  async claimWelcome(wallet, tier) {
     try {
       const res = await fetch("/api/db?action=claim-welcome", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet, amount }),
+        body: JSON.stringify({ wallet, tier }),
       });
       return await res.json();
     } catch (e) { return { success: false }; }
   },
-  async processReferral(referrerWallet, referredWallet, referrerAmount, referredAmount) {
+  async processReferral(referrerWallet, referredWallet, referrerTier, referredTier) {
     try {
       await fetch("/api/db?action=process-referral", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ referrerWallet, referredWallet, referrerAmount, referredAmount }),
+        body: JSON.stringify({ referrerWallet, referredWallet, referrerTier, referredTier }),
       });
     } catch (e) {}
   },
@@ -675,19 +675,18 @@ export default function FairBounty() {
     const alreadyClaimed = localStorage.getItem(`fb_welcome_${fullAddress}`);
     if (!alreadyClaimed && fullAddress) {
       const welcomeAmount = Math.floor(100 * multiplier);
-      const result = await DbAPI.claimWelcome(fullAddress, welcomeAmount);
+      const result = await DbAPI.claimWelcome(fullAddress, fairScore || 1);
       if (result.success || result.already_claimed === undefined) {
-        newBxp.welcome = welcomeAmount;
-        bonusMessages.push(`+${welcomeAmount} BXP welcome bonus`);
+        newBxp.welcome = result.amount || welcomeAmount;
+        bonusMessages.push(`+${newBxp.welcome} BXP welcome bonus`);
         try { localStorage.setItem(`fb_welcome_${fullAddress}`, "1"); } catch (e) {}
       }
     }
     if (referredBy && referredBy !== fullAddress && !localStorage.getItem(`fb_was_referred_${fullAddress}`)) {
       const referredAmount = Math.floor(50 * multiplier);
-      const referrerAmount = Math.floor(50 * multiplier);
       newBxp.referred = referredAmount;
       bonusMessages.push(`+${referredAmount} BXP referral bonus`);
-      DbAPI.processReferral(referredBy, fullAddress, referrerAmount, referredAmount);
+      DbAPI.processReferral(referredBy, fullAddress, fairScore || 1, fairScore || 1);
       try { localStorage.setItem(`fb_was_referred_${fullAddress}`, referredBy); } catch (e) {}
     }
     setBxpBreakdown(newBxp);
@@ -863,8 +862,8 @@ export default function FairBounty() {
   const pageStyle = {
     minHeight: "100vh", background: "#0b0b18", color: "#E8E8ED",
     fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-    position: "relative", overflow: "hidden", WebkitFontSmoothing: "antialiased",
-    
+    position: "relative", overflow: "hidden", overflowX: "hidden", WebkitFontSmoothing: "antialiased",
+    boxSizing: "border-box",
   };
   const gridOverlay = {
     position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
@@ -922,8 +921,8 @@ export default function FairBounty() {
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     @keyframes betaPulse { 0%, 100% { box-shadow: 0 0 0 0 ${theme.primary}40; } 50% { box-shadow: 0 0 0 6px ${theme.primary}00; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    body { background: #0b0b18; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+    body { background: #0b0b18; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; overflow-x: hidden; max-width: 100vw; }
     select option { background: #111; color: #E8E8ED; }
     ::selection { background: ${theme.primary}30; color: white; }
     ::-webkit-scrollbar { width: 4px; }
@@ -945,6 +944,16 @@ export default function FairBounty() {
       .stats-grid { gap: 10px !important; }
       .stats-grid > div { padding: 14px 8px !important; }
       .stats-grid > div > div:first-child { font-size: 22px !important; }
+      .admin-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .form-2col { grid-template-columns: 1fr !important; }
+      .how-it-works-grid { grid-template-columns: 1fr !important; }
+      .bounty-card-row { flex-direction: column !important; align-items: flex-start !important; }
+      .bounty-card-actions { margin-top: 8px !important; width: 100% !important; }
+      .profile-stats-row { flex-wrap: wrap !important; gap: 12px !important; }
+      .modal-inner { padding: 20px 16px !important; margin: 12px !important; }
+      .page-pad { padding: 12px !important; }
+      .beta-grant-row { flex-direction: column !important; }
+      .beta-grant-row input { width: 100% !important; }
     }
   `;
 
@@ -1271,7 +1280,7 @@ export default function FairBounty() {
             </div>
 
             {/* Stats */}
-            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
+            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
                 { value: globalStats.connectedWallets.toString(), label: "Connected Wallets", live: true },
                 { value: (liveBounties.length || globalStats.bountyApps || 0).toString(), label: "Live Bounties", live: true },
@@ -1518,7 +1527,7 @@ export default function FairBounty() {
               </div>
               <div style={{ ...cardStyle, padding: "28px" }}>
                 <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "20px" }}>How to increase your tier</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+                <div className="how-it-works-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                   {[{ icon: "🔄", title: "Use DeFi", desc: "Swap, stake, and provide liquidity" }, { icon: "📊", title: "Stay Active", desc: "Consistent on-chain activity" }, { icon: "🏗️", title: "Win Bounties", desc: "Successful completions build reputation" }, { icon: "⏰", title: "Wallet Age", desc: "Older wallets with history score higher" }, { icon: "🌐", title: "Diversify", desc: "Spread activity across protocols" }, { icon: "🔗", title: "Connect Socials", desc: "Link X to boost social score" }].map((item) => (
                     <div key={item.title} style={{ padding: "18px", background: "rgba(255,255,255,0.03)", borderRadius: "12px", border: `1px solid ${theme.primary}10` }}>
                       <div style={{ fontSize: "22px", marginBottom: "8px" }}>{item.icon}</div>
@@ -1627,7 +1636,7 @@ export default function FairBounty() {
                   <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Display Name *</label><input style={inputStyle} value={profileForm.displayName} onChange={(e) => setProfileForm({ ...profileForm, displayName: e.target.value })} placeholder="e.g. CryptoBuilder" /></div>
                   <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Email</label><input style={inputStyle} type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="you@example.com" /></div>
                   <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Bio</label><textarea style={{ ...inputStyle, minHeight: "70px", resize: "vertical" }} value={profileForm.bio} onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })} placeholder="Solana builder, DeFi enthusiast..." /></div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Location</label><input style={inputStyle} value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} placeholder="e.g. United States" /></div>
                     <div><label style={{ fontSize: "12px", color: "#888", display: "block", marginBottom: "6px" }}>Works at</label><input style={inputStyle} value={profileForm.worksAt} onChange={(e) => setProfileForm({ ...profileForm, worksAt: e.target.value })} placeholder="e.g. Marinade Finance" /></div>
                   </div>
@@ -1782,7 +1791,7 @@ export default function FairBounty() {
                 {scoreData && (
                   <div style={cardStyle}>
                     <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>On-Chain Activity</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                       {[{ label: "FairScale Tier", value: scoreData.fairscaleTier }, { label: "FairScore", value: Math.round(scoreData.score * 10) / 10 }, { label: "Base Score", value: Math.round(scoreData.fairscoreBase * 10) / 10 }, { label: "Social Score", value: Math.round(scoreData.socialScore * 10) / 10 }, { label: "Transactions", value: Math.round(scoreData.txCount) }, { label: "Active Days", value: Math.round(scoreData.activeDays) }, { label: "Platforms", value: Math.round(scoreData.protocolsUsed) }, { label: "Conviction", value: `${(scoreData.convictionRatio * 100).toFixed(0)}%` }].map((d) => (
                         <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                           <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.label}</div>
@@ -1814,7 +1823,7 @@ export default function FairBounty() {
                 )}
                 <div style={cardStyle}>
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "10px" }}>⭐ BXP Breakdown</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                     {[{ label: "Welcome Bonus", value: bxpBreakdown.welcome, icon: "🎁" }, { label: "Referral Earnings", value: bxpBreakdown.referrals, icon: "🔗" }, { label: "Referred Bonus", value: bxpBreakdown.referred, icon: "🤝" }, { label: "Submissions", value: bxpBreakdown.submissions, icon: "📝" }].map((d) => (
                       <div key={d.label} style={{ padding: "10px", background: "#0c0c14", borderRadius: "6px" }}>
                         <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", marginBottom: "3px" }}>{d.icon} {d.label}</div>
@@ -2208,7 +2217,7 @@ export default function FairBounty() {
                     </div>
                   )}
                   {betaBountyForm.prizeType === "MEMECOIN" && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                       <div>
                         <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Token Ticker *</label>
                         <input style={inputStyle} placeholder="BONK, WIF, POPCAT..." value={betaBountyForm.memeToken} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, memeToken: e.target.value.toUpperCase() })} />
@@ -2255,7 +2264,7 @@ export default function FairBounty() {
                   <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Bounty Title *</label><input style={inputStyle} placeholder="What needs to be built/created?" value={betaBountyForm.title} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, title: e.target.value })} /></div>
                   <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Description *</label><textarea style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }} placeholder="Describe the work, deliverables, requirements, tech specs..." value={betaBountyForm.description} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, description: e.target.value })} /></div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div>
                       <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Category</label>
                       <select style={{ ...inputStyle, cursor: "pointer" }} value={betaBountyForm.category} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, category: e.target.value })}>
@@ -2271,7 +2280,7 @@ export default function FairBounty() {
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Tags</label><input style={inputStyle} placeholder="React, Design, Rust..." value={betaBountyForm.tags} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, tags: e.target.value })} /></div>
                     <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Deadline</label><input style={inputStyle} type="date" value={betaBountyForm.deadline} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, deadline: e.target.value })} /></div>
                   </div>
@@ -2281,7 +2290,7 @@ export default function FairBounty() {
                     <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }} placeholder="What should submissions include? Format, deliverables, quality bar..." value={betaBountyForm.submissionRequirements} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, submissionRequirements: e.target.value })} />
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div>
                       <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Contact Method</label>
                       <select style={{ ...inputStyle, cursor: "pointer" }} value={betaBountyForm.contactMethod} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, contactMethod: e.target.value })}>
@@ -2346,7 +2355,7 @@ export default function FairBounty() {
                   <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Project / Company *</label><input style={inputStyle} placeholder="Your project..." value={bountyForm.projectName} onChange={(e) => setBountyForm({ ...bountyForm, projectName: e.target.value })} /></div>
                   <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Bounty Title *</label><input style={inputStyle} placeholder="What needs to be built?" value={bountyForm.title} onChange={(e) => setBountyForm({ ...bountyForm, title: e.target.value })} /></div>
                   <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Description *</label><textarea style={{ ...inputStyle, minHeight: "120px", resize: "vertical" }} placeholder="Describe requirements, deliverables..." value={bountyForm.description} onChange={(e) => setBountyForm({ ...bountyForm, description: e.target.value })} /></div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Reward Amount *</label><input style={inputStyle} type="number" placeholder="500" value={bountyForm.reward} onChange={(e) => setBountyForm({ ...bountyForm, reward: e.target.value })} /></div>
                     <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Currency</label>
                       <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.currency} onChange={(e) => setBountyForm({ ...bountyForm, currency: e.target.value })}>
@@ -2354,7 +2363,7 @@ export default function FairBounty() {
                       </select>
                     </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Category</label>
                       <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.category} onChange={(e) => setBountyForm({ ...bountyForm, category: e.target.value })}>
                         <option value="">Select...</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -2367,7 +2376,7 @@ export default function FairBounty() {
                     </div>
                   </div>
                   <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Deadline</label><input style={inputStyle} type="date" value={bountyForm.deadline} onChange={(e) => setBountyForm({ ...bountyForm, deadline: e.target.value })} /></div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div><label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Best Contact</label>
                       <select style={{ ...inputStyle, cursor: "pointer" }} value={bountyForm.contactMethod} onChange={(e) => setBountyForm({ ...bountyForm, contactMethod: e.target.value })}>
                         <option value="">Select...</option><option value="telegram">Telegram</option><option value="x">X / Twitter DM</option><option value="email">Email</option><option value="discord">Discord</option>
@@ -2561,7 +2570,7 @@ export default function FairBounty() {
 
           {/* Stats row */}
           {adminData && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "24px" }}>
+            <div className="admin-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "24px" }}>
               {[
                 { label: "Pending Review", value: pendingBounties.length + pendingApps.length, color: theme.primary, icon: "⏳" },
                 { label: "Live Bounties", value: liveBountiesAdmin.length, color: "#22C55E", icon: "✅" },
@@ -2688,7 +2697,7 @@ export default function FairBounty() {
                 {/* Add new wallet */}
                 <div style={{ ...glassCard, padding: "20px", marginBottom: "16px" }}>
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px" }}>⚡ Grant Beta Access</h3>
-                  <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                  <div className="beta-grant-row" style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                     <input
                       value={betaInputWallet}
                       onChange={e => setBetaInputWallet(e.target.value.trim())}
