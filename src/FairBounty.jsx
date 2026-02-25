@@ -312,6 +312,7 @@ export default function FairBounty() {
   const [view, setView] = useState("landing");
   const [adminData, setAdminData] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
+  const [adminTab, setAdminTab] = useState("bounties");
   const [wallet, setWallet] = useState(null);
   const [walletType, setWalletType] = useState("default");
 
@@ -2473,7 +2474,7 @@ export default function FairBounty() {
       loadAdmin();
     };
 
-    const [adminTab, setAdminTab] = useState("bounties");
+    
 
     if (!adminData && !adminLoading) loadAdmin();
 
