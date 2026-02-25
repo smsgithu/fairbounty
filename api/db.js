@@ -5,8 +5,17 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.POSTGRES_URL);
 
+const ALLOWED_ORIGIN = "https://fairbounty.vercel.app";
+const MAX_TEXT = 5000;
+const MAX_SHORT = 200;
+const sanitize = (str, max = MAX_SHORT) => str ? String(str).slice(0, max).trim() : "";
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  const allowedOrigins = [ALLOWED_ORIGIN, "http://localhost:5173", "http://localhost:3000"];
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
@@ -45,7 +54,10 @@ export default async function handler(req, res) {
     }
 
     if (action === "claim-welcome") {
-      const { wallet, amount } = req.body;
+      const { wallet, tier } = req.body;
+      if (!wallet) return res.status(400).json({ error: "Missing wallet" });
+      const multipliers = { 1: 1.0, 2: 1.25, 3: 1.5, 4: 2.0, 5: 3.0 };
+      const amount = Math.floor(100 * (multipliers[tier] || 1.0));
       const existing = await sql`SELECT id FROM fb_bxp WHERE wallet = ${wallet} LIMIT 1`;
       if (existing.length > 0) {
         const current = await sql`SELECT bxp FROM fb_bxp WHERE wallet = ${wallet} LIMIT 1`;
@@ -57,11 +69,16 @@ export default async function handler(req, res) {
         const bxp = { welcome: amount, referrals: 0, referred: 0, submissions: 0, wins: 0 };
         await sql`INSERT INTO fb_bxp (wallet, bxp, updated_at) VALUES (${wallet}, ${JSON.stringify(bxp)}, NOW())`;
       }
-      return res.json({ success: true });
+      return res.json({ success: true, amount });
     }
 
     if (action === "process-referral") {
-      const { referrerWallet, referredWallet, referrerAmount, referredAmount } = req.body;
+      const { referrerWallet, referredWallet, referredTier, referrerTier } = req.body;
+      if (!referrerWallet || !referredWallet) return res.status(400).json({ error: "Missing wallets" });
+      if (referrerWallet === referredWallet) return res.status(400).json({ error: "Self-referral" });
+      const multipliers = { 1: 1.0, 2: 1.25, 3: 1.5, 4: 2.0, 5: 3.0 };
+      const referrerAmount = Math.floor(50 * (multipliers[referrerTier] || 1.0));
+      const referredAmount = Math.floor(50 * (multipliers[referredTier] || 1.0));
       // Update referrer BXP
       const referrerRows = await sql`SELECT bxp FROM fb_bxp WHERE wallet = ${referrerWallet} LIMIT 1`;
       if (referrerRows.length > 0) {
@@ -261,15 +278,15 @@ export default async function handler(req, res) {
           poster_tier, status, contact_method, contact_value, submission_requirements,
           evaluation_criteria, is_beta, created_at
         ) VALUES (
-          ${bountyData.title}, ${bountyData.description}, ${bountyData.projectName},
-          ${bountyData.category || ""}, ${bountyData.prizeType || "USDC"}, ${bountyData.reward},
-          ${bountyData.currency || "USDC"}, ${bountyData.memeToken || ""},
-          ${bountyData.nftMint || ""}, ${bountyData.nftName || ""},
-          ${bountyData.minTier || 1}, ${JSON.stringify(bountyData.tags || [])},
-          ${bountyData.deadline || ""}, ${bountyData.poster}, ${bountyData.posterName},
-          ${bountyData.posterTier || 1}, 'open', ${bountyData.contactMethod || ""},
-          ${bountyData.contactValue || ""}, ${bountyData.submissionRequirements || ""},
-          ${bountyData.evaluationCriteria || ""}, true, NOW()
+          ${sanitize(bountyData.title, 120)}, ${sanitize(bountyData.description, MAX_TEXT)}, ${sanitize(bountyData.projectName, 80)},
+          ${sanitize(bountyData.category, 50)}, ${sanitize(bountyData.prizeType, 20) || "USDC"}, ${sanitize(bountyData.reward, 30)},
+          ${sanitize(bountyData.currency, 20) || "USDC"}, ${sanitize(bountyData.memeToken, 50)},
+          ${sanitize(bountyData.nftMint, 100)}, ${sanitize(bountyData.nftName, 80)},
+          ${Math.min(Math.max(parseInt(bountyData.minTier) || 1, 1), 5)}, ${JSON.stringify((bountyData.tags || []).slice(0, 10).map(t => sanitize(t, 30)))},
+          ${sanitize(bountyData.deadline, 20)}, ${sanitize(bountyData.poster, 50)}, ${sanitize(bountyData.posterName, 80)},
+          ${Math.min(Math.max(parseInt(bountyData.posterTier) || 1, 1), 5)}, ${bountyData.status === "open" ? "open" : "pending"}, ${sanitize(bountyData.contactMethod, 20)},
+          ${sanitize(bountyData.contactValue, 100)}, ${sanitize(bountyData.submissionRequirements, MAX_TEXT)},
+          ${sanitize(bountyData.evaluationCriteria, MAX_TEXT)}, true, NOW()
         ) RETURNING id
       `;
       return res.json({ success: true, id: result[0]?.id });
@@ -327,7 +344,7 @@ export default async function handler(req, res) {
 
       const result = await sql`
         INSERT INTO fb_submissions (bounty_id, wallet, display_name, tier, content, links, created_at)
-        VALUES (${String(bountyId)}, ${wallet}, ${displayName}, ${tier || 1}, ${content}, ${links || ""}, NOW())
+        VALUES (${String(bountyId).slice(0,20)}, ${sanitize(wallet,50)}, ${sanitize(displayName,80)}, ${Math.min(Math.max(parseInt(tier)||1,1),5)}, ${sanitize(content,MAX_TEXT)}, ${sanitize(links||"",500)}, NOW())
         RETURNING id
       `;
       // Update submission count
