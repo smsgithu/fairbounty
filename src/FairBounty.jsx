@@ -480,6 +480,17 @@ export default function FairBounty() {
     return () => clearTimeout(t);
   }, [view]);
 
+  // Load submissions when bounty detail view opens
+  useEffect(() => {
+    if (view === "bounty" && selectedBounty && !selectedBounty.isDemo) {
+      DbAPI.getSubmissions(selectedBounty.id).then(subs => {
+        setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
+      });
+    } else if (view !== "bounty") {
+      setSelectedBountySubmissions([]);
+    }
+  }, [view, selectedBounty?.id]);
+
   const notify = useCallback((msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3500);
@@ -1955,15 +1966,7 @@ export default function FairBounty() {
     const sortedSubs = [...selectedBountySubmissions].sort((a, b) => (b.score || 0) - (a.score || 0));
 
     // Load submissions when entering bounty detail
-    useEffect(() => {
-      if (selectedBounty && !selectedBounty.isDemo) {
-        DbAPI.getSubmissions(selectedBounty.id).then(subs => {
-          setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
-        });
-      } else {
-        setSelectedBountySubmissions([]);
-      }
-    }, [selectedBounty?.id]);
+    // (effect moved to top level — see top of component)
 
     return (
       <div style={pageStyle}>
