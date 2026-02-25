@@ -1098,13 +1098,13 @@ export default function FairBounty() {
               { label: "About", icon: "ℹ️", view: "about" },
               { label: "🏆", icon: "🏆", view: "leaderboard" },
             ].map((tab) => (
-              <button key={tab.label} style={tabStyle(tab.view)} onClick={() => setView(tab.view)}>
+              <button key={tab.label} style={{ ...tabStyle(tab.view), ...(tab.label === "🏆" ? { color: view === tab.view ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" } : {}) }} onClick={() => setView(tab.view)}>
                 <span style={{ display: "none" }} className="nav-icon">{tab.icon}</span>
                 <span className="nav-label">{tab.label === "🏆" ? "🏆" : tab.label}</span>
               </button>
             ))}
             {wallet && profile && (
-              <button style={tabStyle("profile")} onClick={() => setView("profile")}>👤</button>
+              <button style={{ ...tabStyle("profile"), color: view === "profile" ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" }} onClick={() => setView("profile")}>👤</button>
             )}
           </div>
         </div>
@@ -1154,7 +1154,7 @@ export default function FairBounty() {
   const Footer = () => (
     <div style={{ marginTop: "60px", paddingTop: "32px", borderTop: `1px solid rgba(255,255,255,0.06)`, display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "16px", fontSize: "12px", color: "rgba(255,255,255,0.3)", paddingBottom: "32px" }}>
       <div style={{ display: "flex", gap: "20px" }}>
-        <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>built by @smsonx</a>
+        <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>Built by @smsonx</a>
         <a href="https://smsai.fun" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>smsai.fun</a>
         <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none", fontWeight: "500" }}>FairScale</a>
       </div>
@@ -1830,10 +1830,17 @@ export default function FairBounty() {
                         />
                         <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 12px", whiteSpace: "nowrap" }} onClick={async () => {
                           if (!slugInput.trim() || slugInput.length < 3) { notify("Slug must be at least 3 characters"); return; }
-                          const result = await DbAPI.setReferralCode(fullAddress, slugInput.trim());
-                          if (result.code) {
-                            setReferralCode(result.code);
-                            notify(result.code === slugInput.trim() ? "✅ Referral link updated!" : `⚠️ Taken — saved as "${result.code}" instead`);
+                          if (!fullAddress) { notify("Wallet not connected"); return; }
+                          try {
+                            const result = await DbAPI.setReferralCode(fullAddress, slugInput.trim());
+                            if (result?.code) {
+                              setReferralCode(result.code);
+                              notify(result.code === slugInput.trim() ? "✅ Link updated!" : `⚠️ Taken — saved as "${result.code}"`);
+                            } else {
+                              notify("❌ Failed to save — try again");
+                            }
+                          } catch (e) {
+                            notify("❌ Error saving slug");
                           }
                           setSlugEditing(false);
                         }}>Save</button>
@@ -2425,27 +2432,6 @@ export default function FairBounty() {
         <WelcomeModal />
         <DemoBanner />
 
-        {/* Referral panel */}
-        {showReferral && wallet && (
-          <div style={{ ...cardStyle, marginBottom: "20px", padding: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
-              <div>
-                <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "4px" }}>🔗 Refer Friends → Earn BXP</div>
-                <div style={{ fontSize: "12px", color: "#888" }}>You earn <span style={{ color: theme.primary, fontWeight: "600" }}>{Math.floor(50 * FairScoreAPI.getXpMultiplier(fairScore || 1))} BXP</span> per referral · They earn the same</div>
-              </div>
-              {referralCount > 0 && <div style={{ padding: "6px 14px", background: `${theme.primary}15`, borderRadius: "100px", fontSize: "12px", fontWeight: "700", color: theme.primary }}>{referralCount} referral{referralCount !== 1 ? "s" : ""}</div>}
-            </div>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "#0c0c14", borderRadius: "8px", padding: "10px 14px", marginBottom: "12px" }}>
-              <input readOnly value={referralLink} style={{ ...inputStyle, border: "none", background: "transparent", flex: 1, fontSize: "12px", color: "#aaa", padding: "0" }} />
-              <button style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px", whiteSpace: "nowrap" }} onClick={() => { navigator.clipboard.writeText(referralLink).then(() => notify("Referral link copied!")); }}>📋 Copy</button>
-            </div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <a href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Building reputation on @FairBounty — trust-gated bounties on Solana 🔥\n\nJoin with my link, we both earn BXP:\n${referralLink}`)}`} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px", textDecoration: "none", textAlign: "center" }}>Share on 𝕏</a>
-              <a href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join FairBounty — trust-gated bounties on Solana. We both earn BXP!")}`} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px", textDecoration: "none", textAlign: "center" }}>Telegram</a>
-            </div>
-          </div>
-        )}
-
         {/* Score card */}
         {wallet && (
           <div style={{ ...cardStyle, marginBottom: "24px", ...fadeIn, transitionDelay: "0.1s" }}>
@@ -2511,7 +2497,6 @@ export default function FairBounty() {
             <p style={{ fontSize: "12px", color: "#888" }}>{filteredBounties.length} bounties{filterType === "all" ? " (live + demo)" : filterType === "live" ? " (live only)" : " (demo only)"}</p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }} onClick={() => setShowReferral(!showReferral)}>🔗 Refer</button>
             {/* Filter by type */}
             <div style={{ display: "flex", gap: "4px", background: "#0c0c14", borderRadius: "8px", padding: "3px" }}>
               {[["all", "All"], ["live", "Live ✅"], ["demo", "Demo"]].map(([v, l]) => (
