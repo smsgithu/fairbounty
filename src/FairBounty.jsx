@@ -601,6 +601,14 @@ export default function FairBounty() {
   const connectWallet = async (type) => {
     setWalletType(type);
     setLoading(true);
+    // Clear previous wallet's state immediately to prevent bleed
+    setReferralCode(null);
+    setSlugInput("");
+    setSlugEditing(false);
+    setReferralCount(0);
+    setReferralList([]);
+    setBxpBreakdown({ welcome: 0, referrals: 0, referred: 0, submissions: 0, wins: 0 });
+    setBookmarks([]);
     const opt = walletOptions.find((w) => w.id === type);
     if (!opt) { setLoading(false); return; }
 
@@ -713,30 +721,29 @@ export default function FairBounty() {
             setView("dashboard");
             return;
           }
-        } catch (e) { console.error("Profile restore error:", e); }
+        } catch (e) { 
+          console.error("Profile restore error:", e);
+          notify("Profile load error — please try reconnecting.");
+          setLoading(false);
+          setView("connect");
+          return;
+        }
 
         setLoading(false);
         setView("profile-setup");
         return;
       }
 
-      // Demo fallback
-      notify("No wallet detected — demo mode.");
-      const demoAddr = "F" + Array.from({ length: 8 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]).join("") + "...";
-      setWallet(demoAddr);
-      const data = await FairScoreAPI.getScore(demoAddr);
-      if (data) { setFairScore(data.tier); setScoreData(data); setXp(Math.floor(data.score / 2)); }
+      // Demo fallback — only if truly no wallet found
+      notify("No wallet detected — try installing Phantom or Backpack.");
       setLoading(false);
-      setView("profile-setup");
+      setView("connect");
     } catch (err) {
       console.log("Wallet connect error:", err.message);
-      notify("Connection failed — demo mode.");
-      const demoAddr = "F" + Array.from({ length: 8 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789"[Math.floor(Math.random() * 58)]).join("") + "...";
-      setWallet(demoAddr);
-      const data = await FairScoreAPI.getScore(demoAddr);
-      if (data) { setFairScore(data.tier); setScoreData(data); setXp(Math.floor(data.score / 2)); }
+      // Don't fall to demo — show real error so user can retry
+      notify(`Connection failed: ${err.message?.slice(0, 60) || "Unknown error"} — please try again.`);
       setLoading(false);
-      setView("profile-setup");
+      setView("connect");
     }
   };
 
@@ -1209,6 +1216,7 @@ export default function FairBounty() {
       e.stopPropagation();
       setWallet(null); setFullAddress(null); setWalletType("default"); setFairScore(null);
       setScoreData(null); setXp(0); setProfile(null); setBetaAccess(false); setBookmarks([]);
+      setReferralCode(null); setSlugInput(""); setReferralCount(0); setReferralList([]); setSlugEditing(false); setBxpBreakdown({ welcome: 0, referrals: 0, referred: 0, submissions: 0, wins: 0 });
       setProfileForm({ displayName: "", xHandle: "", bio: "", contact: "", email: "", pfpUrl: "", linkedin: "", github: "", website: "", telegram: "", discord: "", lookingFor: "", worksAt: "", location: "", skills: [] });
       setBookmarks([]); setView("landing");
     };
