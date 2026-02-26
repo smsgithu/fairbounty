@@ -5,28 +5,16 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.POSTGRES_URL);
 
-const WRITE_ACTIONS = ["create-bounty", "submit-work", "vote", "select-winner", "save-profile", "claim-welcome", "process-referral", "submit-bounty-app", "set-referral-code", "admin-add-beta", "admin-remove-beta", "admin-update-bounty", "admin-delete-bounty", "admin-update-app"];
 const MAX_TEXT = 5000;
 const MAX_SHORT = 200;
 const sanitize = (str, max = MAX_SHORT) => str ? String(str).slice(0, max).trim() : "";
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin || "";
+  const origin = req.headers.origin || "*";
   const action = req.query.action || "";
 
-  // Allow fairbounty.vercel.app + all preview deploys + localhost
-  const isAllowedOrigin = !origin || 
-    origin === "https://fairbounty.vercel.app" ||
-    origin.match(/^https:\/\/fairbounty[\w-]*\.vercel\.app$/) ||
-    origin.startsWith("http://localhost:");
-
-  // Restrict write actions to allowed origins only
-  const isWrite = WRITE_ACTIONS.includes(action);
-  if (isWrite && !isAllowedOrigin) {
-    return res.status(403).json({ error: "Forbidden" });
-  }
-
-  res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  // CORS - open for all origins, security enforced per-action via wallet verification
+  res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -41,9 +29,35 @@ export default async function handler(req, res) {
 
     if (action === "get-profile") {
       const { wallet } = req.query;
-      const rows = await sql`SELECT profile FROM fb_profiles WHERE wallet = ${wallet} LIMIT 1`;
+      const rows = await sql`SELECT * FROM fb_profiles WHERE wallet = ${wallet} LIMIT 1`;
       if (rows.length === 0) return res.json({ profile: null });
-      return res.json({ profile: rows[0].profile });
+      const row = rows[0];
+      // If profile JSONB exists, return it directly
+      if (row.profile && typeof row.profile === "object" && Object.keys(row.profile).length > 0) {
+        return res.json({ profile: row.profile });
+      }
+      // Otherwise reconstruct from individual columns (legacy rows)
+      const profile = {
+        displayName: row.display_name || "",
+        bio: row.bio || "",
+        contact: row.contact || "",
+        email: row.email || "",
+        pfpUrl: row.pfp_url || "",
+        linkedin: row.linkedin || "",
+        github: row.github || "",
+        website: row.website || "",
+        telegram: row.telegram || "",
+        discord: row.discord || "",
+        lookingFor: row.looking_for || "",
+        worksAt: row.works_at || "",
+        location: row.location || "",
+        skills: row.skills ? (typeof row.skills === "string" ? JSON.parse(row.skills) : row.skills) : [],
+        joinedDate: row.joined_date || "",
+        xHandle: row.x_handle || "",
+      };
+      // Migrate: save as JSONB for next time
+      await sql`UPDATE fb_profiles SET profile = ${JSON.stringify(profile)} WHERE wallet = ${wallet}`;
+      return res.json({ profile });
     }
 
     if (action === "save-profile") {
@@ -547,6 +561,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `Unknown action: ${action}` });
   } catch (error) {
     console.error("DB API error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message, detail: error.detail || null, action });
   }
 }
