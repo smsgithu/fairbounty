@@ -717,8 +717,8 @@ export default function FairBounty() {
             return;
           }
         } catch (e) { 
-          console.error("Profile restore error:", e);
-          // Don't send back to connect - just go to profile setup so they can re-enter
+          console.error("Profile restore error:", e, e.stack);
+          notify(`Debug: ${e.message?.slice(0,80)}`);
           setLoading(false);
           setView("profile-setup");
           return;
