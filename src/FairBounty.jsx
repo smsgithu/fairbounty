@@ -687,7 +687,18 @@ export default function FairBounty() {
 
         // Restore profile
         try {
-          const dbProfile = await DbAPI.getProfile(pubkey);
+          // Try localStorage first as immediate fallback
+          let dbProfile = null;
+          try {
+            dbProfile = await DbAPI.getProfile(pubkey);
+          } catch (e) {
+            console.warn("DB profile fetch failed, trying localStorage:", e);
+          }
+          // If DB returned null, try localStorage
+          if (!dbProfile) {
+            const saved = localStorage.getItem(`fb_profile_${pubkey}`);
+            if (saved) dbProfile = JSON.parse(saved);
+          }
           if (dbProfile) {
             setProfile(dbProfile);
             setProfileForm({ displayName: dbProfile.displayName || "", xHandle: dbProfile.xHandle || "", bio: dbProfile.bio || "", contact: dbProfile.contact || "", email: dbProfile.email || "", pfpUrl: dbProfile.pfpUrl || "", linkedin: dbProfile.linkedin || "", github: dbProfile.github || "", website: dbProfile.website || "", telegram: dbProfile.telegram || "", discord: dbProfile.discord || "", lookingFor: dbProfile.lookingFor || "", worksAt: dbProfile.worksAt || "", location: dbProfile.location || "", skills: dbProfile.skills || [] });
@@ -705,27 +716,11 @@ export default function FairBounty() {
             setView("dashboard");
             return;
           }
-          const saved = localStorage.getItem(`fb_profile_${pubkey}`);
-          if (saved) {
-            const p = JSON.parse(saved);
-            setProfile(p);
-            setProfileForm({ displayName: p.displayName || "", xHandle: p.xHandle || "", bio: p.bio || "", contact: p.contact || "", email: p.email || "", pfpUrl: p.pfpUrl || "", linkedin: p.linkedin || "", github: p.github || "", website: p.website || "", telegram: p.telegram || "", discord: p.discord || "", lookingFor: p.lookingFor || "", worksAt: p.worksAt || "", location: p.location || "", skills: p.skills || [] });
-            const savedBxp = localStorage.getItem(`fb_bxp_${pubkey}`);
-            if (savedBxp) {
-              const bxp = JSON.parse(savedBxp);
-              setBxpBreakdown(bxp);
-              setXp(Object.values(bxp).reduce((a, b) => a + b, 0));
-            }
-            DbAPI.saveProfile(pubkey, p);
-            setLoading(false);
-            setView("dashboard");
-            return;
-          }
         } catch (e) { 
           console.error("Profile restore error:", e);
-          notify("Profile load error — please try reconnecting.");
+          // Don't send back to connect - just go to profile setup so they can re-enter
           setLoading(false);
-          setView("connect");
+          setView("profile-setup");
           return;
         }
 
