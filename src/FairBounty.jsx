@@ -1264,7 +1264,7 @@ export default function FairBounty() {
   ) : null;
 
   // Submit work modal
-  const SubmitModal = ({ bounty }) => showSubmitModal ? (
+  const submitModalJsx = showSubmitModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
       background: "rgba(0,0,0,0.7)", backdropFilter: "blur(12px)",
@@ -1272,7 +1272,7 @@ export default function FairBounty() {
     }} onClick={() => setShowSubmitModal(false)}>
       <div style={{ ...glassCard, maxWidth: "560px", width: "100%", padding: "36px", animation: "slideUp 0.4s cubic-bezier(0.16,1,0.3,1)" }} onClick={(e) => e.stopPropagation()}>
         <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "4px" }}>{t.submitYourWork}</h3>
-        <p style={{ fontSize: "12px", color: "#888", marginBottom: "20px" }}>{bounty?.title}</p>
+        <p style={{ fontSize: "12px", color: "#888", marginBottom: "20px" }}>{selectedBounty?.title}</p>
 
         <div style={{ marginBottom: "16px" }}>
           <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Your Submission *</label>
@@ -1298,10 +1298,10 @@ export default function FairBounty() {
         </div>
 
         <div style={{ display: "flex", gap: "12px" }}>
-          <button style={{ ...btnPrimary, flex: 1 }} disabled={submitting} onClick={() => handleSubmitWork(bounty?.id)}>
+          <button style={{ ...btnPrimary, flex: 1 }} disabled={submitting} onClick={() => handleSubmitWork(selectedBounty?.id)}>
             {submitting ? "Submitting..." : t.submitWork}
           </button>
-          <button style={btnOutline} onClick={() => setShowSubmitModal(false)}>Cancel</button>
+          <button style={btnOutline} onClick={() => setShowSubmitModal(false)}>{t.cancel}</button>
         </div>
       </div>
     </div>
@@ -2284,7 +2284,7 @@ export default function FairBounty() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel={t.backBounties} />
           <DemoModal />
-          <SubmitModal bounty={selectedBounty} />
+          {submitModalJsx}
           <Notification />
 
           <div style={{ ...cardStyle, ...fadeIn }}>
