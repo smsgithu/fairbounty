@@ -5,7 +5,6 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.POSTGRES_URL);
 
-const ALLOWED_ORIGINS = ["https://fairbounty.vercel.app", "http://localhost:5173", "http://localhost:3000"];
 const WRITE_ACTIONS = ["create-bounty", "submit-work", "vote", "select-winner", "save-profile", "claim-welcome", "process-referral", "submit-bounty-app", "set-referral-code", "admin-add-beta", "admin-remove-beta", "admin-update-bounty", "admin-delete-bounty", "admin-update-app"];
 const MAX_TEXT = 5000;
 const MAX_SHORT = 200;
@@ -14,16 +13,21 @@ const sanitize = (str, max = MAX_SHORT) => str ? String(str).slice(0, max).trim(
 export default async function handler(req, res) {
   const origin = req.headers.origin || "";
   const action = req.query.action || "";
-  // Allow all origins for read-only GETs; restrict writes to known origins
-  const isWrite = WRITE_ACTIONS.includes(action) || req.method === "POST";
-  if (isWrite && origin && !ALLOWED_ORIGINS.includes(origin)) {
+
+  // Allow fairbounty.vercel.app + all preview deploys + localhost
+  const isAllowedOrigin = !origin || 
+    origin === "https://fairbounty.vercel.app" ||
+    origin.match(/^https:\/\/fairbounty[\w-]*\.vercel\.app$/) ||
+    origin.startsWith("http://localhost:");
+
+  // Restrict write actions to allowed origins only
+  const isWrite = WRITE_ACTIONS.includes(action);
+  if (isWrite && !isAllowedOrigin) {
     return res.status(403).json({ error: "Forbidden" });
   }
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-  }
+
+  res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
@@ -162,6 +166,7 @@ export default async function handler(req, res) {
 
     if (action === "set-referral-code") {
       const { wallet, code } = req.body;
+      if (!wallet || !code) return res.status(400).json({ error: "Missing wallet or code" });
       await sql`
         CREATE TABLE IF NOT EXISTS fb_referral_codes (
           wallet TEXT PRIMARY KEY,
