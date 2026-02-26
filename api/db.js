@@ -62,20 +62,36 @@ export default async function handler(req, res) {
 
     if (action === "save-profile") {
       const { wallet, profile } = req.body;
+      const p = profile || {};
       await sql`
-        INSERT INTO fb_profiles (wallet, profile, updated_at)
-        VALUES (${wallet}, ${JSON.stringify(profile)}, NOW())
+        INSERT INTO fb_profiles (wallet, profile, display_name, bio, contact, email, pfp_url, linkedin, github, website, telegram, discord, looking_for, works_at, location, skills, joined_date, x_handle, updated_at)
+        VALUES (${wallet}, ${JSON.stringify(p)}, ${p.displayName||""}, ${p.bio||""}, ${p.contact||""}, ${p.email||""}, ${p.pfpUrl||""}, ${p.linkedin||""}, ${p.github||""}, ${p.website||""}, ${p.telegram||""}, ${p.discord||""}, ${p.lookingFor||""}, ${p.worksAt||""}, ${p.location||""}, ${p.skills ? JSON.stringify(p.skills) : "[]"}, ${p.joinedDate||""}, ${p.xHandle||""}, NOW())
         ON CONFLICT (wallet) DO UPDATE
-        SET profile = ${JSON.stringify(profile)}, updated_at = NOW()
+        SET profile = ${JSON.stringify(p)}, display_name = ${p.displayName||""}, bio = ${p.bio||""}, contact = ${p.contact||""}, email = ${p.email||""}, pfp_url = ${p.pfpUrl||""}, linkedin = ${p.linkedin||""}, github = ${p.github||""}, website = ${p.website||""}, telegram = ${p.telegram||""}, discord = ${p.discord||""}, looking_for = ${p.lookingFor||""}, works_at = ${p.worksAt||""}, location = ${p.location||""}, skills = ${p.skills ? JSON.stringify(p.skills) : "[]"}, joined_date = ${p.joinedDate||""}, x_handle = ${p.xHandle||""}, updated_at = NOW()
       `;
       return res.json({ success: true });
     }
 
     if (action === "get-bxp") {
       const { wallet } = req.query;
-      const rows = await sql`SELECT bxp FROM fb_bxp WHERE wallet = ${wallet} LIMIT 1`;
+      const rows = await sql`SELECT * FROM fb_bxp WHERE wallet = ${wallet} LIMIT 1`;
       if (rows.length === 0) return res.json({ bxp: null });
-      return res.json({ bxp: rows[0].bxp });
+      const row = rows[0];
+      // If bxp JSONB exists and has data, return it
+      if (row.bxp && typeof row.bxp === "object" && Object.keys(row.bxp).length > 0) {
+        return res.json({ bxp: row.bxp });
+      }
+      // Reconstruct from individual columns (legacy rows)
+      const bxp = {
+        welcome: row.welcome || 0,
+        referrals: row.referrals || 0,
+        referred: row.referred || 0,
+        submissions: row.submissions || 0,
+        wins: row.wins || 0,
+      };
+      // Migrate to JSONB for next time
+      await sql`UPDATE fb_bxp SET bxp = ${JSON.stringify(bxp)} WHERE wallet = ${wallet}`;
+      return res.json({ bxp });
     }
 
     if (action === "claim-welcome") {
