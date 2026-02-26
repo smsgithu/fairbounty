@@ -357,7 +357,7 @@ export default function FairBounty() {
       joinedDate2: "Joined", onChainStats: "On-Chain Stats",
       fairscoreBadges: "FAIRSCALE BADGES", noSubmissionsYet: "No submissions yet",
       postBountyTitle: "Post a Bounty", betaPostNote: "Beta: Bounties go live after founder review.",
-      prizeTypeLabel: {t.prizeTypeStar}, minTierLabel: "Min Tier", tagsLabel: "Tags",
+      prizeTypeLabel: "Prize Type *", minTierLabel: "Min Tier", tagsLabel: "Tags",
       contactMethod: "Contact Method", contactValue: "Contact / Handle",
       submitReview: "Submit for Review →", livePreview: "Live Preview",
       detected: "Detected", notDetected: "Not Detected",
