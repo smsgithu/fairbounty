@@ -961,7 +961,7 @@ export default function FairBounty() {
 
   const referralLink = referralCode
     ? `https://fairbounty.vercel.app?ref=${referralCode}`
-    : fullAddress ? `https://fairbounty.vercel.app?ref=${fullAddress}` : "";
+    : fullAddress ? `https://fairbounty.vercel.app?ref=${fullAddress.slice(0,8)}` : "";
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
 
@@ -1999,15 +1999,19 @@ export default function FairBounty() {
                           if (!slugInput.trim() || slugInput.length < 3) { notify("Slug must be at least 3 characters"); return; }
                           if (!fullAddress) { notify("Wallet not connected"); return; }
                           try {
+                            console.log("[FairBounty] Saving slug:", slugInput.trim(), "for wallet:", fullAddress);
                             const result = await DbAPI.setReferralCode(fullAddress, slugInput.trim());
+                            console.log("[FairBounty] Slug save result:", result);
                             if (result?.code) {
                               setReferralCode(result.code);
                               notify(result.code === slugInput.trim() ? "✅ Link updated!" : `⚠️ Taken — saved as "${result.code}"`);
                             } else {
                               notify("❌ Failed to save — try again");
+                              console.error("[FairBounty] Slug save failed, result:", result);
                             }
                           } catch (e) {
                             notify("❌ Error saving slug");
+                            console.error("[FairBounty] Slug save error:", e);
                           }
                           setSlugEditing(false);
                         }}>Save</button>
@@ -2016,7 +2020,9 @@ export default function FairBounty() {
                     ) : (
                       <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "10px 14px", border: `1px solid ${theme.primary}15` }}>
                         <span style={{ fontSize: "11px", color: "#555" }}>…?ref=</span>
-                        <span style={{ flex: 1, fontSize: "12px", color: "rgba(255,255,255,0.6)", fontWeight: "500" }}>{referralCode || fullAddress?.slice(0, 8) + "..."}</span>
+                        <span style={{ flex: 1, fontSize: "12px", color: referralCode ? "rgba(255,255,255,0.6)" : "#555", fontWeight: "500", fontStyle: referralCode ? "normal" : "italic" }}>
+                          {referralCode || "tap Edit to set your slug"}
+                        </span>
                         <button onClick={() => { setSlugInput(referralCode || ""); setSlugEditing(true); }} style={{ ...btnOutline, fontSize: "10px", padding: "4px 10px", whiteSpace: "nowrap" }}>✏️ Edit</button>
                       </div>
                     )}
