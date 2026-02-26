@@ -1226,19 +1226,38 @@ export default function FairBounty() {
 
   const DemoBanner = () => (
     <div style={{
-      background: `linear-gradient(90deg, ${theme.primary}08, ${theme.accent}06)`,
-      border: `1px solid ${theme.primary}15`, borderRadius: "12px",
-      padding: "10px 16px", marginBottom: "16px", textAlign: "center",
-      fontSize: "12px", color: "rgba(255,255,255,0.45)", backdropFilter: "blur(16px)", letterSpacing: "-0.01em",
+      background: betaAccess ? `linear-gradient(90deg, ${theme.primary}12, ${theme.accent}08)` : `linear-gradient(90deg, ${theme.primary}08, ${theme.accent}06)`,
+      border: `1px solid ${betaAccess ? theme.primary + "30" : theme.primary + "15"}`, borderRadius: "12px",
+      padding: "12px 20px", marginBottom: "16px", textAlign: "center",
+      fontSize: "13px", color: "rgba(255,255,255,0.6)", backdropFilter: "blur(16px)", letterSpacing: "-0.01em",
     }}>
-      <span style={{ color: "#22C55E", fontWeight: "500" }}>✅ Live:</span> FairScore · BXP · Referrals · Wallet Count{" "}
-      <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>{" "}
-      {betaAccess
-        ? <><span style={{ color: theme.primary, fontWeight: "600" }}>⚡ Beta:</span> Real bounties · Submissions · Voting · Live rewards</>
-        : <><span style={{ color: "#F59E0B", fontWeight: "500" }}>⏳ Demo:</span> Example bounties</>
-      }{" "}
-      <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>{" "}
-      <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontWeight: "500" }}>{t.poweredBy}</a>
+      {betaAccess ? (
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "6px" }}>
+          <span style={{ color: theme.primary, fontWeight: "700", fontSize: "14px" }}>⚡ Beta Access</span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span style={{ color: "#22C55E" }}>✅ Post real bounties</span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span style={{ color: "#22C55E" }}>✅ Submit work</span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span style={{ color: "#22C55E" }}>✅ Vote on submissions</span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span style={{ color: "#22C55E" }}>✅ Earn live rewards</span>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontWeight: "600" }}>Powered by FairScale ↗</a>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "6px" }}>
+          <span style={{ color: "#22C55E", fontWeight: "600" }}>✅ Live:</span>
+          <span>FairScore · BXP · Referrals · Wallet Count</span>
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+          <span style={{ color: "#F59E0B", fontWeight: "600" }}>⏳ Beta only:</span>
+          <span>Real bounties · Submissions · Voting · Rewards</span>
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+          <span style={{ color: "#F59E0B" }}>DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B" }}>@smsonx</a> for access</span>
+          <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
+          <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontWeight: "600" }}>Powered by FairScale ↗</a>
+        </div>
+      )}
     </div>
   );
 
