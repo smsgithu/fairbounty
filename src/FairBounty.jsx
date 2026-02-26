@@ -1666,18 +1666,13 @@ export default function FairBounty() {
   // ABOUT
   // ============================================================
   if (view === "about") {
-    const sections = [
-      { title: "🎯 The Problem", content: "The Solana ecosystem is booming with bounties, grants, and freelance work — but there's no trust layer. Projects waste time and money on unvetted contributors. Developers get scammed by fake bounties. There's no way to prove you're legit without a personal network." },
-      { title: "💡 The Solution", content: "FairBounty uses FairScale's on-chain reputation scoring (FairScore) to gate every interaction. Your wallet history becomes your resume. Projects trust contributors because their reputation is transparent, verifiable, and can't be faked." },
-      { title: "👥 Target Audience", content: "Solana projects needing vetted contributors (devs, designers, auditors, community managers). Web3 freelancers who want to build verifiable on-chain reputation. DAOs looking for accountable talent. NFT projects needing trusted collaborators." },
-      { title: "📊 FairScore Integration", items: ["Tier-Gated Access — Bounties require minimum FairScore tiers. Can't claim what you haven't earned.", "Community Review — Submissions voted on, weighted by tier. Client picks the winner.", "Dynamic Rewards — Tier-based bonus rewards on completed bounties.", "Risk Assessment — Every wallet gets a risk score.", "BXP Multipliers — Higher tiers earn BXP faster.", "Multi-Prize Support — stablecoins, memecoins, NFTs, and collectibles as prizes."] },
-      { title: "🤝 Competitive Advantage", content: "No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, creating a self-reinforcing reputation flywheel." },
-      { title: "🔗 Links", links: [
-        { label: "Built by @smsonx", url: "https://x.com/smsonx" },
-        { label: "Platform — @fairbounty", url: "https://x.com/fairbounty" },
-        { label: "Research & Updates — smsai.fun", url: "https://smsai.fun" },
-        { label: "Powered by FairScale — fairscale.xyz", url: "https://fairscale.xyz" },
-      ]},
+    const integrations = [
+      { icon: "🔒", title: "Tier-Gated Access", desc: "Bounties require a minimum FairScore tier. Bots and farmers can't apply — only wallets that have earned access can participate. Higher reputation = access to bigger bounties." },
+      { icon: "⚖️", title: "Weighted Community Voting", desc: "Every vote is weighted by the voter's FairScore tier. A Tier 5 Legend's vote carries 8× the weight of a Tier 1 Newcomer. Reputation determines influence." },
+      { icon: "💎", title: "Dynamic Reward Bonuses", desc: "Winners earn bonus BXP on top of their prize based on their tier. Up to +25% for Tier 5 Legends — creating a compounding incentive to build reputation." },
+      { icon: "🛡️", title: "Risk Assessment", desc: "Every connecting wallet receives a real-time risk assessment from FairScore. Low-reputation wallets are flagged. Clients filter by risk level before reviewing work." },
+      { icon: "⚡", title: "BXP Multipliers", desc: "FairBounty's reputation currency (BXP) is earned faster at higher tiers — up to 3× for Tier 5. Higher FairScore → faster BXP → better platform standing → bigger bounties." },
+      { icon: "🔗", title: "Referral Gating", desc: "Only Tier 2+ wallets can generate referral links. This prevents bot-driven referral spam and ensures the referral network consists of real, established contributors." },
     ];
     return (
       <div style={pageStyle}>
@@ -1685,37 +1680,106 @@ export default function FairBounty() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="landing" backLabel={t.home} />
           <div style={fadeIn}>
-            <h1 style={{ fontSize: "32px", fontWeight: "900", marginBottom: "8px" }}>About FairBounty</h1>
-            <p style={{ color: "#888", fontSize: "14px", marginBottom: "40px" }}>Reputation-gated bounties for the Solana ecosystem, powered by FairScale.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-              {sections.map((s) => (
-                <div key={s.title} style={cardStyle}>
-                  <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "12px" }}>{s.title}</h3>
-                  {s.content && <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8" }}>{s.content}</p>}
-                  {s.items && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {s.items.map((item, i) => (
-                        <div key={i} style={{ padding: "10px 14px", background: "#0c0c14", borderRadius: "6px", fontSize: "12px", color: "#bbb", lineHeight: "1.6", borderLeft: `2px solid ${theme.primary}40` }}>{item}</div>
-                      ))}
-                    </div>
-                  )}
-                  {s.links && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {s.links.map((link, i) => (
-                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
-                          padding: "10px 14px", background: "#0c0c14", borderRadius: "6px",
-                          fontSize: "12px", color: theme.primary, lineHeight: "1.6",
-                          borderLeft: `2px solid ${theme.primary}40`, textDecoration: "none",
-                          display: "block", transition: "background 0.2s ease",
-                        }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = `${theme.primary}10`}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "#0c0c14"}
-                        >{link.label} ↗</a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+            {/* Hero */}
+            <div style={{ textAlign: "center", marginBottom: "48px" }}>
+              <div style={{ display: "inline-block", padding: "6px 16px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "100px", fontSize: "11px", color: theme.primary, marginBottom: "20px", letterSpacing: "1.5px", textTransform: "uppercase" }}>About FairBounty</div>
+              <h1 style={{ fontSize: "clamp(28px, 5vw, 42px)", fontWeight: "900", lineHeight: "1.1", marginBottom: "16px", letterSpacing: "-1px" }}>
+                Reputation is the<br /><span style={{ color: theme.primary }}>New Trust Layer</span>
+              </h1>
+              <p style={{ fontSize: "15px", color: "#888", maxWidth: "560px", margin: "0 auto", lineHeight: "1.7" }}>
+                FairBounty is a reputation-gated bounty platform for Solana. Your on-chain history — verified by FairScale — determines what you can access, how much influence you carry, and how fast you earn.
+              </p>
+            </div>
+
+            {/* Problem / Solution */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "40px" }}>
+              <div style={{ ...cardStyle, borderColor: "#EF444430" }}>
+                <div style={{ fontSize: "11px", fontWeight: "700", color: "#EF4444", letterSpacing: "1px", marginBottom: "12px", textTransform: "uppercase" }}>🚨 The Problem</div>
+                <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", margin: 0 }}>
+                  Bounty platforms on Solana have no trust layer. Bots and farmers dilute opportunities for real contributors. Projects waste budget on unvetted work. There's no way to prove you're legit without a personal network.
+                </p>
+              </div>
+              <div style={{ ...cardStyle, borderColor: `${theme.primary}30` }}>
+                <div style={{ fontSize: "11px", fontWeight: "700", color: theme.primary, letterSpacing: "1px", marginBottom: "12px", textTransform: "uppercase" }}>💡 The Solution</div>
+                <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", margin: 0 }}>
+                  FairBounty uses FairScale's on-chain reputation (FairScore) as a trust layer. Every interaction is gated, weighted, or enhanced by real reputation. Your wallet history becomes your resume — verifiable, transparent, unfakeable.
+                </p>
+              </div>
+            </div>
+
+            {/* FairScale Integration */}
+            <div style={{ marginBottom: "40px" }}>
+              <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "8px" }}>6 Deep FairScale Integrations</h2>
+                <p style={{ fontSize: "13px", color: "#888" }}>FairScore isn't a badge here — it's the engine powering every feature.</p>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px" }}>
+                {integrations.map((item, i) => (
+                  <div key={i} style={{ ...cardStyle, padding: "20px" }}>
+                    <div style={{ fontSize: "24px", marginBottom: "10px" }}>{item.icon}</div>
+                    <div style={{ fontSize: "13px", fontWeight: "700", color: theme.primary, marginBottom: "8px" }}>{item.title}</div>
+                    <p style={{ fontSize: "12px", color: "#888", lineHeight: "1.7", margin: 0 }}>{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Competitive Advantage */}
+            <div style={{ ...cardStyle, marginBottom: "24px", background: `linear-gradient(135deg, ${theme.primary}08, ${theme.accent}04)` }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "12px" }}>🏆 Competitive Advantage</h3>
+              <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", marginBottom: "12px" }}>
+                No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore — creating a self-reinforcing reputation flywheel that gets stronger as FairScale grows.
+              </p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {["vs Superteam Earn: automated trust, no manual vetting", "vs Layer3: reputation-gated not just task-gated", "Moat: FairScale network effects"].map((item, i) => (
+                  <div key={i} style={{ padding: "6px 12px", background: `${theme.primary}10`, border: `1px solid ${theme.primary}25`, borderRadius: "100px", fontSize: "11px", color: theme.primary }}>{item}</div>
+                ))}
+              </div>
+            </div>
+
+            {/* Business Model */}
+            <div style={{ ...cardStyle, marginBottom: "24px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "12px" }}>💰 Business Model</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  { phase: "Now", item: "50 USDC listing fee per bounty posted", color: theme.primary },
+                  { phase: "Now", item: "5% platform commission on bounty completion", color: theme.primary },
+                  { phase: "Soon", item: "Enterprise data insights for DAOs sourcing talent", color: theme.accent },
+                  { phase: "Soon", item: "Featured listings for high-value bounties", color: theme.accent },
+                  { phase: "Future", item: "Full talent marketplace as FairScale becomes Solana's trust standard", color: "#888" },
+                ].map((row, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px", background: "#0c0c14", borderRadius: "8px" }}>
+                    <span style={{ fontSize: "10px", fontWeight: "700", color: row.color, minWidth: "40px" }}>{row.phase}</span>
+                    <span style={{ fontSize: "12px", color: "#bbb" }}>{row.item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Built by */}
+            <div style={{ ...cardStyle, marginBottom: "24px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "12px" }}>👤 Built by</h3>
+              <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", marginBottom: "16px" }}>
+                <span style={{ color: theme.primary, fontWeight: "700" }}>@smsonx</span> — founder of Solana Made Simple, active in the Solana ecosystem since 2021. Previously shipped SMSai to the Solana dApp Store. FairBounty is the second product in the SMS ecosystem, built specifically for the FairScale competition and continuing as a standalone platform.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  { label: "𝕏 @smsonx (founder)", url: "https://x.com/smsonx" },
+                  { label: "𝕏 @fairbounty (platform)", url: "https://x.com/fairbounty" },
+                  { label: "smsai.fun — research & updates", url: "https://smsai.fun" },
+                  { label: "Powered by FairScale ↗", url: "https://fairscale.xyz" },
+                ].map((link, i) => (
+                  <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" style={{
+                    padding: "10px 14px", background: "#0c0c14", borderRadius: "8px",
+                    fontSize: "12px", color: theme.primary, textDecoration: "none",
+                    borderLeft: `2px solid ${theme.primary}40`, display: "block",
+                    transition: "background 0.2s ease",
+                  }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = `${theme.primary}10`}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "#0c0c14"}
+                  >{link.label}</a>
+                ))}
+              </div>
             </div>
           </div>
           <Footer />
