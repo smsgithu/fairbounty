@@ -1731,7 +1731,7 @@ export default function FairBounty() {
                 No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore — creating a self-reinforcing reputation flywheel that gets stronger as FairScale grows.
               </p>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {["vs Superteam Earn: automated trust, no manual vetting", "vs Layer3: reputation-gated not just task-gated", "Moat: FairScale network effects"].map((item, i) => (
+                {["vs Superteam Earn: automated trust, no manual vetting", "vs Layer3: reputation-gated not just task-gated", "Moat: FairScale network effects", "Solana Mobile / Seeker: mobile-first ready"].map((item, i) => (
                   <div key={i} style={{ padding: "6px 12px", background: `${theme.primary}10`, border: `1px solid ${theme.primary}25`, borderRadius: "100px", fontSize: "11px", color: theme.primary }}>{item}</div>
                 ))}
               </div>
@@ -1752,6 +1752,31 @@ export default function FairBounty() {
                     <span style={{ fontSize: "10px", fontWeight: "700", color: row.color, minWidth: "40px" }}>{row.phase}</span>
                     <span style={{ fontSize: "12px", color: "#bbb" }}>{row.item}</span>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Solana Mobile */}
+            <div style={{ ...cardStyle, marginBottom: "24px", borderColor: "#14F19530" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                <span style={{ fontSize: "28px" }}>📱</span>
+                <div>
+                  <h3 style={{ fontSize: "15px", fontWeight: "700", margin: 0 }}>Solana Mobile — Seeker Ready</h3>
+                  <div style={{ fontSize: "11px", color: "#14F195", marginTop: "2px" }}>Built-in · dApp Store publishing planned</div>
+                </div>
+              </div>
+              <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.8", marginBottom: "12px" }}>
+                FairBounty is built with Mobile Wallet Adapter (MWA) from day one — the same infrastructure used for SMSai on the Solana dApp Store. The app works natively in wallet browsers on Solana Mobile devices, with Seed Vault support for the Seeker.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[
+                  "✅ Mobile Wallet Adapter (MWA) integrated",
+                  "✅ Seed Vault wallet support for Seeker",
+                  "✅ Responsive design optimized for mobile",
+                  "🔜 Solana dApp Store publishing planned",
+                  "🔜 Native Seeker deep links + push notifications",
+                ].map((item, i) => (
+                  <div key={i} style={{ padding: "8px 14px", background: "#0c0c14", borderRadius: "8px", fontSize: "12px", color: i < 3 ? "#14F195" : "#888", borderLeft: `2px solid ${i < 3 ? "#14F195" : "#333"}40` }}>{item}</div>
                 ))}
               </div>
             </div>
