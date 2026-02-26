@@ -702,16 +702,22 @@ export default function FairBounty() {
           if (dbProfile) {
             setProfile(dbProfile);
             setProfileForm({ displayName: dbProfile.displayName || "", xHandle: dbProfile.xHandle || "", bio: dbProfile.bio || "", contact: dbProfile.contact || "", email: dbProfile.email || "", pfpUrl: dbProfile.pfpUrl || "", linkedin: dbProfile.linkedin || "", github: dbProfile.github || "", website: dbProfile.website || "", telegram: dbProfile.telegram || "", discord: dbProfile.discord || "", lookingFor: dbProfile.lookingFor || "", worksAt: dbProfile.worksAt || "", location: dbProfile.location || "", skills: dbProfile.skills || [] });
-            const bxpData = await DbAPI.getBxp(pubkey);
-            if (bxpData?.bxp) {
-              setBxpBreakdown(bxpData.bxp);
-              setXp(Object.values(bxpData.bxp).reduce((a, b) => a + b, 0));
-            }
-            const refCount = await DbAPI.getReferralCount(pubkey);
-            setReferralCount(refCount);
+            try {
+              const bxpData = await DbAPI.getBxp(pubkey);
+              if (bxpData?.bxp) {
+                setBxpBreakdown(bxpData.bxp);
+                setXp(Object.values(bxpData.bxp).reduce((a, b) => a + b, 0));
+              }
+            } catch (e) { console.warn("BXP load failed:", e); }
+            try {
+              const refCount = await DbAPI.getReferralCount(pubkey);
+              setReferralCount(refCount);
+            } catch (e) { console.warn("Referral count load failed:", e); }
             try { localStorage.setItem(`fb_profile_${pubkey}`, JSON.stringify(dbProfile)); } catch (e) {}
-            const code = await DbAPI.getReferralCode(pubkey);
-            if (code) setReferralCode(code);
+            try {
+              const code = await DbAPI.getReferralCode(pubkey);
+              if (code) setReferralCode(code);
+            } catch (e) { console.warn("Referral code load failed:", e); }
             setLoading(false);
             setView("dashboard");
             return;
