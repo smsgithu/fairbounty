@@ -1251,7 +1251,7 @@ export default function FairBounty() {
           <span>FairScore · BXP · Referrals · Wallet Count</span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
           <span style={{ color: "#F59E0B", fontWeight: "600" }}>⏳ Beta only:</span>
-          <span>Real bounties · Submissions · Voting · Rewards</span>
+          <span>Test bounties · Test submissions · Voting · Vibes (no live rewards yet)</span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
           <span style={{ color: "#F59E0B" }}>DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B" }}>@smsonx</a> for access</span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
