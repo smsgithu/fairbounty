@@ -1,200 +1,198 @@
 # FairBounty
 
-<p align="center">
-  <img src="public/logo.png" alt="FairBounty Logo" width="120" />
-</p>
+**Reputation-gated bounty platform for the Solana ecosystem, powered by FairScale.**
 
-<p align="center">
-  <strong>Reputation-Gated Bounty Platform on Solana</strong><br/>
-  Built on <a href="https://fairscale.xyz">FairScale</a> reputation infrastructure
-</p>
-
-<p align="center">
-  <a href="https://fairbounty.vercel.app">Live Platform</a> ·
-  <a href="https://x.com/FairBounty">Twitter/X</a> ·
-  <a href="https://fairscale.xyz">FairScale</a> ·
-  <a href="https://swagger.api.fairscale.xyz/">API Docs</a>
-</p>
+🌐 **Live:** https://fairbounty.vercel.app  
+🐦 **Twitter:** [@smsonx](https://x.com/smsonx)  
+🏗️ **Built by:** [@smsonx](https://x.com/smsonx) · [smsai.fun](https://smsai.fun) · A [Solana Made Simple](https://smsai.fun) product
 
 ---
 
-## The Problem
+## What is FairBounty?
 
-The Solana ecosystem is booming with bounties, grants, and freelance work — but there's no trust layer. Projects waste time and money on unvetted contributors. Developers get scammed by fake bounties. There's no way to prove you're legit without a personal network.
+FairBounty solves one of Web3's most persistent problems: **bounty extraction**. Bots, farmers, and low-quality contributors dilute opportunities for legitimate ecosystem contributors — driving away the clients who fund them.
 
-## The Solution
+FairBounty uses FairScale's on-chain reputation infrastructure (FairScore) as a trust layer. Every interaction — posting a bounty, submitting work, casting a vote — is gated, weighted, or enhanced by the contributor's real on-chain reputation. The result is a bounty platform where reputation is currency.
 
-FairBounty uses FairScale's on-chain reputation scoring (**FairScore**) to gate every interaction. Your wallet history becomes your resume. Projects trust contributors because their reputation is transparent, verifiable, and can't be faked.
+> Competing with Superteam Earn and Layer3, with a unique moat: **FairScore-native trust.**
 
-## How FairScore Powers Everything
+---
 
-FairScore isn't decorative — it's the engine. Every feature is gated, weighted, or enhanced by on-chain reputation.
+## FairScale Integration (6 Deep Integrations)
 
-| Feature | How FairScore is Used |
-|---|---|
-| **Tier-Gated Access** | Bounties require minimum FairScore tiers (1–5). Higher reputation = access to bigger, more valuable bounties. |
-| **Weighted Voting** | Vote weight scales 1x–8x by tier. Tier 5 votes carry 8x the weight of Tier 1. Quality voices shape outcomes. |
-| **Dynamic Rewards** | Tier-based bonus rewards on completed bounties — up to +25% bonus USDC for Tier 5 Legends. |
-| **Risk Assessment** | Every wallet gets a risk score based on FairScore. Projects see trustworthiness at a glance. |
-| **XP Multipliers** | Higher tiers earn XP 1x–3x faster, creating a reputation flywheel. |
-| **Referral Gating** | Only Tier 2+ wallets can generate referral links, preventing bot-driven spam. |
+FairScore isn't a badge here — it's the engine. Every core feature runs through it.
 
-### Tier Breakdown
+### 1. Tier-Gated Bounty Access
+Bounties specify a minimum FairScore tier. Contributors below the threshold can't apply. No bots, no farmers — only wallets that have earned access.
 
-| Tier | Label | Max Bounty | Vote Weight | XP Multiplier | Reward Bonus |
-|---|---|---|---|---|---|
-| 🌱 Tier 1 | Newcomer | $50 | 1x | 1.0x | +0% |
-| 🔍 Tier 2 | Explorer | $250 | 2x | 1.25x | +5% |
-| 🔨 Tier 3 | Builder | $1,000 | 3x | 1.5x | +10% |
-| ⭐ Tier 4 | Veteran | $5,000 | 5x | 2.0x | +15% |
-| 👑 Tier 5 | Legend | Unlimited | 8x | 3.0x | +25% |
+| Tier | Label | Access |
+|------|-------|--------|
+| 1 | Newcomer | Entry-level bounties |
+| 2 | Rising | Mid-range bounties + referral links |
+| 3 | Established | Standard bounties |
+| 4 | Veteran | High-value bounties |
+| 5 | Legend | All bounties + maximum rewards |
 
-## FairScale API Integration
+### 2. FairScore-Weighted Community Voting
+When the community votes on submissions, votes are weighted by tier. A Tier 5 Legend's vote carries 8× the weight of a Tier 1 Newcomer. Reputation determines influence.
 
-FairBounty integrates with the FairScale REST API to fetch real-time on-chain reputation data.
+| Tier | Vote Weight |
+|------|-------------|
+| 1 | 1× |
+| 2 | 2× |
+| 3 | 3× |
+| 4 | 5× |
+| 5 | 8× |
 
-**Endpoint:** `GET /api/v1/score/{walletAddress}`
+### 3. Dynamic Reward Bonuses
+Winners receive bonus BXP on top of their prize based on their tier. Tier 5 Legends earn up to +25% bonus. Higher reputation = bigger rewards, creating a flywheel incentive to build reputation.
 
-**API Documentation:** [swagger.api.fairscale.xyz](https://swagger.api.fairscale.xyz/)
+### 4. Risk Assessment Per Wallet
+Every wallet connecting to FairBounty receives a real-time risk assessment powered by FairScore data. Low-reputation wallets are flagged. Clients can filter contributors by risk level before reviewing submissions.
 
-```javascript
-// Production integration (src/FairBounty.jsx)
-const response = await fetch(`https://api.fairscale.xyz/v1/score/${walletAddress}`, {
-  headers: { 'Authorization': `Bearer ${FAIRSCALE_API_KEY}` }
-});
-const data = await response.json();
-// Returns: { tier, score, history, walletAge, txCount, protocolsUsed, ... }
+### 5. BXP Multipliers
+FairBounty's internal reputation currency (BXP) is earned faster at higher tiers:
+- Tier 1: 1× · Tier 2: 1.25× · Tier 3: 1.5× · Tier 4: 2× · Tier 5: 3×
+
+This creates a compounding incentive: higher FairScore → faster BXP accumulation → better platform standing → access to better bounties.
+
+### 6. Referral Gating
+Only Tier 2+ wallets can generate referral links. This prevents bot-driven referral spam and ensures the referral network is made up of real, established contributors.
+
+---
+
+## Solana Mobile — Seeker Ready
+
+FairBounty is built with Mobile Wallet Adapter (MWA) from day one — the same infrastructure used for SMSai on the Solana dApp Store.
+
+- ✅ Mobile Wallet Adapter integrated
+- ✅ Seed Vault wallet support for Seeker
+- ✅ Responsive design optimized for mobile  
+- 🔜 Solana dApp Store publishing planned
+- 🔜 Native Seeker deep links
+
+The builder (@smsonx) has prior experience shipping to the Solana dApp Store with SMSai, making the dApp Store path for FairBounty a natural next step.
+
+---
+
+## Technical Stack
+
+```
+Frontend:     React (Vite) — single-file component architecture
+Backend:      Vercel Serverless Functions (Node.js)
+Database:     Neon Postgres (cross-device persistence)
+Blockchain:   Solana — wallet connection via @wallet-standard/app
+Reputation:   FairScale API — real-time FairScore lookups (server-proxied)
+Deployment:   Vercel (auto-deploy on GitHub push)
 ```
 
-The FairScore data is used to:
-1. Gate bounty access (tier requirement check)
-2. Calculate vote weight for bounty prioritization
-3. Determine XP multipliers for platform actions
-4. Assess wallet risk level for project trust
-5. Compute dynamic reward bonuses on payouts
-6. Gate referral link generation (Tier 2+ only)
+### Supported Wallets
+Phantom · Solflare · Jupiter · Backpack · Glow · Seed Vault (Mobile Wallet Adapter for Solana Seeker)
 
-> **Note:** The demo currently uses simulated FairScore data. Swap the demo mode for production by uncommenting the API call in `src/FairBounty.jsx` and setting `FAIRSCALE_API_KEY`.
+### API Architecture
+FairScore lookups are proxied through `/api/fairscore.js` — the API key never touches the client. All DB operations go through `/api/db.js`.
 
-## Revenue Model
-
-| Stream | Details |
-|---|---|
-| **Listing Fees** | 50 USDC per bounty posted — sustainable, predictable revenue |
-| **Commission** | 5% cut of all completed bounty payouts |
-| **Data Insights** | Anonymized reputation analytics for ecosystem partners (enterprise tier) |
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + Vite |
-| Styling | CSS-in-JS (inline styles, zero external CSS dependencies) |
-| Auth | Solana wallet-based (Phantom, Solflare, Jupiter, Backpack, Glow) |
-| Reputation | FairScale API (FairScore on-chain reputation scoring) |
-| Hosting | Vercel (auto-deploy from GitHub) |
-| Database | PostgreSQL via Neon (planned for production persistence) |
-| Backend | Node.js serverless functions (planned for bounty management) |
-
-## Features
-
-- **Multi-Wallet Support** — Phantom, Solflare, Jupiter, Backpack, Glow — each with a unique color theme that reskins the entire UI
-- **Bounty Board** — Browse, filter by tier, view details, submit work
-- **Post Bounties** — Projects can post bounties with tier requirements, tags, deadlines
-- **Weighted Voting** — Upvote bounties with tier-scaled vote weight
-- **XP & Gamification** — Earn XP for submissions, votes, and referrals with tier multipliers
-- **Leaderboard** — Top contributors ranked by XP and bounties completed
-- **Risk Assessment** — Every connected wallet shows a FairScore-based risk level
-- **Referral System** — Tier-gated referral links with XP rewards
-- **Responsive Design** — Full mobile and desktop support
-
-## Setup Instructions
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-
-### Local Development
-
-```bash
-# Clone the repository
-git clone https://github.com/FairScale/fairbounty.git
-cd fairbounty
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+### Database Schema
+```
+fb_profiles     — contributor profiles (display name, bio, skills, socials)
+fb_bxp          — BXP balances and breakdown per wallet
+fb_referrals    — referral tracking (referrer → referred)
+fb_referral_codes — custom referral slugs
+fb_wallets      — connected wallet registry (global stats)
+fb_bounty_apps  — client bounty intake forms
+fb_bounties     — live bounty listings
+fb_submissions  — contributor work submissions
+fb_votes        — weighted community votes
+fb_beta_access  — beta whitelist
 ```
 
-The app will be running at `http://localhost:5173`.
+---
 
-### Production Build
+## Live Features
 
-```bash
-npm run build
-npm run preview  # Preview the production build locally
-```
+- ✅ Real-time FairScore fetch on wallet connect
+- ✅ 5-tier system mapped from FairScale tier names
+- ✅ Live bounty posting (beta, founder-reviewed)
+- ✅ Work submission workflow
+- ✅ FairScore-weighted community voting
+- ✅ Winner selection by bounty poster
+- ✅ BXP reward system with tier multipliers
+- ✅ Referral system with custom slugs
+- ✅ Contributor profiles with on-chain stats
+- ✅ Risk assessment display per wallet
+- ✅ Beta access whitelist (admin panel)
+- ✅ Cross-device persistence (Neon Postgres)
+- ✅ Mobile-responsive + Solana Mobile support
+- ✅ English / Spanish i18n
 
-### Deployment (Vercel)
+---
 
-1. Push to GitHub
-2. Import repository at [vercel.com/new](https://vercel.com/new)
-3. Vercel auto-detects Vite and deploys — no configuration needed
-4. (Optional) Add custom domain in Vercel → Settings → Domains
+## Business Model
 
-### Environment Variables (Production)
+FairBounty's revenue model is built around the trust layer it provides:
 
-```env
-VITE_FAIRSCALE_API_KEY=your_fairscale_api_key
-```
+**Near-term:**
+- **Listing fee** — 50 USDC per bounty posted (covers review + platform costs)
+- **Platform commission** — 5% of bounty prize on completion
 
-## Project Structure
+**Medium-term:**
+- **Enterprise data insights** — aggregated contributor reputation data for DAOs and protocols sourcing talent
+- **Featured listings** — priority placement for high-value bounties
+
+**Long-term:**
+- Expand to full talent marketplace as FairScale reputation becomes the Solana-native trust standard
+- Cross-chain expansion as FairScale grows
+
+The moat is the reputation layer — other platforms can copy the bounty mechanics, but FairScale integration creates a defensible trust infrastructure that improves as the FairScale network grows.
+
+---
+
+## File Structure
 
 ```
 fairbounty/
-├── index.html          # Entry HTML with OG meta tags
-├── package.json        # Dependencies and scripts
-├── vite.config.js      # Vite configuration
-├── vercel.json         # Vercel deployment config
+├── api/
+│   ├── fairscore.js    — FairScale API proxy (API key server-side)
+│   └── db.js           — Neon Postgres CRUD
 ├── public/
-│   └── logo.png        # FairBounty logo
-└── src/
-    ├── main.jsx        # React entry point
-    └── FairBounty.jsx  # Main application component (all-in-one SPA)
+│   └── logo.png
+├── src/
+│   ├── FairBounty.jsx  — Full app (~3000 lines)
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+├── index.html
+├── package.json
+├── vercel.json
+└── vite.config.js
 ```
 
-## Growth Strategy
+---
 
-| Milestone | Strategy |
-|---|---|
-| **First 100 users** | Direct outreach to Solana dev communities on X, Discord, Telegram. Seed bounties from existing projects. |
-| **First 1,000** | Referral program with XP rewards. Partner with Superteam, Solana Foundation, hackathon organizers. |
-| **First 10,000** | Expand to multi-chain via FairScale cross-chain reputation. DAO governance-linked bounties. |
-| **Ongoing** | Build-in-public content marketing, ecosystem partnerships, community-driven curation. |
+## Environment Variables
 
-## Competitive Advantage
+| Variable | Purpose |
+|----------|---------|
+| `FAIRSCALE_API_KEY` | FairScale API key for score lookups |
+| `POSTGRES_URL` | Neon Postgres connection string |
 
-No other bounty platform on Solana uses on-chain reputation as a core gating mechanism. Superteam Earn relies on manual vetting. Layer3 uses basic task completion. FairBounty automates trust via FairScore, reducing friction for both projects and contributors while creating a self-reinforcing reputation flywheel.
+---
 
-## Team
+## Roadmap
 
-| Name | Role | Contact |
-|---|---|---|
-| Sean | Solo Developer & Founder | [X/Twitter](https://x.com/FairBounty) |
+- [ ] Smart contract escrow (SOL/USDC locked on-chain at bounty creation)
+- [ ] On-chain winner payout
+- [ ] Leaderboard (top contributors by BXP + wins)
+- [ ] Multi-prize support (memecoins, NFTs live in UI, escrow coming)
+- [ ] DAO/protocol enterprise accounts
+- [ ] Multi-chain expansion (as FairScale expands)
 
-**Previous work:** Built and published [SMSai](https://smsai.fun) — a Solana-focused educational AI chatbot — to the Solana dApp Store. Experienced in React, Vite, Vercel, Solana wallet integration, and shipping Web3 products end-to-end.
+---
 
-## Links
+## About the Builder
 
-- **Live Platform:** [fairbounty.vercel.app](https://fairbounty.vercel.app)
-- **FairScale:** [fairscale.xyz](https://fairscale.xyz)
-- **FairScale API:** [swagger.api.fairscale.xyz](https://swagger.api.fairscale.xyz/)
-- **X/Twitter:** [@fairscalexyz](https://x.com/fairscalexyz)
-- **Telegram:** [FairScale Community](https://t.me/+WQlko_c5blJhN2E0)
+Built by **[@smsonx](https://x.com/smsonx)** — founder of [Solana Made Simple](https://smsai.fun), active in the Solana ecosystem since 2021. Previously shipped [SMSai](https://smsai.fun) to the Solana dApp Store. FairBounty is the second product in the SMS ecosystem.
 
-## License
+---
 
-MIT
+*FairBounty · A Solana Made Simple product · Built on FairScale*
