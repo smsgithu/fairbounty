@@ -2974,11 +2974,20 @@ export default function FairBounty() {
       const [editing, setEditing] = useState(false);
       const [editFields, setEditFields] = useState({ title: b.title, description: b.description, reward: b.reward, prize_type: b.prize_type, min_tier: b.min_tier, deadline: b.deadline || "", tags: b.tags || "" });
       const saveEdit = async () => {
-        await fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: b.id, ...editFields }),
-        });
-        notify("✅ Bounty updated!"); setEditing(false); loadAdmin();
+        try {
+          const res = await fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: b.id, ...editFields }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            notify("✅ Bounty updated!"); setEditing(false); loadAdmin();
+          } else {
+            notify("❌ Update failed: " + (data.error || "unknown error"));
+          }
+        } catch (e) {
+          notify("❌ Error: " + e.message);
+        }
       };
       return (
         <div style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px" }}>
