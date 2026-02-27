@@ -2969,36 +2969,84 @@ export default function FairBounty() {
       </button>
     );
 
-    const BountyRow = ({ b }) => (
-      <div style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <span style={{ fontSize: "13px", fontWeight: "700" }}>{b.title}</span>
-              <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "100px", background: b.status === "open" ? "#22C55E20" : b.status === "rejected" ? "#EF444420" : `${theme.primary}20`, color: b.status === "open" ? "#22C55E" : b.status === "rejected" ? "#EF4444" : theme.primary, fontWeight: "600" }}>{b.status}</span>
+    const BountyRow = ({ b }) => {
+      const [editing, setEditing] = React.useState(false);
+      const [editFields, setEditFields] = React.useState({ title: b.title, description: b.description, reward: b.reward, prize_type: b.prize_type, min_tier: b.min_tier, deadline: b.deadline || "", tags: b.tags || "" });
+      const saveEdit = async () => {
+        await fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: b.id, ...editFields }),
+        });
+        notify("✅ Bounty updated!"); setEditing(false); loadAdmin();
+      };
+      return (
+        <div style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                <span style={{ fontSize: "13px", fontWeight: "700" }}>{b.title}</span>
+                <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "100px", background: b.status === "open" ? "#22C55E20" : b.status === "rejected" ? "#EF444420" : `${theme.primary}20`, color: b.status === "open" ? "#22C55E" : b.status === "rejected" ? "#EF4444" : theme.primary, fontWeight: "600" }}>{b.status}</span>
+              </div>
+              <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
+                {b.project_name} · {b.poster_name} · {b.prize_type} {b.reward} · Tier {b.min_tier}+
+              </div>
+              <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.5", maxHeight: "48px", overflow: "hidden" }}>{b.description}</div>
+              {b.contact_value && <div style={{ fontSize: "11px", color: "#555", marginTop: "4px" }}>📬 {b.contact_method}: {b.contact_value}</div>}
+              <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>{new Date(b.created_at).toLocaleString()}</div>
             </div>
-            <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
-              {b.project_name} · {b.poster_name} · {b.prize_type} {b.reward} · Tier {b.min_tier}+
+            <div style={{ display: "flex", gap: "6px", flexShrink: 0, flexWrap: "wrap" }}>
+              {b.status !== "open" && <button onClick={() => updateBounty(b.id, "open")} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>✅ Approve</button>}
+              {b.status === "open" && <button onClick={() => updateBounty(b.id, "pending")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>⏸ Unpublish</button>}
+              {b.status !== "rejected" && <button onClick={() => updateBounty(b.id, "rejected")} style={{ background: "#EF444420", border: "1px solid #EF444440", borderRadius: "8px", color: "#EF4444", fontSize: "11px", padding: "6px 12px", cursor: "pointer", fontFamily: "inherit" }}>❌ Reject</button>}
+              <button onClick={() => setEditing(!editing)} style={{ background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "8px", color: theme.primary, fontSize: "11px", padding: "6px 10px", cursor: "pointer", fontFamily: "inherit" }}>✏️ Edit</button>
+              <button onClick={() => deleteBounty(b.id)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#666", fontSize: "11px", padding: "6px 10px", cursor: "pointer", fontFamily: "inherit" }}>🗑️</button>
             </div>
-            <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.5", maxHeight: "48px", overflow: "hidden" }}>{b.description}</div>
-            {b.contact_value && <div style={{ fontSize: "11px", color: "#555", marginTop: "4px" }}>📬 {b.contact_method}: {b.contact_value}</div>}
-            <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>{new Date(b.created_at).toLocaleString()}</div>
           </div>
-          <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-            {b.status !== "open" && (
-              <button onClick={() => updateBounty(b.id, "open")} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>✅ Approve</button>
-            )}
-            {b.status === "open" && (
-              <button onClick={() => updateBounty(b.id, "pending")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>⏸ Unpublish</button>
-            )}
-            {b.status !== "rejected" && (
-              <button onClick={() => updateBounty(b.id, "rejected")} style={{ background: "#EF444420", border: "1px solid #EF444440", borderRadius: "8px", color: "#EF4444", fontSize: "11px", padding: "6px 12px", cursor: "pointer", fontFamily: "inherit" }}>❌ Reject</button>
-            )}
-            <button onClick={() => deleteBounty(b.id)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#666", fontSize: "11px", padding: "6px 10px", cursor: "pointer", fontFamily: "inherit" }}>🗑️</button>
-          </div>
+          {editing && (
+            <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${theme.primary}20`, display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Title</label>
+                  <input style={inputStyle} value={editFields.title} onChange={e => setEditFields(f => ({ ...f, title: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Reward Amount</label>
+                  <input style={{ ...inputStyle, color: theme.primary, fontWeight: "700" }} value={editFields.reward} onChange={e => setEditFields(f => ({ ...f, reward: e.target.value }))} placeholder="e.g. 25" />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Prize Type</label>
+                  <select style={{ ...inputStyle }} value={editFields.prize_type} onChange={e => setEditFields(f => ({ ...f, prize_type: e.target.value }))}>
+                    {["Stablecoin", "SOL", "Memecoin", "NFT / cNFT", "Collectible"].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Min Tier</label>
+                  <select style={inputStyle} value={editFields.min_tier} onChange={e => setEditFields(f => ({ ...f, min_tier: parseInt(e.target.value) }))}>
+                    {[1,2,3,4,5].map(n => <option key={n} value={n}>Tier {n}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Deadline</label>
+                  <input style={inputStyle} type="date" value={editFields.deadline?.slice(0,10)} onChange={e => setEditFields(f => ({ ...f, deadline: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Tags</label>
+                  <input style={inputStyle} value={editFields.tags} onChange={e => setEditFields(f => ({ ...f, tags: e.target.value }))} placeholder="design, content, dev..." />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "4px" }}>Description</label>
+                <textarea style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }} value={editFields.description} onChange={e => setEditFields(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button onClick={saveEdit} style={{ ...btnPrimary, fontSize: "12px" }}>💾 Save Changes</button>
+                <button onClick={() => setEditing(false)} style={{ ...btnOutline, fontSize: "12px" }}>Cancel</button>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    );
+      );
+    };
 
     return (
       <div style={pageStyle}>
