@@ -3105,7 +3105,11 @@ export default function FairBounty() {
                   <div key={p.wallet} style={{ ...cardStyle, padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: "600", fontSize: "13px" }}>{prof.displayName || "—"}</div>
-                      <div style={{ fontSize: "10px", color: "#666", fontFamily: "monospace" }}>{p.wallet?.slice(0, 16)}...{p.wallet?.slice(-8)}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div style={{ fontSize: "10px", color: "#666", fontFamily: "monospace" }}>{p.wallet?.slice(0, 16)}...{p.wallet?.slice(-8)}</div>
+                        <button onClick={() => navigator.clipboard.writeText(p.wallet).then(() => notify("Address copied!"))} style={{ background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "4px", color: theme.primary, fontSize: "9px", padding: "2px 6px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>📋 Copy</button>
+                        <button onClick={() => { setBetaInputWallet(p.wallet); setAdminTab("beta"); }} style={{ background: "#22C55E15", border: "1px solid #22C55E30", borderRadius: "4px", color: "#22C55E", fontSize: "9px", padding: "2px 6px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>⚡ Beta</button>
+                      </div>
                       {prof.xHandle && <div style={{ fontSize: "11px", color: theme.primary }}>@{prof.xHandle}</div>}
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
