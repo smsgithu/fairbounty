@@ -1439,9 +1439,6 @@ export default function FairBounty() {
               {lang === "en" ? "ES" : "EN"}
             </button>
           </div>
-              {lang === "en" ? "ES" : "EN"}
-            </button>
-          </div>
         </div>
 
         {/* ROW 2: Back button left — Wallet pill right. Always same height whether or not content exists. */}
