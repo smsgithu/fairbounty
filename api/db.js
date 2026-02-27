@@ -553,8 +553,22 @@ export default async function handler(req, res) {
     if (action === "admin-update-bounty") {
       const { wallet } = req.query;
       if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
-      const { id, status } = req.body;
-      await sql`UPDATE fb_bounties SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
+      const { id, status, title, description, reward, prize_type, min_tier, deadline, tags } = req.body;
+      if (title !== undefined || reward !== undefined) {
+        await sql`UPDATE fb_bounties SET 
+          status = COALESCE(NULLIF(${status || ''}, ''), status),
+          title = COALESCE(NULLIF(${title || ''}, ''), title),
+          description = COALESCE(NULLIF(${description || ''}, ''), description),
+          reward = COALESCE(NULLIF(${reward || ''}, ''), reward),
+          prize_type = COALESCE(NULLIF(${prize_type || ''}, ''), prize_type),
+          min_tier = COALESCE(${min_tier || null}, min_tier),
+          deadline = COALESCE(NULLIF(${deadline || ''}, ''), deadline),
+          tags = COALESCE(NULLIF(${tags || ''}, ''), tags),
+          updated_at = NOW() 
+          WHERE id = ${id}`;
+      } else {
+        await sql`UPDATE fb_bounties SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
+      }
       return res.json({ success: true });
     }
 
