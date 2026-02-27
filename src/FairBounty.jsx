@@ -1209,6 +1209,7 @@ export default function FairBounty() {
       .nav-icon { display: inline !important; }
       .nav-label { display: none !important; }
       .nav-btn { padding: 7px 9px !important; font-size: 16px !important; }
+      .nav-tabs { width: 100% !important; justify-content: space-around !important; }
       .prize-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; overflow: visible !important; }
       .stats-grid { gap: 10px !important; }
       .stats-grid > div { padding: 14px 8px !important; }
@@ -1400,9 +1401,8 @@ export default function FairBounty() {
     };
     return (
       <div style={{ marginBottom: "24px", borderBottom: `1px solid ${theme.primary}15` }}>
-        {/* ROW 1: Logo left — Nav tabs right. Identical on every page. */}
+        {/* ROW 1: Logo only */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "52px" }}>
-          {/* Logo — always same width */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flexShrink: 0 }} onClick={() => setView("landing")}>
             <Logo size={22} />
             <span style={{ fontSize: "14px", fontWeight: "700", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}>FairBounty</span>
@@ -1410,31 +1410,51 @@ export default function FairBounty() {
               {betaAccess ? "Beta ⚡" : "Beta"}
             </span>
           </div>
-          {/* Nav tabs — icons on mobile, labels on desktop */}
-          <div style={{ display: "flex", alignItems: "center", gap: "2px", flexShrink: 1, minWidth: 0 }}>
-            {[
-              { label: t.bounties, icon: "🎯", view: wallet && profile ? "dashboard" : "landing" },
-              { label: t.postBounty, icon: "📋", view: "post-bounty" },
-              { label: t.howItWorks, icon: "📖", view: "how-it-works" },
-              { label: t.about, icon: "ℹ️", view: "about" },
-              { label: "🏆", icon: "🏆", view: "leaderboard" },
-            ].map((tab) => (
-              <button key={tab.view} className="nav-btn" style={{ ...tabStyle(tab.view) }} onClick={() => {
-                if (tab.view === "post-bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
-                setView(tab.view);
-              }}>
-                <span className="nav-icon">{tab.icon}</span>
-                <span className="nav-label">{tab.label}</span>
-              </button>
-            ))}
-            {wallet && profile && (
-              <button className="nav-btn" style={{ ...tabStyle("profile") }} onClick={() => setView("profile")}>👤</button>
-            )}
-            {ADMIN_WALLETS.includes(fullAddress) && (
-              <button className="nav-btn" style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)" }} onClick={() => setView("admin")}>⚙️</button>
-            )}
-          </div>
+          {/* Wallet pill on same row as logo — desktop only via CSS */}
+          {wallet ? (
+            <div className="wallet-pill-desktop" style={{
+              display: "flex", alignItems: "center", gap: "5px", padding: "5px 10px",
+              background: `${theme.primary}0C`, border: `1px solid ${theme.primary}20`,
+              borderRadius: "12px", fontSize: "11px", cursor: profile ? "pointer" : "default",
+              backdropFilter: "blur(16px)", flexShrink: 0, whiteSpace: "nowrap",
+            }} onClick={() => profile && setView("profile")}>
+              <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
+              <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: "600", maxWidth: "80px", overflow: "hidden", textOverflow: "ellipsis" }}>{profile ? profile.displayName : wallet}</span>
+              <span style={{ color: theme.primary, fontWeight: "700" }}>{xp} BXP</span>
+              <button onClick={disconnectFn} style={{ background: "none", border: "none", color: "#555", cursor: "pointer", fontSize: "12px", padding: "0", fontFamily: "inherit" }}>✕</button>
+            </div>
+          ) : (
+            <button style={{ ...btnPrimary, fontSize: "12px", padding: "6px 14px" }} onClick={() => setView("connect")}>Connect</button>
+          )}
         </div>
+
+        {/* ROW 2: All nav icons — full width, evenly spaced */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", width: "100%", paddingBottom: "6px", gap: "2px" }}>
+          {[
+            { label: t.bounties, icon: "🎯", view: wallet && profile ? "dashboard" : "landing" },
+            { label: t.postBounty, icon: "📋", view: "post-bounty" },
+            { label: t.howItWorks, icon: "📖", view: "how-it-works" },
+            { label: t.about, icon: "ℹ️", view: "about" },
+            { label: "🏆", icon: "🏆", view: "leaderboard" },
+          ].map((tab) => (
+            <button key={tab.view} className="nav-btn" style={{ ...tabStyle(tab.view) }} onClick={() => {
+              if (tab.view === "post-bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
+              setView(tab.view);
+            }}>
+              <span className="nav-icon">{tab.icon}</span>
+              <span className="nav-label">{tab.label}</span>
+            </button>
+          ))}
+          {wallet && profile && (
+            <button className="nav-btn" style={{ ...tabStyle("profile") }} onClick={() => setView("profile")}>👤</button>
+          )}
+          {ADMIN_WALLETS.includes(fullAddress) && (
+            <button className="nav-btn" style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)" }} onClick={() => setView("admin")}>⚙️</button>
+          )}
+        </div>
+
+        {/* ROW 3: Back button left — ES toggle left — Wallet pill right (mobile only) */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "38px", paddingBottom: "8px" }}>
 
         {/* ROW 2: Back button left — Wallet pill right. Always same height whether or not content exists. */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "38px", paddingBottom: "8px" }}>
@@ -1462,10 +1482,10 @@ export default function FairBounty() {
               flexShrink: 0, whiteSpace: "nowrap",
             }} onClick={() => profile && setView("profile")}>
               <span style={{ color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji}</span>
-              <span className="nav-label" style={{ color: "rgba(255,255,255,0.75)", fontWeight: "600", maxWidth: "80px", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: "600", maxWidth: "80px", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {profile ? profile.displayName : wallet}
               </span>
-              <span className="nav-label">
+              <span>
                 {fullAddress && PLATFORM_BADGES[fullAddress] && (
                   <span style={{ fontSize: "8px", fontWeight: "700", color: "#FFD700", background: "rgba(255,215,0,0.12)", padding: "2px 5px", borderRadius: "100px" }}>★</span>
                 )}
