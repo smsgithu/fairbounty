@@ -1198,11 +1198,13 @@ export default function FairBounty() {
     button:hover { transform: translateY(-1px); }
     button:active { transform: translateY(0); }
     .beta-badge { animation: betaPulse 2s ease-in-out infinite; }
-    .nav-icon { display: none !important; }
+    .nav-icon { display: none; }
     .nav-label { display: inline; }
+    .nav-btn { padding: 7px 13px !important; }
     @media (max-width: 900px) {
       .nav-icon { display: inline !important; }
       .nav-label { display: none !important; }
+      .nav-btn { padding: 7px 9px !important; font-size: 16px !important; }
       .prize-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; overflow: visible !important; }
       .stats-grid { gap: 10px !important; }
       .stats-grid > div { padding: 14px 8px !important; }
@@ -1404,8 +1406,8 @@ export default function FairBounty() {
               {betaAccess ? "Beta ⚡" : "Beta"}
             </span>
           </div>
-          {/* Nav tabs — icons always visible, labels hidden on mobile */}
-          <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+          {/* Nav tabs — icons on mobile, labels on desktop */}
+          <div style={{ display: "flex", alignItems: "center", gap: "2px", flexShrink: 1, minWidth: 0 }}>
             {[
               { label: t.bounties, icon: "🎯", view: wallet && profile ? "dashboard" : "landing" },
               { label: t.postBounty, icon: "📋", view: "post-bounty" },
@@ -1413,27 +1415,30 @@ export default function FairBounty() {
               { label: t.about, icon: "ℹ️", view: "about" },
               { label: "🏆", icon: "🏆", view: "leaderboard" },
             ].map((tab) => (
-              <button key={tab.label} style={{ ...tabStyle(tab.view), ...(tab.label === "🏆" ? { color: view === tab.view ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" } : {}) }} onClick={() => {
+              <button key={tab.view} className="nav-btn" style={{ ...tabStyle(tab.view) }} onClick={() => {
                 if (tab.view === "post-bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
                 setView(tab.view);
               }}>
-                <span style={{ display: "none" }} className="nav-icon">{tab.icon}</span>
-                <span className="nav-label">{tab.label === "🏆" ? "🏆" : tab.label}</span>
+                <span className="nav-icon">{tab.icon}</span>
+                <span className="nav-label">{tab.label}</span>
               </button>
             ))}
             {wallet && profile && (
-              <button style={{ ...tabStyle("profile"), color: view === "profile" ? "#fff" : "rgba(255,255,255,0.75)", fontSize: "16px" }} onClick={() => setView("profile")}>👤</button>
+              <button className="nav-btn" style={{ ...tabStyle("profile") }} onClick={() => setView("profile")}>👤</button>
             )}
             {fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD" && (
-              <button style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)", fontSize: "14px" }} onClick={() => setView("admin")}>⚡</button>
+              <button className="nav-btn" style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)" }} onClick={() => setView("admin")}>⚙️</button>
             )}
             {/* Language toggle */}
             <button onClick={() => setLang(l => l === "en" ? "es" : "en")} style={{
               background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: "8px", color: "rgba(255,255,255,0.7)", fontSize: "11px",
-              fontWeight: "700", padding: "5px 9px", cursor: "pointer", fontFamily: "inherit",
-              letterSpacing: "0.5px", transition: "all 0.2s",
+              fontWeight: "700", padding: "5px 7px", cursor: "pointer", fontFamily: "inherit",
+              letterSpacing: "0.5px", transition: "all 0.2s", flexShrink: 0,
             }}>
+              {lang === "en" ? "ES" : "EN"}
+            </button>
+          </div>
               {lang === "en" ? "ES" : "EN"}
             </button>
           </div>
