@@ -563,7 +563,7 @@ export default async function handler(req, res) {
           prize_type = COALESCE(NULLIF(${prize_type || ''}, ''), prize_type),
           min_tier = COALESCE(${min_tier || null}, min_tier),
           deadline = COALESCE(NULLIF(${deadline || ''}, ''), deadline),
-          tags = COALESCE(NULLIF(${tags || ''}, ''), tags),
+          tags = CASE WHEN ${tags || ''} = '' THEN tags ELSE ${tags || '[]'}::jsonb END,
           updated_at = NOW() 
           WHERE id = ${id}`;
       } else {
