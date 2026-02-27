@@ -1200,10 +1200,10 @@ export default function FairBounty() {
     .beta-badge { animation: betaPulse 2s ease-in-out infinite; }
     .nav-icon { display: none !important; }
     .nav-label { display: inline; }
-    @media (max-width: 640px) {
+    @media (max-width: 900px) {
       .nav-icon { display: inline !important; }
       .nav-label { display: none !important; }
-      .prize-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+      .prize-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; overflow: visible !important; }
       .stats-grid { gap: 10px !important; }
       .stats-grid > div { padding: 14px 8px !important; }
       .stats-grid > div > div:first-child { font-size: 22px !important; }
@@ -2552,11 +2552,11 @@ export default function FairBounty() {
                             {!betaAccess && <button onClick={() => setShowDemoModal(true)} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }}>{t.voteBeta}</button>}
                           </div>
                         </div>
-                        <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.7", marginBottom: links.length > 0 ? "12px" : "0" }}>{sub.content}</p>
+                        <p style={{ fontSize: "13px", color: "#bbb", lineHeight: "1.7", marginBottom: links.length > 0 ? "12px" : "0", wordBreak: "break-word", overflowWrap: "anywhere" }}>{sub.content}</p>
                         {links.length > 0 && (
-                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                             {links.map((link, i) => (
-                              <a key={i} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: theme.primary, textDecoration: "none", padding: "4px 10px", background: `${theme.primary}10`, borderRadius: "6px", border: `1px solid ${theme.primary}20` }}>🔗 Link {i + 1}</a>
+                              <a key={i} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: theme.primary, textDecoration: "none", padding: "6px 12px", background: `${theme.primary}10`, borderRadius: "8px", border: `1px solid ${theme.primary}20`, wordBreak: "break-all", display: "block" }}>🔗 {link}</a>
                             ))}
                           </div>
                         )}
@@ -2615,10 +2615,10 @@ export default function FairBounty() {
                   {/* Prize Type Selection */}
                   <div>
                     <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px", display: "block" }}>Prize Type *</label>
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div className="prize-grid" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                       {Object.entries(PRIZE_TYPES).map(([key, pt]) => (
                         <button key={key} onClick={() => setBetaBountyForm({ ...betaBountyForm, prizeType: key, currency: key === "USDC" ? "USDC" : key === "SOL" ? "SOL" : betaBountyForm.currency })} style={{
-                          flex: 1, padding: "12px 6px", borderRadius: "12px", border: `2px solid ${betaBountyForm.prizeType === key ? pt.color : pt.color + "20"}`,
+                          flex: "1 1 80px", minWidth: "70px", padding: "12px 6px", borderRadius: "12px", border: `2px solid ${betaBountyForm.prizeType === key ? pt.color : pt.color + "20"}`,
                           background: betaBountyForm.prizeType === key ? `${pt.color}15` : "transparent",
                           cursor: "pointer", fontFamily: "inherit", textAlign: "center", transition: "all 0.2s ease",
                         }}>
