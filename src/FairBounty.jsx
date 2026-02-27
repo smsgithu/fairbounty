@@ -57,6 +57,10 @@ const BETA_WHITELIST = [
   // Add beta tester wallets here
 ];
 
+const ADMIN_WALLETS = [
+  "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD", // Sean — Founder
+];
+
 const PLATFORM_BADGES_CONFIG = {
   "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD": [
     { id: "founder", label: "Founder", color: "#FFD700", bg: "#FFD70015", border: "#FFD70040" },
@@ -996,7 +1000,7 @@ export default function FairBounty() {
       poster: fullAddress,
       posterName: profile?.displayName || wallet,
       posterTier: fairScore,
-      status: fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD" ? "open" : "pending",
+      status: ADMIN_WALLETS.includes(fullAddress) ? "open" : "pending",
       isBeta: true,
       isDemo: false,
       createdAt: new Date().toISOString(),
@@ -1426,18 +1430,9 @@ export default function FairBounty() {
             {wallet && profile && (
               <button className="nav-btn" style={{ ...tabStyle("profile") }} onClick={() => setView("profile")}>👤</button>
             )}
-            {fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD" && (
+            {ADMIN_WALLETS.includes(fullAddress) && (
               <button className="nav-btn" style={{ ...tabStyle("admin"), color: view === "admin" ? "#FFD700" : "rgba(255,215,0,0.6)" }} onClick={() => setView("admin")}>⚙️</button>
             )}
-            {/* Language toggle */}
-            <button onClick={() => setLang(l => l === "en" ? "es" : "en")} style={{
-              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: "8px", color: "rgba(255,255,255,0.7)", fontSize: "11px",
-              fontWeight: "700", padding: "5px 7px", cursor: "pointer", fontFamily: "inherit",
-              letterSpacing: "0.5px", transition: "all 0.2s", flexShrink: 0,
-            }}>
-              {lang === "en" ? "ES" : "EN"}
-            </button>
           </div>
         </div>
 
@@ -1450,7 +1445,13 @@ export default function FairBounty() {
             ) : (
               <div style={{ width: "1px" }} />
             )}
-            </div>
+            <button onClick={() => setLang(l => l === "en" ? "es" : "en")} style={{
+              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "8px", color: "rgba(255,255,255,0.7)", fontSize: "11px",
+              fontWeight: "700", padding: "5px 7px", cursor: "pointer", fontFamily: "inherit",
+              letterSpacing: "0.5px", transition: "all 0.2s",
+            }}>{lang === "en" ? "ES" : "EN"}</button>
+          </div>
           {/* Wallet pill — always right-aligned, always same row */}
           {wallet ? (
             <div style={{
@@ -2882,7 +2883,7 @@ export default function FairBounty() {
   // ADMIN VIEW — Founder wallet only
   // ============================================================
   if (view === "admin") {
-    const isFounder = fullAddress === "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD";
+    const isFounder = ADMIN_WALLETS.includes(fullAddress);
     if (!isFounder) return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
