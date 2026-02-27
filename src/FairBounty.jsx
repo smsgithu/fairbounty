@@ -1453,10 +1453,7 @@ export default function FairBounty() {
           )}
         </div>
 
-        {/* ROW 3: Back button left — ES toggle left — Wallet pill right (mobile only) */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "38px", paddingBottom: "8px" }}>
-
-        {/* ROW 2: Back button left — Wallet pill right. Always same height whether or not content exists. */}
+        {/* ROW 3: Back button left — ES toggle left — Wallet pill right */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: "38px", paddingBottom: "8px" }}>
           {/* Back button or empty spacer */}
           <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px" }}>
