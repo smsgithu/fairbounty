@@ -866,8 +866,9 @@ export default function FairBounty() {
               }
             } catch (e) { console.warn("BXP load failed:", e); }
             try {
-              const refCount = await DbAPI.getReferralCount(pubkey);
-              setReferralCount(refCount);
+              const refData = await DbAPI.getReferrals(pubkey);
+              setReferralCount(refData?.count || 0);
+              setReferralList(refData?.referrals || []);
             } catch (e) { console.warn("Referral count load failed:", e); }
             try { localStorage.setItem(`fb_profile_${pubkey}`, JSON.stringify(dbProfile)); } catch (e) {}
             try {
@@ -2970,8 +2971,8 @@ export default function FairBounty() {
     );
 
     const BountyRow = ({ b }) => {
-      const [editing, setEditing] = React.useState(false);
-      const [editFields, setEditFields] = React.useState({ title: b.title, description: b.description, reward: b.reward, prize_type: b.prize_type, min_tier: b.min_tier, deadline: b.deadline || "", tags: b.tags || "" });
+      const [editing, setEditing] = useState(false);
+      const [editFields, setEditFields] = useState({ title: b.title, description: b.description, reward: b.reward, prize_type: b.prize_type, min_tier: b.min_tier, deadline: b.deadline || "", tags: b.tags || "" });
       const saveEdit = async () => {
         await fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
           method: "POST", headers: { "Content-Type": "application/json" },
