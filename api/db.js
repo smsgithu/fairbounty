@@ -295,6 +295,7 @@ export default async function handler(req, res) {
           meme_token TEXT,
           nft_mint TEXT,
           nft_name TEXT,
+          nft_image_url TEXT,
           min_tier INTEGER DEFAULT 1,
           tags JSONB DEFAULT '[]',
           deadline TEXT,
@@ -316,14 +317,14 @@ export default async function handler(req, res) {
       const result = await sql`
         INSERT INTO fb_bounties (
           title, description, project_name, category, prize_type, reward, currency,
-          meme_token, nft_mint, nft_name, min_tier, tags, deadline, poster, poster_name,
+          meme_token, nft_mint, nft_name, nft_image_url, min_tier, tags, deadline, poster, poster_name,
           poster_tier, status, contact_method, contact_value, submission_requirements,
           evaluation_criteria, is_beta, created_at
         ) VALUES (
           ${sanitize(bountyData.title, 120)}, ${sanitize(bountyData.description, MAX_TEXT)}, ${sanitize(bountyData.projectName, 80)},
           ${sanitize(bountyData.category, 50)}, ${sanitize(bountyData.prizeType, 20) || "USDC"}, ${sanitize(bountyData.reward, 30)},
           ${sanitize(bountyData.currency, 20) || "USDC"}, ${sanitize(bountyData.memeToken, 50)},
-          ${sanitize(bountyData.nftMint, 100)}, ${sanitize(bountyData.nftName, 80)},
+          ${sanitize(bountyData.nftMint, 100)}, ${sanitize(bountyData.nftName, 80)}, ${sanitize(bountyData.nftImageUrl, 500)},
           ${Math.min(Math.max(parseInt(bountyData.minTier) || 1, 1), 5)}, ${JSON.stringify((bountyData.tags || []).slice(0, 10).map(t => sanitize(t, 30)))},
           ${sanitize(bountyData.deadline, 20)}, ${sanitize(bountyData.poster, 50)}, ${sanitize(bountyData.posterName, 80)},
           ${Math.min(Math.max(parseInt(bountyData.posterTier) || 1, 1), 5)}, ${bountyData.status === "open" ? "open" : "pending"}, ${sanitize(bountyData.contactMethod, 20)},
@@ -345,6 +346,8 @@ export default async function handler(req, res) {
             contact_method as "contactMethod", contact_value as "contactValue",
             submission_requirements as "submissionRequirements",
             evaluation_criteria as "evaluationCriteria",
+            nft_image_url as "nftImageUrl",
+            nft_name as "nftName2",
             is_beta as "isBeta", created_at as "createdAt"
           FROM fb_bounties
           WHERE status = 'open'
@@ -527,7 +530,7 @@ export default async function handler(req, res) {
       await sql`CREATE TABLE IF NOT EXISTS fb_bounties (
         id SERIAL PRIMARY KEY, title TEXT, description TEXT, project_name TEXT,
         category TEXT, prize_type TEXT DEFAULT 'USDC', reward TEXT, currency TEXT DEFAULT 'USDC',
-        meme_token TEXT, nft_mint TEXT, nft_name TEXT, min_tier INTEGER DEFAULT 1,
+        meme_token TEXT, nft_mint TEXT, nft_name TEXT, nft_image_url TEXT, min_tier INTEGER DEFAULT 1,
         tags JSONB DEFAULT '[]', deadline TEXT, poster TEXT, poster_name TEXT, poster_tier INTEGER DEFAULT 1,
         status TEXT DEFAULT 'pending', contact_method TEXT, contact_value TEXT,
         submission_requirements TEXT, evaluation_criteria TEXT,
@@ -540,7 +543,7 @@ export default async function handler(req, res) {
       )`;
 
       const [bounties, apps, profiles, bxpRows] = await Promise.all([
-        sql`SELECT *, project_name as "projectName", prize_type as "prizeType", poster_name as "posterName", min_tier as "minTier", contact_method as "contactMethod", contact_value as "contactValue", is_beta as "isBeta", created_at as "createdAt" FROM fb_bounties ORDER BY created_at DESC`,
+        sql`SELECT *, project_name as "projectName", prize_type as "prizeType", poster_name as "posterName", min_tier as "minTier", contact_method as "contactMethod", contact_value as "contactValue", nft_image_url as "nftImageUrl", is_beta as "isBeta", created_at as "createdAt" FROM fb_bounties ORDER BY created_at DESC`,
         sql`SELECT * FROM fb_bounty_apps ORDER BY created_at DESC`,
         sql`SELECT wallet, profile, updated_at FROM fb_profiles ORDER BY updated_at DESC LIMIT 50`,
         sql`SELECT wallet, bxp FROM fb_bxp`,
