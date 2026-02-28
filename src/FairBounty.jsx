@@ -3107,7 +3107,7 @@ export default function FairBounty() {
     const pendingBounties = (adminData?.bounties || []).filter(b => b.status === "pending");
     const liveBountiesAdmin = (adminData?.bounties || []).filter(b => b.status === "open");
     const rejectedBounties = (adminData?.bounties || []).filter(b => b.status === "rejected");
-    const pendingApps = (adminData?.apps || []).filter(a => a.status === "pending");
+    const pendingApps = (adminData?.apps || []).filter(a => !a.status || a.status === "pending");
 
     const tabBtn = (t, label, count) => (
       <button onClick={() => setAdminTab(t)} style={{
