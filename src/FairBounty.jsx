@@ -2824,17 +2824,31 @@ export default function FairBounty() {
                         <input style={inputStyle} placeholder="e.g. Mad Lads #4200" value={betaBountyForm.nftName} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftName: e.target.value })} />
                       </div>
                       <div>
-                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>NFT Image URL *</label>
-                        <input style={inputStyle} placeholder="https://... image of the NFT" value={betaBountyForm.nftImageUrl} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftImageUrl: e.target.value })} />
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>NFT Image *</label>
+                        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                          <label style={{
+                            ...btnOutline, display: "inline-flex", alignItems: "center", gap: "6px",
+                            cursor: "pointer", fontSize: "12px", padding: "10px 16px",
+                          }}>
+                            🖼️ Upload Image
+                            <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 2 * 1024 * 1024) { notify("Image must be under 2MB"); return; }
+                              const reader = new FileReader();
+                              reader.onload = (ev) => setBetaBountyForm(prev => ({ ...prev, nftImageUrl: ev.target.result }));
+                              reader.readAsDataURL(file);
+                            }} />
+                          </label>
+                          {betaBountyForm.nftImageUrl && (
+                            <button onClick={() => setBetaBountyForm(prev => ({ ...prev, nftImageUrl: "" }))} style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "12px", fontFamily: "inherit", padding: "10px 0" }}>✕ Remove</button>
+                          )}
+                        </div>
                         {betaBountyForm.nftImageUrl && (
-                          <div style={{ marginTop: "8px", borderRadius: "12px", overflow: "hidden", border: `1px solid ${theme.primary}20`, maxWidth: "200px" }}>
-                            <img src={betaBountyForm.nftImageUrl} alt="NFT Preview" style={{ width: "100%", display: "block", borderRadius: "12px" }} onError={(e) => { e.target.style.display = "none"; }} />
+                          <div style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: `1px solid ${theme.primary}20`, maxWidth: "200px" }}>
+                            <img src={betaBountyForm.nftImageUrl} alt="NFT Preview" style={{ width: "100%", display: "block", borderRadius: "12px" }} />
                           </div>
                         )}
-                      </div>
-                      <div>
-                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Mint Address (optional)</label>
-                        <input style={inputStyle} placeholder="NFT mint address for verification" value={betaBountyForm.nftMint} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftMint: e.target.value })} />
                       </div>
                       <div style={{ padding: "10px 14px", background: "#EC489910", borderRadius: "8px", border: "1px solid #EC489930", fontSize: "12px", color: "#EC4899" }}>
                         🖼️ NFT escrow via smart contract — coming soon. For now, prize transfer coordinated directly with winner.
@@ -2849,8 +2863,31 @@ export default function FairBounty() {
                         <input style={inputStyle} placeholder="e.g. Pokémon booster pack, trading card set, digital pack..." value={betaBountyForm.nftName} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftName: e.target.value })} />
                       </div>
                       <div>
-                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Details / Link (optional)</label>
-                        <input style={inputStyle} placeholder="Link to item, mint address, or description of what's included" value={betaBountyForm.nftMint} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftMint: e.target.value })} />
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Collectible Image</label>
+                        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                          <label style={{
+                            ...btnOutline, display: "inline-flex", alignItems: "center", gap: "6px",
+                            cursor: "pointer", fontSize: "12px", padding: "10px 16px",
+                          }}>
+                            📦 Upload Image
+                            <input type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 2 * 1024 * 1024) { notify("Image must be under 2MB"); return; }
+                              const reader = new FileReader();
+                              reader.onload = (ev) => setBetaBountyForm(prev => ({ ...prev, nftImageUrl: ev.target.result }));
+                              reader.readAsDataURL(file);
+                            }} />
+                          </label>
+                          {betaBountyForm.nftImageUrl && (
+                            <button onClick={() => setBetaBountyForm(prev => ({ ...prev, nftImageUrl: "" }))} style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "12px", fontFamily: "inherit", padding: "10px 0" }}>✕ Remove</button>
+                          )}
+                        </div>
+                        {betaBountyForm.nftImageUrl && (
+                          <div style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: `1px solid ${theme.primary}20`, maxWidth: "200px" }}>
+                            <img src={betaBountyForm.nftImageUrl} alt="Collectible Preview" style={{ width: "100%", display: "block", borderRadius: "12px" }} />
+                          </div>
+                        )}
                       </div>
                       <div style={{ padding: "10px 14px", background: "#10B98110", borderRadius: "8px", border: "1px solid #10B98130", fontSize: "12px", color: "#10B981" }}>
                         📦 Prize transfer coordinated directly with winner. Physical items shipped, digital items transferred on-chain or via agreed method.
