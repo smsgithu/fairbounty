@@ -1294,7 +1294,7 @@ export default function FairBounty() {
           <span style={{ color: "#F59E0B", fontWeight: "600" }}>⏳ Beta only:</span>
           <span>Test bounties · Test submissions · Voting · Vibes (no live rewards yet)</span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
-          <span style={{ color: "#F59E0B" }}>DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B" }}>@smsonx</a> for access</span>
+          <span style={{ color: "#F59E0B", cursor: "pointer" }} onClick={() => setShowDemoModal(true)}>⚡ <span style={{ textDecoration: "underline" }}>Request beta access</span></span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
           <a href="https://fairscale.xyz" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none", fontWeight: "600" }}>Powered by FairScale ↗</a>
         </div>
@@ -1698,8 +1698,29 @@ export default function FairBounty() {
               >{lang === "es" ? "Ver Recompensas" : "Browse Bounties"}</button>
             </div>
 
+            {/* Beta Access CTA */}
+            <div style={{
+              marginTop: "40px", padding: "16px 24px", borderRadius: "16px",
+              background: `linear-gradient(135deg, ${theme.primary}12, ${theme.accent}08)`,
+              border: `1px solid ${theme.primary}30`, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "12px",
+              flexWrap: "wrap", animation: "slideUp 0.6s ease",
+              ...fadeIn, transitionDelay: "0.45s",
+            }} onClick={() => setShowDemoModal(true)}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primary; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${theme.primary}30`; e.currentTarget.style.transform = "translateY(0)"; }}
+            >
+              <span style={{ fontSize: "20px" }}>⚡</span>
+              <span style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, letterSpacing: "-0.02em" }}>
+                {lang === "es" ? "¿Quieres acceso beta?" : "Want beta access?"}
+              </span>
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
+                {lang === "es" ? "Envía tu X handle y wallet aquí →" : "Submit your X handle and wallet here →"}
+              </span>
+            </div>
+
             {/* Stats */}
-            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "24px", marginTop: "80px", ...fadeIn, transitionDelay: "0.5s" }}>
+            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "24px", marginTop: "40px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
                 { value: globalStats.connectedWallets.toString(), label: t.connectedWallets, live: true },
                 { value: (liveBounties.length || globalStats.bountyApps || 0).toString(), label: t.liveBounties, live: true },
@@ -3490,7 +3511,7 @@ export default function FairBounty() {
               <div style={{ padding: "8px" }}>
                 <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Access</div>
                 <div style={{ fontSize: "14px", fontWeight: "900", color: betaAccess ? theme.primary : "#888" }}>{betaAccess ? "⚡ Beta" : "🔍 Browse"}</div>
-                <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{betaAccess ? "Submit · Vote · Post" : "DM @smsonx for beta"}</div>
+                <div style={{ fontSize: "10px", color: "#555", marginTop: "4px" }}>{betaAccess ? "Submit · Vote · Post" : "Request beta access ⚡"}</div>
               </div>
             </div>
             {scoreData && (
