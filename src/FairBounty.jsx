@@ -1367,7 +1367,7 @@ export default function FairBounty() {
                 />
               </div>
               <div>
-                <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Wallet Address {fullAddress ? "(auto-filled)" : "*"}</label>
+                <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Wallet Address *</label>
                 <input
                   key="beta-wallet"
                   id="beta-wallet"
