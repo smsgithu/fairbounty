@@ -324,7 +324,7 @@ export default async function handler(req, res) {
           ${sanitize(bountyData.title, 120)}, ${sanitize(bountyData.description, MAX_TEXT)}, ${sanitize(bountyData.projectName, 80)},
           ${sanitize(bountyData.category, 50)}, ${sanitize(bountyData.prizeType, 20) || "USDC"}, ${sanitize(bountyData.reward, 30)},
           ${sanitize(bountyData.currency, 20) || "USDC"}, ${sanitize(bountyData.memeToken, 50)},
-          ${sanitize(bountyData.nftMint, 100)}, ${sanitize(bountyData.nftName, 80)}, ${sanitize(bountyData.nftImageUrl, 500)},
+          ${sanitize(bountyData.nftMint, 100)}, ${sanitize(bountyData.nftName, 80)}, ${bountyData.nftImageUrl ? String(bountyData.nftImageUrl).slice(0, 500000) : ""},
           ${Math.min(Math.max(parseInt(bountyData.minTier) || 1, 1), 5)}, ${JSON.stringify((bountyData.tags || []).slice(0, 10).map(t => sanitize(t, 30)))},
           ${sanitize(bountyData.deadline, 20)}, ${sanitize(bountyData.poster, 50)}, ${sanitize(bountyData.posterName, 80)},
           ${Math.min(Math.max(parseInt(bountyData.posterTier) || 1, 1), 5)}, ${bountyData.status === "open" ? "open" : "pending"}, ${sanitize(bountyData.contactMethod, 20)},
