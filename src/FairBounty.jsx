@@ -6,6 +6,7 @@ import {
   createDefaultWalletNotFoundHandler,
   registerMwa,
 } from "@solana-mobile/wallet-standard-mobile";
+import { Analytics } from "@vercel/analytics/react";
 
 // ============================================================
 // FAIRBOUNTY — Reputation-Gated Bounty Platform
@@ -3672,6 +3673,7 @@ export default function FairBounty() {
         <Footer />
       </div>
       <style>{globalStyles}</style>
+      <Analytics />
     </div>
   );
 }
