@@ -104,6 +104,38 @@ const PrizeIcon = ({ pt, size = 24, style = {} }) =>
     ? <img src={pt.img} alt={pt.label} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", ...style }} />
     : <span style={{ fontSize: size, lineHeight: 1, ...style }}>{pt?.icon}</span>;
 
+const Countdown = ({ deadline, theme }) => {
+  const [timeLeft, setTimeLeft] = useState("");
+  const [urgent, setUrgent] = useState(false);
+  useEffect(() => {
+    if (!deadline) { setTimeLeft("Open"); return; }
+    const target = new Date(deadline + (deadline.includes("T") ? "" : "T23:59:59"));
+    if (isNaN(target.getTime())) { setTimeLeft(deadline); return; }
+    const tick = () => {
+      const now = new Date();
+      const diff = target - now;
+      if (diff <= 0) { setTimeLeft("Ended"); setUrgent(true); return; }
+      const days = Math.floor(diff / 86400000);
+      const hrs = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setUrgent(days < 2);
+      if (days > 0) setTimeLeft(`${days}d ${hrs}h ${mins}m`);
+      else if (hrs > 0) setTimeLeft(`${hrs}h ${mins}m ${secs}s`);
+      else setTimeLeft(`${mins}m ${secs}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [deadline]);
+  const color = timeLeft === "Ended" ? "#EF4444" : urgent ? "#F59E0B" : timeLeft === "Open" ? "#888" : theme?.primary || "#00F0FF";
+  return (
+    <span style={{ color, fontWeight: "700", fontFamily: "'JetBrains Mono', monospace", fontSize: "inherit", letterSpacing: "-0.02em" }}>
+      {timeLeft === "Ended" ? "\u23F0 Ended" : timeLeft === "Open" ? "Open" : `\u23F3 ${timeLeft}`}
+    </span>
+  );
+};
+
 const Logo = ({ size = 28 }) => (
   <img src="/logo.png" alt="FairBounty" style={{
     width: `${size}px`, height: `${size}px`, borderRadius: `${Math.max(4, size / 6)}px`,
@@ -582,7 +614,7 @@ export default function FairBounty() {
     title: "", description: "", projectName: "", category: "",
     prizeType: "USDC", reward: "", currency: "USDC",
     memeToken: "", memeTokenAmount: "",
-    nftMint: "", nftName: "",
+    nftMint: "", nftName: "", nftImageUrl: "",
     minTier: 1, deadline: "", tags: "",
     contactMethod: "x", contactValue: "",
     submissionRequirements: "",
@@ -997,6 +1029,7 @@ export default function FairBounty() {
       ...betaBountyForm,
       reward: rewardValue,
       currency: betaBountyForm.prizeType === "MEMECOIN" ? betaBountyForm.memeToken : betaBountyForm.prizeType === "NFT" ? "NFT" : betaBountyForm.currency,
+      nftImageUrl: betaBountyForm.nftImageUrl || "",
       tags: betaBountyForm.tags.split(",").map(t => t.trim()).filter(Boolean),
       poster: fullAddress,
       posterName: profile?.displayName || wallet,
@@ -1018,7 +1051,7 @@ export default function FairBounty() {
       setBetaBountyForm({
         title: "", description: "", projectName: "", category: "",
         prizeType: "USDC", reward: "", currency: "USDC",
-        memeToken: "", memeTokenAmount: "", nftMint: "", nftName: "",
+        memeToken: "", memeTokenAmount: "", nftMint: "", nftName: "", nftImageUrl: "",
         minTier: 1, deadline: "", tags: "", contactMethod: "x", contactValue: "",
         submissionRequirements: "", evaluationCriteria: "",
       });
@@ -1269,23 +1302,87 @@ export default function FairBounty() {
     </div>
   );
 
+  const [betaSignupHandle, setBetaSignupHandle] = useState("");
+  const [betaSignupWallet, setBetaSignupWallet] = useState(fullAddress || "");
+  const [betaSignupSent, setBetaSignupSent] = useState(false);
+  const [betaSignupSending, setBetaSignupSending] = useState(false);
+
+  const handleBetaSignup = async () => {
+    if (!betaSignupHandle.trim()) { notify("Please enter your X handle."); return; }
+    const w = betaSignupWallet.trim() || fullAddress || "";
+    if (!w) { notify("Please enter your wallet address."); return; }
+    setBetaSignupSending(true);
+    try {
+      await DbAPI.submitBountyApp(w, betaSignupHandle.replace(/^@/, ""), 0, {
+        type: "beta_request",
+        xHandle: betaSignupHandle.replace(/^@/, ""),
+        wallet: w,
+        requestedAt: new Date().toISOString(),
+      });
+      setBetaSignupSent(true);
+      notify("\u2705 Beta request submitted! We'll review it soon.");
+    } catch (e) {
+      notify("Failed to submit — try again.");
+    }
+    setBetaSignupSending(false);
+  };
+
   const DemoModal = () => showDemoModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
       background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
       display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
     }} onClick={() => setShowDemoModal(false)}>
-      <div style={{ ...glassCard, maxWidth: "420px", width: "100%", padding: "36px", textAlign: "center", animation: "slideIn 0.3s ease" }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: "40px", marginBottom: "16px" }}>🔒</div>
-        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>{t.betaOnly}</h3>
-        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "24px" }}>
-          Submissions and voting are live for beta testers. Want in? DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary }}>@smsonx</a> on X.
-        </p>
-        <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-          <button style={btnPrimary} onClick={() => setShowDemoModal(false)}>{t.gotIt}</button>
-          <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer"
-            style={{ ...btnOutline, textDecoration: "none", display: "flex", alignItems: "center" }}>DM @smsonx</a>
-        </div>
+      <div style={{ ...glassCard, maxWidth: "460px", width: "100%", padding: "36px", animation: "slideIn 0.3s ease" }} onClick={(e) => e.stopPropagation()}>
+        {betaSignupSent ? (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>\u2705</div>
+            <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Request Received!</h3>
+            <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "20px" }}>
+              We'll review your request and get back to you on X. Follow <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>@smsonx</a> for updates.
+            </p>
+            <button style={btnPrimary} onClick={() => { setShowDemoModal(false); setBetaSignupSent(false); }}>Done</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>\u26A1</div>
+              <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.03em" }}>Request Beta Access</h3>
+              <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7" }}>
+                Get full access to post bounties, submit work, and vote. Drop your X handle and wallet — we'll review and reach out.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
+              <div>
+                <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>X Handle *</label>
+                <input
+                  style={inputStyle}
+                  placeholder="@yourhandle"
+                  value={betaSignupHandle}
+                  onChange={(e) => setBetaSignupHandle(e.target.value)}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Wallet Address {fullAddress ? "(auto-filled)" : "*"}</label>
+                <input
+                  style={{ ...inputStyle, fontSize: "12px", fontFamily: "'JetBrains Mono', monospace" }}
+                  placeholder="Your Solana wallet address"
+                  value={betaSignupWallet || fullAddress || ""}
+                  onChange={(e) => setBetaSignupWallet(e.target.value)}
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button style={{ ...btnPrimary, flex: 1 }} disabled={betaSignupSending} onClick={handleBetaSignup}>
+                {betaSignupSending ? "Submitting..." : "\u26A1 Request Access"}
+              </button>
+              <button style={btnOutline} onClick={() => setShowDemoModal(false)}>Cancel</button>
+            </div>
+            <div style={{ marginTop: "16px", textAlign: "center", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+              Or DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>@smsonx</a> on X directly
+            </div>
+          </>
+        )}
       </div>
     </div>
   ) : null;
@@ -2440,6 +2537,18 @@ export default function FairBounty() {
               {translating ? <span style={{ color: "#555", fontStyle: "italic" }}>Traduciendo contenido... ⏳</span> : (tx?.description || b.description)}
             </p>
 
+            {/* NFT Image */}
+            {(b.prizeType === "NFT" || b.prize_type === "NFT" || b.prizeType === "COLLECTIBLE" || b.prize_type === "COLLECTIBLE") && (b.nftImageUrl || b.nft_image_url) && (
+              <div style={{ marginBottom: "20px", borderRadius: "16px", overflow: "hidden", border: `1px solid ${theme.primary}20`, maxWidth: "320px" }}>
+                <img src={b.nftImageUrl || b.nft_image_url} alt={b.nftName || b.nft_name || "NFT Prize"} style={{ width: "100%", display: "block", borderRadius: "16px" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+                {(b.nftName || b.nft_name) && (
+                  <div style={{ padding: "8px 12px", background: "#0c0c14", fontSize: "12px", color: "#aaa", textAlign: "center" }}>
+                    🖼️ {b.nftName || b.nft_name}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Tags */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
               {(tx?.tags ? tx.tags.split(",").map(t => t.trim()) : Array.isArray(b.tags) ? b.tags : []).map((tag) => (
@@ -2453,11 +2562,13 @@ export default function FairBounty() {
                 { label: t.prizeType, value: pt.label, color: pt.color },
                 { label: lang === "es" ? "Nivel Mín." : "Min Tier", value: `${tier.emoji} ${tier.label}`, color: tier.color },
                 { label: lang === "es" ? "Envíos" : "Submissions", value: b.isDemo ? b.submissions : selectedBountySubmissions.length, color: "#888" },
-                { label: lang === "es" ? "Fecha Límite" : "Deadline", value: b.deadline || (lang === "es" ? "Abierto" : "Open"), color: "#888" },
+                { label: lang === "es" ? "Tiempo Restante" : "Time Left", value: "__COUNTDOWN__", color: "#888", isCountdown: true },
               ].map((m) => (
                 <div key={m.label} style={{ padding: "12px", background: "#0c0c14", borderRadius: "8px", textAlign: "center" }}>
                   <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>{m.label}</div>
-                  <div style={{ fontSize: "13px", fontWeight: "600", color: m.color }}>{m.value}</div>
+                  <div style={{ fontSize: "13px", fontWeight: "600", color: m.color }}>
+                    {m.isCountdown ? <Countdown deadline={b.deadline} theme={theme} /> : m.value}
+                  </div>
                 </div>
               ))}
             </div>
@@ -2681,6 +2792,15 @@ export default function FairBounty() {
                       <div>
                         <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>NFT Name *</label>
                         <input style={inputStyle} placeholder="e.g. Mad Lads #4200" value={betaBountyForm.nftName} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftName: e.target.value })} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>NFT Image URL *</label>
+                        <input style={inputStyle} placeholder="https://... image of the NFT" value={betaBountyForm.nftImageUrl} onChange={(e) => setBetaBountyForm({ ...betaBountyForm, nftImageUrl: e.target.value })} />
+                        {betaBountyForm.nftImageUrl && (
+                          <div style={{ marginTop: "8px", borderRadius: "12px", overflow: "hidden", border: `1px solid ${theme.primary}20`, maxWidth: "200px" }}>
+                            <img src={betaBountyForm.nftImageUrl} alt="NFT Preview" style={{ width: "100%", display: "block", borderRadius: "12px" }} onError={(e) => { e.target.style.display = "none"; }} />
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>Mint Address (optional)</label>
@@ -2972,12 +3092,12 @@ export default function FairBounty() {
 
     const BountyRow = ({ b }) => {
       const [editing, setEditing] = useState(false);
-      const [editFields, setEditFields] = useState({ title: b.title, description: b.description, reward: b.reward, prize_type: b.prize_type, min_tier: b.min_tier, deadline: b.deadline || "", tags: b.tags || "" });
+      const [editFields, setEditFields] = useState({ title: b.title, description: b.description, reward: b.reward, prize_type: b.prize_type, min_tier: b.min_tier, deadline: b.deadline || "", tags: Array.isArray(b.tags) ? b.tags.join(", ") : (b.tags || "") });
       const saveEdit = async () => {
         try {
           const res = await fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: b.id, ...editFields }),
+            body: JSON.stringify({ id: b.id, ...editFields, tags: typeof editFields.tags === "string" ? editFields.tags.split(",").map(t => t.trim()).filter(Boolean) : (editFields.tags || []), min_tier: parseInt(editFields.min_tier) || 1 }),
           });
           const data = await res.json();
           if (data.success) {
@@ -3134,26 +3254,56 @@ export default function FairBounty() {
             <div>
               {pendingApps.length === 0
                 ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>{t.noIntakeForms}</div>
-                : pendingApps.map(app => (
-                  <div key={app.id} style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px" }}>
+                : pendingApps.map(app => {
+                  const isBetaReq = app.form_data?.type === "beta_request";
+                  const xHandle = app.form_data?.xHandle || app.display_name || "";
+                  const reqWallet = app.form_data?.wallet || app.wallet || "";
+                  return (
+                  <div key={app.id} style={{ ...cardStyle, padding: "16px 20px", marginBottom: "10px", border: isBetaReq ? `1px solid ${theme.primary}30` : cardStyle.border }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "700", fontSize: "13px", marginBottom: "4px" }}>{app.form_data?.title || "Untitled"}</div>
-                        <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
-                          {app.display_name} · FairScore Tier {app.fair_score} · {app.form_data?.reward} {app.form_data?.currency}
-                        </div>
-                        <div style={{ fontSize: "11px", color: "#666" }}>{app.form_data?.description}</div>
+                        {isBetaReq ? (
+                          <>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "6px" }}>
+                              <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}20`, padding: "2px 8px", borderRadius: "4px" }}>⚡ BETA REQUEST</span>
+                            </div>
+                            <div style={{ fontWeight: "700", fontSize: "14px", marginBottom: "4px" }}>@{xHandle}</div>
+                            <div style={{ fontSize: "11px", color: "#888", marginBottom: "4px", fontFamily: "'JetBrains Mono', monospace", wordBreak: "break-all" }}>
+                              {reqWallet}
+                              <button onClick={() => { navigator.clipboard.writeText(reqWallet); notify("Copied!"); }} style={{ background: "none", border: "none", color: theme.primary, cursor: "pointer", fontSize: "11px", marginLeft: "6px", fontFamily: "inherit" }}>📋</button>
+                            </div>
+                            {xHandle && (
+                              <a href={`https://x.com/${xHandle}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: theme.primary, textDecoration: "none" }}>View @{xHandle} on X ↗</a>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ fontWeight: "700", fontSize: "13px", marginBottom: "4px" }}>{app.form_data?.title || "Untitled"}</div>
+                            <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
+                              {app.display_name} · FairScore Tier {app.fair_score} · {app.form_data?.reward} {app.form_data?.currency}
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#666" }}>{app.form_data?.description}</div>
+                          </>
+                        )}
                         <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>{new Date(app.created_at).toLocaleString()}</div>
                       </div>
-                      <div style={{ display: "flex", gap: "6px" }}>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <button onClick={async () => {
                           await fetch(`/api/db?action=admin-update-app&wallet=${fullAddress}`, {
                             method: "POST", headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ id: app.id, status: "approved" }),
                           });
-                          notify("✅ App marked approved");
+                          if (isBetaReq && reqWallet) {
+                            await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
+                              method: "POST", headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ targetWallet: reqWallet, note: `Beta via signup form — @${xHandle}` }),
+                            });
+                            notify(`✅ Beta access granted to @${xHandle}!`);
+                          } else {
+                            notify("✅ Approved");
+                          }
                           loadAdmin();
-                        }} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>✅ Approve</button>
+                        }} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>{isBetaReq ? "⚡ Grant Beta" : "✅ Approve"}</button>
                         <button onClick={async () => {
                           await fetch(`/api/db?action=admin-update-app&wallet=${fullAddress}`, {
                             method: "POST", headers: { "Content-Type": "application/json" },
@@ -3165,7 +3315,8 @@ export default function FairBounty() {
                       </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               }
             </div>
           )}
@@ -3413,7 +3564,12 @@ export default function FairBounty() {
                       {isMyBounty && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}15`, padding: "1px 6px", borderRadius: "4px" }}>{t.yourBounty}</span>}
                       {lang === "es" && <span style={{ fontSize: "9px", color: "#888", background: "rgba(255,255,255,0.06)", padding: "1px 6px", borderRadius: "4px" }}>🌐 ES disponible</span>}
                     </div>
-                    <div style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>{b.title}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      {(b.prizeType === "NFT" || b.prize_type === "NFT" || b.prizeType === "COLLECTIBLE" || b.prize_type === "COLLECTIBLE") && (b.nftImageUrl || b.nft_image_url) && (
+                        <img src={b.nftImageUrl || b.nft_image_url} alt="" style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "cover", border: `1px solid ${theme.primary}20`, flexShrink: 0 }} onError={(e) => { e.target.style.display = "none"; }} />
+                      )}
+                      <div style={{ fontSize: "16px", fontWeight: "700" }}>{b.title}</div>
+                    </div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                       {(Array.isArray(b.tags) ? b.tags : []).slice(0, 4).map((tag) => (
                         <span key={tag} style={{ padding: "2px 8px", background: `${theme.primary}10`, borderRadius: "4px", fontSize: "11px", color: `${theme.primary}BB` }}>{tag}</span>
