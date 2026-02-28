@@ -438,7 +438,6 @@ export default async function handler(req, res) {
       `;
 
       // Update submission score
-      const scoreDelta = voteType === "up" ? (voteWeight || 1) : -(voteWeight || 1);
       if (voteType === "up") {
         await sql`UPDATE fb_submissions SET score = score + ${voteWeight || 1}, upvotes = upvotes + 1 WHERE id = ${submissionId}`;
       } else {
@@ -550,23 +549,57 @@ export default async function handler(req, res) {
       return res.json({ bounties, apps, profiles, bxpRows });
     }
 
+    // ============================================================
+    // PATCHED: admin-update-bounty — fixed tags JSONB handling
+    // The bug: tags arrived as a JS array or string but was passed
+    // directly to Postgres which expected valid JSON text for ::jsonb cast.
+    // Fix: Always JSON.stringify tags before sending to Postgres,
+    // and use a clean conditional update approach.
+    // ============================================================
     if (action === "admin-update-bounty") {
       const { wallet } = req.query;
       if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
       const { id, status, title, description, reward, prize_type, min_tier, deadline, tags } = req.body;
+
       if (title !== undefined || reward !== undefined) {
-        await sql`UPDATE fb_bounties SET 
+        // Normalize tags to a valid JSON string for Postgres JSONB
+        let tagsJson = null;
+        if (tags !== undefined && tags !== null && tags !== "") {
+          if (typeof tags === "string") {
+            // Could be a JSON string like '["a","b"]' or a comma-separated string like 'a, b'
+            try {
+              const parsed = JSON.parse(tags);
+              tagsJson = JSON.stringify(Array.isArray(parsed) ? parsed : [parsed]);
+            } catch {
+              // Not valid JSON — treat as comma-separated
+              tagsJson = JSON.stringify(tags.split(",").map(t => t.trim()).filter(Boolean));
+            }
+          } else if (Array.isArray(tags)) {
+            tagsJson = JSON.stringify(tags);
+          } else {
+            tagsJson = null; // Don't update tags
+          }
+        }
+
+        // Use separate queries to avoid COALESCE/CASE type issues with JSONB
+        // Update all non-tags fields first
+        await sql`UPDATE fb_bounties SET
           status = COALESCE(NULLIF(${status || ''}, ''), status),
           title = COALESCE(NULLIF(${title || ''}, ''), title),
           description = COALESCE(NULLIF(${description || ''}, ''), description),
           reward = COALESCE(NULLIF(${reward || ''}, ''), reward),
           prize_type = COALESCE(NULLIF(${prize_type || ''}, ''), prize_type),
-          min_tier = COALESCE(${min_tier || null}, min_tier),
+          min_tier = COALESCE(${min_tier ? parseInt(min_tier) : null}, min_tier),
           deadline = COALESCE(NULLIF(${deadline || ''}, ''), deadline),
-          tags = CASE WHEN ${tags || ''} = '' THEN tags ELSE ${tags || '[]'}::jsonb END,
-          updated_at = NOW() 
+          updated_at = NOW()
           WHERE id = ${id}`;
+
+        // Update tags separately only if we have a valid JSON string
+        if (tagsJson) {
+          await sql`UPDATE fb_bounties SET tags = ${tagsJson}::jsonb WHERE id = ${id}`;
+        }
       } else {
+        // Simple status-only update
         await sql`UPDATE fb_bounties SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
       }
       return res.json({ success: true });
