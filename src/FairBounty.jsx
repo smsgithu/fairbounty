@@ -1328,13 +1328,13 @@ export default function FairBounty() {
     setBetaSignupSending(false);
   };
 
-  const DemoModal = () => showDemoModal ? (
+  const demoModalJsx = showDemoModal ? (
     <div style={{
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 200,
       background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
       display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
     }} onClick={() => setShowDemoModal(false)}>
-      <div style={{ ...glassCard, maxWidth: "460px", width: "100%", padding: "36px", animation: "slideIn 0.3s ease" }} onClick={(e) => e.stopPropagation()}>
+      <div key="beta-modal" style={{ ...glassCard, maxWidth: "460px", width: "100%", padding: "36px" }} onClick={(e) => e.stopPropagation()}>
         {betaSignupSent ? (
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
@@ -1357,6 +1357,9 @@ export default function FairBounty() {
               <div>
                 <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>X Handle *</label>
                 <input
+                  key="beta-x-handle"
+                  id="beta-x-handle"
+                  autoFocus
                   style={inputStyle}
                   placeholder="@yourhandle"
                   value={betaSignupHandle}
@@ -1366,6 +1369,8 @@ export default function FairBounty() {
               <div>
                 <label style={{ fontSize: "11px", color: "#888", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>Wallet Address {fullAddress ? "(auto-filled)" : "*"}</label>
                 <input
+                  key="beta-wallet"
+                  id="beta-wallet"
                   style={{ ...inputStyle, fontSize: "12px", fontFamily: "'JetBrains Mono', monospace" }}
                   placeholder="Your Solana wallet address"
                   value={betaSignupWallet || fullAddress || ""}
@@ -1817,7 +1822,7 @@ export default function FairBounty() {
             <Footer />
           </div>
         </div>
-        <DemoModal />
+        {demoModalJsx}
         <Notification />
         <style>{globalStyles}</style>
       </div>
@@ -2250,7 +2255,7 @@ export default function FairBounty() {
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "650px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel={t.backBounties} />
-          <DemoModal />
+          {demoModalJsx}
           <Notification />
           <div style={fadeIn}>
             {/* Profile header */}
@@ -2534,7 +2539,7 @@ export default function FairBounty() {
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel={t.backBounties} />
-          <DemoModal />
+          {demoModalJsx}
           {submitModalJsx}
           <Notification />
 
@@ -3481,7 +3486,7 @@ export default function FairBounty() {
       <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
         <Notification />
         <NavBar />
-        <DemoModal />
+        {demoModalJsx}
         <WelcomeModal />
         <DemoBanner />
 
