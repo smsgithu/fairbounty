@@ -2559,13 +2559,13 @@ export default function FairBounty() {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "24px", fontWeight: "900", color: pt.color }}><><PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency}</></div>
-                {bonusReward > 0 && eligible && <div style={{ fontSize: "12px", color: theme.accent, fontWeight: "600" }}>+{bonusReward} tier bonus</div>}
+                {bonusReward > 0 && eligible && b.isDemo && <div style={{ fontSize: "12px", color: theme.accent, fontWeight: "600" }}>+{bonusReward} tier bonus</div>}
               </div>
             </div>
 
-            <p style={{ color: "#aaa", fontSize: "14px", lineHeight: "1.7", marginBottom: "20px" }}>
+            <div style={{ color: "#aaa", fontSize: "14px", lineHeight: "1.7", marginBottom: "20px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
               {translating ? <span style={{ color: "#555", fontStyle: "italic" }}>Traduciendo contenido... ⏳</span> : (tx?.description || b.description)}
-            </p>
+            </div>
 
             {/* NFT Image */}
             {(b.prizeType === "NFT" || b.prize_type === "NFT" || b.prizeType === "COLLECTIBLE" || b.prize_type === "COLLECTIBLE") && (b.nftImageUrl || b.nft_image_url) && (
@@ -3645,7 +3645,7 @@ export default function FairBounty() {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: "18px", fontWeight: "900", color: pt.color }}><><PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency}</></div>
-                    {bonus > 0 && eligible && <div style={{ fontSize: "10px", color: theme.accent }}>+{bonus}% bonus</div>}
+                    {bonus > 0 && eligible && b.isDemo && <div style={{ fontSize: "10px", color: theme.accent }}>+{bonus}% bonus</div>}
                     <div style={{ fontSize: "11px", color: tier.color, marginTop: "4px" }}>{tier.emoji} Tier {b.minTier}+</div>
                   </div>
                 </div>
