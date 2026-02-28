@@ -188,8 +188,8 @@ export default async function handler(req, res) {
     if (action === "submit-bounty-app") {
       const { wallet, displayName, fairScore, form } = req.body;
       await sql`
-        INSERT INTO fb_bounty_apps (wallet, display_name, fair_score, form_data, created_at)
-        VALUES (${wallet}, ${displayName}, ${fairScore}, ${JSON.stringify(form)}, NOW())
+        INSERT INTO fb_bounty_apps (wallet, display_name, fair_score, form_data, status, created_at)
+        VALUES (${wallet}, ${displayName}, ${fairScore}, ${JSON.stringify(form)}, 'pending', NOW())
       `;
       return res.json({ success: true });
     }
