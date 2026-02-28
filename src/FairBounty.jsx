@@ -131,7 +131,7 @@ const Countdown = ({ deadline, theme }) => {
   const color = timeLeft === "Ended" ? "#EF4444" : urgent ? "#F59E0B" : timeLeft === "Open" ? "#888" : theme?.primary || "#00F0FF";
   return (
     <span style={{ color, fontWeight: "700", fontFamily: "'JetBrains Mono', monospace", fontSize: "inherit", letterSpacing: "-0.02em" }}>
-      {timeLeft === "Ended" ? "\u23F0 Ended" : timeLeft === "Open" ? "Open" : `\u23F3 ${timeLeft}`}
+      {timeLeft === "Ended" ? "⏰ Ended" : timeLeft === "Open" ? "Open" : `⏳ ${timeLeft}`}
     </span>
   );
 };
@@ -789,6 +789,7 @@ export default function FairBounty() {
   const connectWallet = async (type) => {
     setWalletType(type);
     setLoading(true);
+    setShowDemoModal(false);
     // Clear previous wallet's state immediately to prevent bleed
     setReferralCode(null);
     setSlugInput("");
@@ -1320,7 +1321,7 @@ export default function FairBounty() {
         requestedAt: new Date().toISOString(),
       });
       setBetaSignupSent(true);
-      notify("\u2705 Beta request submitted! We'll review it soon.");
+      notify("✅ Beta request submitted! We'll review it soon.");
     } catch (e) {
       notify("Failed to submit — try again.");
     }
@@ -1336,7 +1337,7 @@ export default function FairBounty() {
       <div style={{ ...glassCard, maxWidth: "460px", width: "100%", padding: "36px", animation: "slideIn 0.3s ease" }} onClick={(e) => e.stopPropagation()}>
         {betaSignupSent ? (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>\u2705</div>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
             <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Request Received!</h3>
             <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "20px" }}>
               We'll review your request and get back to you on X. Follow <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>@smsonx</a> for updates.
@@ -1346,7 +1347,7 @@ export default function FairBounty() {
         ) : (
           <>
             <div style={{ textAlign: "center", marginBottom: "24px" }}>
-              <div style={{ fontSize: "40px", marginBottom: "12px" }}>\u26A1</div>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>⚡</div>
               <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "6px", letterSpacing: "-0.03em" }}>Request Beta Access</h3>
               <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7" }}>
                 Get full access to post bounties, submit work, and vote. Drop your X handle and wallet — we'll review and reach out.
@@ -1374,7 +1375,7 @@ export default function FairBounty() {
             </div>
             <div style={{ display: "flex", gap: "12px" }}>
               <button style={{ ...btnPrimary, flex: 1 }} disabled={betaSignupSending} onClick={handleBetaSignup}>
-                {betaSignupSending ? "Submitting..." : "\u26A1 Request Access"}
+                {betaSignupSending ? "Submitting..." : "⚡ Request Access"}
               </button>
               <button style={btnOutline} onClick={() => setShowDemoModal(false)}>Cancel</button>
             </div>
@@ -1672,6 +1673,28 @@ export default function FairBounty() {
               </div>
             </div>
 
+            {/* Beta Access CTA */}
+            <div style={{
+              marginBottom: "24px", padding: "14px 20px", borderRadius: "12px",
+              background: `linear-gradient(135deg, ${theme.primary}15, ${theme.accent}0A)`,
+              border: `1px solid ${theme.primary}35`, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+              flexWrap: "wrap", transition: "all 0.25s ease",
+              ...fadeIn, transitionDelay: "0.05s",
+            }} onClick={() => setShowDemoModal(true)}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primary; e.currentTarget.style.transform = "translateY(-1px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${theme.primary}35`; e.currentTarget.style.transform = "translateY(0)"; }}
+            >
+              <span style={{ fontSize: "16px" }}>⚡</span>
+              <span style={{ fontSize: "13px", fontWeight: "700", color: theme.primary }}>
+                {lang === "es" ? "ACCESO BETA" : "BETA ACCESS"}
+              </span>
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>—</span>
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)" }}>
+                {lang === "es" ? "Envía tu X handle y wallet aquí →" : "Submit your X handle & wallet here →"}
+              </span>
+            </div>
+
             <div style={{ ...fadeIn, transitionDelay: "0.1s" }}>
               <div style={{ display: "inline-block", padding: "6px 16px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "100px", fontSize: "12px", color: theme.primary, marginBottom: "24px", letterSpacing: "1px", textTransform: "uppercase" }}>
                 Reputation-Gated Bounties on Solana{lang === "es" && " · Recompensas en Solana"}
@@ -1698,29 +1721,8 @@ export default function FairBounty() {
               >{lang === "es" ? "Ver Recompensas" : "Browse Bounties"}</button>
             </div>
 
-            {/* Beta Access CTA */}
-            <div style={{
-              marginTop: "40px", padding: "16px 24px", borderRadius: "16px",
-              background: `linear-gradient(135deg, ${theme.primary}12, ${theme.accent}08)`,
-              border: `1px solid ${theme.primary}30`, cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "12px",
-              flexWrap: "wrap", animation: "slideUp 0.6s ease",
-              ...fadeIn, transitionDelay: "0.45s",
-            }} onClick={() => setShowDemoModal(true)}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.primary; e.currentTarget.style.transform = "translateY(-2px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${theme.primary}30`; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <span style={{ fontSize: "20px" }}>⚡</span>
-              <span style={{ fontSize: "14px", fontWeight: "700", color: theme.primary, letterSpacing: "-0.02em" }}>
-                {lang === "es" ? "¿Quieres acceso beta?" : "Want beta access?"}
-              </span>
-              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                {lang === "es" ? "Envía tu X handle y wallet aquí →" : "Submit your X handle and wallet here →"}
-              </span>
-            </div>
-
             {/* Stats */}
-            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "24px", marginTop: "40px", ...fadeIn, transitionDelay: "0.5s" }}>
+            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "24px", marginTop: "60px", ...fadeIn, transitionDelay: "0.5s" }}>
               {[
                 { value: globalStats.connectedWallets.toString(), label: t.connectedWallets, live: true },
                 { value: (liveBounties.length || globalStats.bountyApps || 0).toString(), label: t.liveBounties, live: true },
@@ -1815,6 +1817,8 @@ export default function FairBounty() {
             <Footer />
           </div>
         </div>
+        <DemoModal />
+        <Notification />
         <style>{globalStyles}</style>
       </div>
     );
