@@ -22,6 +22,28 @@ export default async function handler(req, res) {
 
   const FOUNDER_WALLET = "VNJ1Jm1Nbm3sRTjD21uxv44couFoQHWVDCntJSv9QCD";
 
+  // SECURITY: Reject oversized requests (2MB max)
+  if (req.headers?.["content-length"] && parseInt(req.headers["content-length"]) > 2 * 1024 * 1024) {
+    return res.status(413).json({ error: "Request too large" });
+  }
+
+  // SECURITY: Validate action parameter
+  const VALID_ACTIONS = [
+    "get-profile", "save-profile", "get-bxp", "claim-welcome",
+    "process-referral", "get-referrals", "track-wallet", "get-stats",
+    "submit-bounty-app", "set-referral-code", "get-referral-code",
+    "resolve-referral", "create-bounty", "get-bounties", "submit-work",
+    "get-submissions", "vote", "get-votes", "select-winner", "check-beta",
+    "admin-get-beta", "admin-add-beta", "admin-remove-beta",
+    "admin-get-all", "admin-update-bounty", "admin-delete-bounty", "admin-update-app"
+  ];
+  if (action && !VALID_ACTIONS.includes(action)) {
+    return res.status(400).json({ error: "Invalid action" });
+  }
+  if (!action) {
+    return res.json({ status: "ok", service: "fairbounty-db" });
+  }
+
   try {
     // ============================================================
     // EXISTING ENDPOINTS (unchanged)
@@ -62,6 +84,10 @@ export default async function handler(req, res) {
 
     if (action === "save-profile") {
       const { wallet, profile } = req.body;
+      // SECURITY: Validate wallet
+      if (!wallet || typeof wallet !== "string" || wallet.length > 50) {
+        return res.status(400).json({ error: "Invalid wallet" });
+      }
       const p = profile || {};
       await sql`
         INSERT INTO fb_profiles (wallet, profile, display_name, bio, contact, email, pfp_url, linkedin, github, website, telegram, discord, looking_for, works_at, location, skills, joined_date, x_handle, updated_at)
@@ -281,6 +307,17 @@ export default async function handler(req, res) {
     // ============================================================
     if (action === "create-bounty") {
       const bountyData = req.body;
+      // SECURITY: Validate required fields
+      if (!bountyData.title || !bountyData.description || !bountyData.poster) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      // SECURITY: Verify beta access server-side
+      try {
+        const betaCheck = await sql`SELECT wallet FROM fb_beta_access WHERE wallet = ${bountyData.poster} AND active = true LIMIT 1`;
+        if (betaCheck.length === 0 && bountyData.poster !== FOUNDER_WALLET) {
+          return res.status(403).json({ error: "Beta access required to post bounties" });
+        }
+      } catch (e) { /* table may not exist yet */ }
       // Ensure table exists
       await sql`
         CREATE TABLE IF NOT EXISTS fb_bounties (
@@ -365,6 +402,17 @@ export default async function handler(req, res) {
     // ============================================================
     if (action === "submit-work") {
       const { bountyId, wallet, displayName, tier, content, links } = req.body;
+      // SECURITY: Validate required fields
+      if (!bountyId || !wallet || !content) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      // SECURITY: Verify beta access server-side
+      try {
+        const betaCheck = await sql`SELECT wallet FROM fb_beta_access WHERE wallet = ${wallet} AND active = true LIMIT 1`;
+        if (betaCheck.length === 0 && wallet !== FOUNDER_WALLET) {
+          return res.status(403).json({ error: "Beta access required" });
+        }
+      } catch (e) { /* table may not exist yet for first user */ }
       await sql`
         CREATE TABLE IF NOT EXISTS fb_submissions (
           id SERIAL PRIMARY KEY,
@@ -416,7 +464,13 @@ export default async function handler(req, res) {
     // NEW: VOTING
     // ============================================================
     if (action === "vote") {
-      const { submissionId, voterWallet, voteType, voteWeight, isAdmin } = req.body;
+      const { submissionId, voterWallet, voteType, voteWeight } = req.body;
+      // SECURITY: Validate inputs
+      if (!submissionId || !voterWallet || !["up", "down"].includes(voteType)) {
+        return res.status(400).json({ error: "Invalid vote data" });
+      }
+      // SECURITY: Cap vote weight to max possible (Tier 5 = 8x) and floor to 1
+      const safeWeight = Math.min(Math.max(parseInt(voteWeight) || 1, 1), 8);
       await sql`
         CREATE TABLE IF NOT EXISTS fb_votes (
           id SERIAL PRIMARY KEY,
@@ -453,7 +507,7 @@ export default async function handler(req, res) {
           await sql`UPDATE fb_submissions SET score = score - ${voteWeight || 1}, downvotes = downvotes + 1 WHERE id = ${submissionId}`;
         }
         // Update vote record
-        await sql`UPDATE fb_votes SET vote_type = ${voteType}, vote_weight = ${voteWeight || 1}, updated_at = NOW() WHERE id = ${oldVote.id}`;
+        await sql`UPDATE fb_votes SET vote_type = ${voteType}, vote_weight = ${safeWeight}, updated_at = NOW() WHERE id = ${oldVote.id}`;
         return res.json({ success: true, changed: true, previousVote: oldVote.vote_type });
       }
 
