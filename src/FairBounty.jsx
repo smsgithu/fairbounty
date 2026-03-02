@@ -2726,7 +2726,8 @@ export default function FairBounty() {
                           </div>
                           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                             <span style={{ fontSize: "13px", fontWeight: "700", color: theme.primary }}>{t.score}: {sub.score || 0}</span>
-                            {betaAccess && sub.wallet !== fullAddress && (
+                            <span style={{ fontSize: "10px", color: "#666" }}>▲{sub.upvotes || 0} ▼{sub.downvotes || 0}</span>
+                            {betaAccess && sub.wallet !== fullAddress && !ADMIN_WALLETS.includes(fullAddress) && (
                               <div style={{ display: "flex", gap: "6px" }}>
                                 <button onClick={() => handleVote(sub.id, "up")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: userVotes[sub.id] === "up" ? "#070710" : "#22C55E", borderColor: userVotes[sub.id] === "up" ? "#22C55E" : "#22C55E40", background: userVotes[sub.id] === "up" ? "#22C55E" : "transparent", fontWeight: userVotes[sub.id] === "up" ? "700" : "400" }}>▲ {t.upVote} ({FairScoreAPI.getVoteWeight(fairScore || 1)}x)</button>
                                 <button onClick={() => handleVote(sub.id, "down")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: userVotes[sub.id] === "down" ? "#070710" : "#EF4444", borderColor: userVotes[sub.id] === "down" ? "#EF4444" : "#EF444440", background: userVotes[sub.id] === "down" ? "#EF4444" : "transparent", fontWeight: userVotes[sub.id] === "down" ? "700" : "400" }}>▼ {t.downVote}</button>
