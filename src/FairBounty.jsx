@@ -3166,6 +3166,8 @@ export default function FairBounty() {
     const pendingBounties = (adminData?.bounties || []).filter(b => b.status === "pending");
     const liveBountiesAdmin = (adminData?.bounties || []).filter(b => b.status === "open");
     const rejectedBounties = (adminData?.bounties || []).filter(b => b.status === "rejected");
+    const completedBounties = (adminData?.bounties || []).filter(b => b.status === "completed");
+    const endedBounties = liveBountiesAdmin.filter(b => b.deadline && new Date(b.deadline + (b.deadline.includes("T") ? "" : "T23:59:59")) < new Date());
     const pendingApps = (adminData?.apps || []).filter(a => !a.status || a.status === "pending");
 
     const tabBtn = (t, label, count) => (
@@ -3305,6 +3307,8 @@ export default function FairBounty() {
             {tabBtn("bounties", "Pending", pendingBounties.length)}
             {tabBtn("live", "Live", liveBountiesAdmin.length)}
             {tabBtn("rejected", "Rejected", rejectedBounties.length)}
+            {tabBtn("completed", "🏆 Completed", completedBounties.length)}
+            {tabBtn("ended", "⏰ Ended", endedBounties.length)}
             {tabBtn("apps", "Intake Forms", pendingApps.length)}
             {tabBtn("profiles", "Profiles", adminData?.profiles?.length || 0)}
             {tabBtn("beta", "⚡ Beta Access", adminData?.betaRows?.filter(r => r.active)?.length || 0)}
@@ -3335,6 +3339,119 @@ export default function FairBounty() {
               {rejectedBounties.length === 0
                 ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>{t.noRejectedBounties}</div>
                 : rejectedBounties.map(b => <BountyRow key={b.id} b={b} />)
+              }
+            </div>
+          )}
+
+          {!adminLoading && adminTab === "completed" && (
+            <div>
+              {completedBounties.length === 0
+                ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>
+                    <div style={{ fontSize: "32px", marginBottom: "12px" }}>🏆</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No completed bounties yet</div>
+                    <div style={{ fontSize: "12px", color: "#888" }}>Bounties move here when a winner is selected</div>
+                  </div>
+                : completedBounties.map(b => {
+                  const winnerSub = (adminData?.submissions || []).find(s => s.bounty_id == b.id && s.status === "winner")
+                    || (adminData?.submissions || []).find(s => s.id == b.winner_submission_id);
+                  const pt = PRIZE_TYPES[b.prize_type] || PRIZE_TYPES.USDC;
+                  return (
+                    <div key={b.id} style={{ ...cardStyle, padding: "20px", marginBottom: "10px", border: `1px solid #22C55E30` }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
+                            <span style={{ fontSize: "13px", fontWeight: "700" }}>{b.title}</span>
+                            <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E20", padding: "2px 8px", borderRadius: "100px" }}>🏆 COMPLETED</span>
+                          </div>
+                          <div style={{ fontSize: "11px", color: "#888", marginBottom: "8px" }}>
+                            {b.project_name} · {b.poster_name} · {pt.icon} {b.reward} {b.currency || ""} · Tier {b.min_tier}+
+                          </div>
+                          {winnerSub && (
+                            <div style={{ padding: "12px 16px", background: "#22C55E0A", borderRadius: "10px", border: "1px solid #22C55E20", marginBottom: "8px" }}>
+                              <div style={{ fontSize: "11px", color: "#22C55E", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>🏆 Winner</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                                <span style={{ fontSize: "16px" }}>{TIER_CONFIG[winnerSub.tier]?.emoji || "🌱"}</span>
+                                <div>
+                                  <div style={{ fontSize: "14px", fontWeight: "700" }}>{winnerSub.display_name || winnerSub.wallet?.slice(0, 8) + "..."}</div>
+                                  <div style={{ fontSize: "10px", color: "#888" }}>Tier {winnerSub.tier} · Score: {winnerSub.score || 0} · ▲{winnerSub.upvotes || 0} ▼{winnerSub.downvotes || 0}</div>
+                                </div>
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#aaa", lineHeight: "1.5" }}>{winnerSub.content?.slice(0, 200)}{winnerSub.content?.length > 200 ? "..." : ""}</div>
+                              {winnerSub.links && (
+                                <div style={{ marginTop: "6px" }}>
+                                  {winnerSub.links.split(",").map((l, i) => l.trim()).filter(Boolean).map((link, i) => (
+                                    <a key={i} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: theme.primary, textDecoration: "none", marginRight: "8px" }}>🔗 {link.slice(0, 50)}{link.length > 50 ? "..." : ""}</a>
+                                  ))}
+                                </div>
+                              )}
+                              <div style={{ fontSize: "10px", color: "#555", marginTop: "6px", fontFamily: "'JetBrains Mono', monospace" }}>
+                                {winnerSub.wallet}
+                                <button onClick={() => { navigator.clipboard.writeText(winnerSub.wallet); notify("Winner wallet copied!"); }} style={{ background: "none", border: "none", color: theme.primary, cursor: "pointer", fontSize: "10px", marginLeft: "6px", fontFamily: "inherit" }}>📋</button>
+                              </div>
+                            </div>
+                          )}
+                          {!winnerSub && (
+                            <div style={{ padding: "8px 12px", background: "#F59E0B10", borderRadius: "8px", border: "1px solid #F59E0B30", fontSize: "11px", color: "#F59E0B" }}>
+                              ⚠️ Winner submission data not found (ID: {b.winner_submission_id})
+                            </div>
+                          )}
+                          {b.contact_value && <div style={{ fontSize: "11px", color: "#555", marginTop: "6px" }}>📬 {b.contact_method}: {b.contact_value}</div>}
+                          <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>Created: {new Date(b.created_at).toLocaleString()}{b.updated_at ? ` · Completed: ${new Date(b.updated_at).toLocaleString()}` : ""}</div>
+                        </div>
+                        <div style={{ display: "flex", gap: "6px", flexShrink: 0, flexWrap: "wrap" }}>
+                          <button onClick={() => { setSelectedBounty({ ...b, isDemo: false, minTier: b.min_tier, prizeType: b.prize_type, projectName: b.project_name, posterName: b.poster_name }); setView("bounty"); }} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>👁️ View</button>
+                          <button onClick={() => updateBounty(b.id, "open")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>🔄 Reopen</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          )}
+
+          {!adminLoading && adminTab === "ended" && (
+            <div>
+              {endedBounties.length === 0
+                ? <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>
+                    <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏰</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No ended bounties</div>
+                    <div style={{ fontSize: "12px", color: "#888" }}>Live bounties past their deadline will appear here — still need a winner selected</div>
+                  </div>
+                : endedBounties.map(b => {
+                  const pt = PRIZE_TYPES[b.prize_type] || PRIZE_TYPES.USDC;
+                  const subCount = (adminData?.submissions || []).filter(s => s.bounty_id == b.id).length;
+                  const daysPast = Math.floor((new Date() - new Date(b.deadline + (b.deadline.includes("T") ? "" : "T23:59:59"))) / 86400000);
+                  return (
+                    <div key={b.id} style={{ ...cardStyle, padding: "20px", marginBottom: "10px", border: `1px solid #EF444430` }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
+                            <span style={{ fontSize: "13px", fontWeight: "700" }}>{b.title}</span>
+                            <span style={{ fontSize: "9px", fontWeight: "700", color: "#EF4444", background: "#EF444420", padding: "2px 8px", borderRadius: "100px" }}>⏰ ENDED {daysPast}d ago</span>
+                            {subCount > 0 && <span style={{ fontSize: "9px", fontWeight: "700", color: "#F59E0B", background: "#F59E0B20", padding: "2px 8px", borderRadius: "100px" }}>📝 {subCount} submissions</span>}
+                          </div>
+                          <div style={{ fontSize: "11px", color: "#888", marginBottom: "6px" }}>
+                            {b.project_name} · {b.poster_name} · {pt.icon} {b.reward} {b.currency || ""} · Tier {b.min_tier}+ · Deadline: {b.deadline}
+                          </div>
+                          <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.5", maxHeight: "48px", overflow: "hidden" }}>{b.description}</div>
+                          {b.contact_value && <div style={{ fontSize: "11px", color: "#555", marginTop: "4px" }}>📬 {b.contact_method}: {b.contact_value}</div>}
+                        </div>
+                        <div style={{ display: "flex", gap: "6px", flexShrink: 0, flexWrap: "wrap" }}>
+                          <button onClick={() => { setSelectedBounty({ ...b, isDemo: false, minTier: b.min_tier, prizeType: b.prize_type, projectName: b.project_name, posterName: b.poster_name }); setView("bounty"); }} style={{ ...btnPrimary, fontSize: "11px", padding: "6px 14px" }}>🏆 Select Winner</button>
+                          <button onClick={() => {
+                            const newDeadline = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
+                            fetch(`/api/db?action=admin-update-bounty&wallet=${fullAddress}`, {
+                              method: "POST", headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ id: b.id, deadline: newDeadline }),
+                            }).then(() => { notify("⏰ Extended 7 days!"); loadAdmin(); });
+                          }} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px" }}>⏰ +7 days</button>
+                          <button onClick={() => updateBounty(b.id, "completed")} style={{ ...btnOutline, fontSize: "11px", padding: "6px 12px", color: "#EF4444", borderColor: "#EF444440" }}>🔒 Close</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               }
             </div>
           )}
