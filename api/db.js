@@ -528,8 +528,8 @@ export default async function handler(req, res) {
     // NEW: SELECT WINNER
     // ============================================================
     if (action === "get-votes") {
-      const wallet = url.searchParams.get("wallet");
-      const bountyId = url.searchParams.get("bountyId");
+      const wallet = req.query.wallet;
+      const bountyId = req.query.bountyId;
       if (!wallet) return res.json([]);
       try {
         const subIds = await sql`SELECT id FROM fb_submissions WHERE bounty_id = ${parseInt(bountyId)}`;
@@ -630,14 +630,15 @@ export default async function handler(req, res) {
         form_data JSONB, created_at TIMESTAMPTZ DEFAULT NOW(), status TEXT DEFAULT 'pending'
       )`;
 
-      const [bounties, apps, profiles, bxpRows] = await Promise.all([
+      const [bounties, apps, profiles, bxpRows, submissions] = await Promise.all([
         sql`SELECT *, project_name as "projectName", prize_type as "prizeType", poster_name as "posterName", min_tier as "minTier", contact_method as "contactMethod", contact_value as "contactValue", nft_image_url as "nftImageUrl", is_beta as "isBeta", created_at as "createdAt" FROM fb_bounties ORDER BY created_at DESC`,
         sql`SELECT * FROM fb_bounty_apps ORDER BY created_at DESC`,
         sql`SELECT wallet, profile, updated_at FROM fb_profiles ORDER BY updated_at DESC LIMIT 50`,
         sql`SELECT wallet, bxp FROM fb_bxp`,
+        sql`SELECT id, bounty_id, wallet, display_name, tier, content, links, score, upvotes, downvotes, status, created_at FROM fb_submissions ORDER BY created_at DESC`.catch(() => []),
       ]);
 
-      return res.json({ bounties, apps, profiles, bxpRows });
+      return res.json({ bounties, apps, profiles, bxpRows, submissions });
     }
 
     // ============================================================
