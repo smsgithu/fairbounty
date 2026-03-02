@@ -566,6 +566,7 @@ export default function FairBounty() {
   const [liveBounties, setLiveBounties] = useState([]); // real bounties from DB
   const [selectedBounty, setSelectedBounty] = useState(null);
   const [selectedBountySubmissions, setSelectedBountySubmissions] = useState([]);
+  const [userVotes, setUserVotes] = useState({});
   const [filterTier, setFilterTier] = useState(0);
   const [filterType, setFilterType] = useState("all"); // "all" | "live" | "demo"
   const [showReferral, setShowReferral] = useState(false);
@@ -730,8 +731,20 @@ export default function FairBounty() {
       DbAPI.getSubmissions(selectedBounty.id).then(subs => {
         setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
       });
+      // Fetch user's existing votes
+      if (fullAddress) {
+        fetch(`/api/db?action=get-votes&wallet=${fullAddress}&bountyId=${selectedBounty.id}`)
+          .then(r => r.json())
+          .then(votes => {
+            const map = {};
+            (Array.isArray(votes) ? votes : []).forEach(v => { map[v.submission_id] = v.vote_type; });
+            setUserVotes(map);
+          })
+          .catch(() => setUserVotes({}));
+      }
     } else if (view !== "bounty") {
       setSelectedBountySubmissions([]);
+      setUserVotes({});
     }
   }, [view, selectedBounty?.id]);
 
@@ -1098,17 +1111,25 @@ export default function FairBounty() {
   // ============================================================
   const handleVote = async (submissionId, voteType) => {
     if (!betaAccess) { setShowDemoModal(true); return; }
+    const currentVote = userVotes[submissionId];
+    if (currentVote === voteType) { notify("You already voted this way."); return; }
     const voteWeight = FairScoreAPI.getVoteWeight(fairScore || 1);
     const result = await DbAPI.vote(submissionId, fullAddress, voteType, voteWeight);
     if (result.success) {
-      notify(`Vote cast! (Weight: ${voteWeight}x)`);
+      if (result.changed) {
+        notify(`Vote changed to ${voteType === "up" ? "▲" : "▼"}! (Weight: ${voteWeight}x)`);
+      } else {
+        notify(`Vote cast! ${voteType === "up" ? "▲" : "▼"} (Weight: ${voteWeight}x)`);
+      }
+      setUserVotes(prev => ({ ...prev, [submissionId]: voteType }));
       // Refresh submissions
       if (selectedBounty) {
         const subs = await DbAPI.getSubmissions(selectedBounty.id);
         setSelectedBountySubmissions(Array.isArray(subs) ? subs : []);
       }
     } else if (result.alreadyVoted) {
-      notify("You already voted on this submission.");
+      setUserVotes(prev => ({ ...prev, [submissionId]: result.currentVote || currentVote }));
+      notify("You already voted this way.");
     }
   };
 
@@ -2707,8 +2728,8 @@ export default function FairBounty() {
                             <span style={{ fontSize: "13px", fontWeight: "700", color: theme.primary }}>{t.score}: {sub.score || 0}</span>
                             {betaAccess && sub.wallet !== fullAddress && (
                               <div style={{ display: "flex", gap: "6px" }}>
-                                <button onClick={() => handleVote(sub.id, "up")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: "#22C55E", borderColor: "#22C55E40" }}>▲ {t.upVote} ({FairScoreAPI.getVoteWeight(fairScore || 1)}x)</button>
-                                <button onClick={() => handleVote(sub.id, "down")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: "#EF4444", borderColor: "#EF444440" }}>▼ {t.downVote}</button>
+                                <button onClick={() => handleVote(sub.id, "up")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: userVotes[sub.id] === "up" ? "#070710" : "#22C55E", borderColor: userVotes[sub.id] === "up" ? "#22C55E" : "#22C55E40", background: userVotes[sub.id] === "up" ? "#22C55E" : "transparent", fontWeight: userVotes[sub.id] === "up" ? "700" : "400" }}>▲ {t.upVote} ({FairScoreAPI.getVoteWeight(fairScore || 1)}x)</button>
+                                <button onClick={() => handleVote(sub.id, "down")} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px", color: userVotes[sub.id] === "down" ? "#070710" : "#EF4444", borderColor: userVotes[sub.id] === "down" ? "#EF4444" : "#EF444440", background: userVotes[sub.id] === "down" ? "#EF4444" : "transparent", fontWeight: userVotes[sub.id] === "down" ? "700" : "400" }}>▼ {t.downVote}</button>
                               </div>
                             )}
                             {!betaAccess && <button onClick={() => setShowDemoModal(true)} style={{ ...btnOutline, fontSize: "11px", padding: "5px 10px" }}>{t.voteBeta}</button>}
