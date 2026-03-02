@@ -416,7 +416,7 @@ export default async function handler(req, res) {
     // NEW: VOTING
     // ============================================================
     if (action === "vote") {
-      const { submissionId, voterWallet, voteType, voteWeight } = req.body;
+      const { submissionId, voterWallet, voteType, voteWeight, isAdmin } = req.body;
       await sql`
         CREATE TABLE IF NOT EXISTS fb_votes (
           id SERIAL PRIMARY KEY,
@@ -425,22 +425,43 @@ export default async function handler(req, res) {
           vote_type TEXT NOT NULL,
           vote_weight INTEGER DEFAULT 1,
           created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
           UNIQUE(submission_id, voter_wallet)
         )
       `;
       // Check if already voted
       const existing = await sql`
-        SELECT id FROM fb_votes WHERE submission_id = ${submissionId} AND voter_wallet = ${voterWallet} LIMIT 1
+        SELECT id, vote_type, vote_weight FROM fb_votes WHERE submission_id = ${submissionId} AND voter_wallet = ${voterWallet} LIMIT 1
       `;
-      if (existing.length > 0) return res.json({ success: false, alreadyVoted: true });
+      if (existing.length > 0) {
+        const oldVote = existing[0];
+        if (oldVote.vote_type === voteType) {
+          // Same vote again — return current state
+          return res.json({ success: false, alreadyVoted: true, currentVote: oldVote.vote_type });
+        }
+        // Changing vote — reverse old vote, apply new
+        const oldWeight = oldVote.vote_weight || 1;
+        if (oldVote.vote_type === "up") {
+          await sql`UPDATE fb_submissions SET score = score - ${oldWeight}, upvotes = GREATEST(upvotes - 1, 0) WHERE id = ${submissionId}`;
+        } else {
+          await sql`UPDATE fb_submissions SET score = score + ${oldWeight}, downvotes = GREATEST(downvotes - 1, 0) WHERE id = ${submissionId}`;
+        }
+        // Apply new vote
+        if (voteType === "up") {
+          await sql`UPDATE fb_submissions SET score = score + ${voteWeight || 1}, upvotes = upvotes + 1 WHERE id = ${submissionId}`;
+        } else {
+          await sql`UPDATE fb_submissions SET score = score - ${voteWeight || 1}, downvotes = downvotes + 1 WHERE id = ${submissionId}`;
+        }
+        // Update vote record
+        await sql`UPDATE fb_votes SET vote_type = ${voteType}, vote_weight = ${voteWeight || 1}, updated_at = NOW() WHERE id = ${oldVote.id}`;
+        return res.json({ success: true, changed: true, previousVote: oldVote.vote_type });
+      }
 
-      // Record vote
+      // New vote
       await sql`
         INSERT INTO fb_votes (submission_id, voter_wallet, vote_type, vote_weight, created_at)
         VALUES (${submissionId}, ${voterWallet}, ${voteType}, ${voteWeight || 1}, NOW())
       `;
-
-      // Update submission score
       if (voteType === "up") {
         await sql`UPDATE fb_submissions SET score = score + ${voteWeight || 1}, upvotes = upvotes + 1 WHERE id = ${submissionId}`;
       } else {
@@ -452,6 +473,19 @@ export default async function handler(req, res) {
     // ============================================================
     // NEW: SELECT WINNER
     // ============================================================
+    if (action === "get-votes") {
+      const wallet = url.searchParams.get("wallet");
+      const bountyId = url.searchParams.get("bountyId");
+      if (!wallet) return res.json([]);
+      try {
+        const subIds = await sql`SELECT id FROM fb_submissions WHERE bounty_id = ${parseInt(bountyId)}`;
+        if (subIds.length === 0) return res.json([]);
+        const ids = subIds.map(s => s.id);
+        const votes = await sql`SELECT submission_id, vote_type FROM fb_votes WHERE voter_wallet = ${wallet} AND submission_id = ANY(${ids})`;
+        return res.json(votes);
+      } catch (e) { return res.json([]); }
+    }
+
     if (action === "select-winner") {
       const { bountyId, submissionId, posterWallet } = req.body;
       // Verify caller is the bounty poster
