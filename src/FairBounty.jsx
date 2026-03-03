@@ -614,7 +614,7 @@ export default function FairBounty() {
   // Community page state
   const [communityProfiles, setCommunityProfiles] = useState([]);
   const [completedBountiesList, setCompletedBountiesList] = useState([]);
-  const [communityLoading, setCommunityLoading] = useState(false);
+  
   const [communityTab, setCommunityTab] = useState("profiles");
   const [connectedWallets, setConnectedWallets] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fb_connected_wallets") || "[]"); } catch { return []; }
@@ -645,6 +645,7 @@ export default function FairBounty() {
     DbAPI.getStats().then((stats) => { if (stats) setGlobalStats(stats); });
     DbAPI.getBounties().then((bounties) => { if (Array.isArray(bounties)) setLiveBounties(bounties); });
     DbAPI.getCompletedBounties().then((b) => { if (Array.isArray(b)) setCompletedBountiesList(b); });
+    DbAPI.getPublicProfiles().then((p) => { if (Array.isArray(p)) setCommunityProfiles(p); });
   }, []);
 
   // Referral detection
@@ -3167,20 +3168,6 @@ export default function FairBounty() {
   // COMMUNITY — Public profiles by tier + completed bounties
   // ============================================================
   if (view === "community") {
-    // Load community data on first render of this view
-    if (!communityLoading && communityProfiles.length === 0 && completedBountiesList.length === 0) {
-      setCommunityLoading(true);
-      Promise.all([
-        DbAPI.getPublicProfiles(),
-        DbAPI.getCompletedBounties(),
-      ]).then(([profiles, bounties]) => {
-        setCommunityProfiles(Array.isArray(profiles) ? profiles : []);
-        setCompletedBountiesList(Array.isArray(bounties) ? bounties : []);
-        setCommunityLoading(false);
-      });
-    }
-
-    // Group profiles by tier (best guess from FairScore — we'll show all and let people explore)
     const profileCards = communityProfiles.map(p => {
       const prof = p.profile || {};
       return { wallet: p.wallet, ...prof, updatedAt: p.updated_at };
@@ -3222,7 +3209,7 @@ export default function FairBounty() {
               ))}
             </div>
 
-            {communityLoading && (
+            {communityProfiles.length === 0 && completedBountiesList.length === 0 && (
               <div style={{ textAlign: "center", padding: "60px", color: "#666" }}>
                 <div style={{ width: "32px", height: "32px", border: `3px solid ${theme.primary}30`, borderTop: `3px solid ${theme.primary}`, borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 12px" }} />
                 Loading community data...
@@ -3230,7 +3217,7 @@ export default function FairBounty() {
             )}
 
             {/* PROFILES TAB */}
-            {!communityLoading && communityTab === "profiles" && (
+            {communityTab === "profiles" && (
               <div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
                   {profileCards.map((p) => {
@@ -3288,7 +3275,7 @@ export default function FairBounty() {
             )}
 
             {/* COMPLETED BOUNTIES TAB */}
-            {!communityLoading && communityTab === "completed" && (
+            {communityTab === "completed" && (
               <div>
                 {completedBountiesList.length === 0 ? (
                   <div style={{ ...cardStyle, textAlign: "center", padding: "40px", color: "#666" }}>
