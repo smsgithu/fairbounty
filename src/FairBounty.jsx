@@ -3184,7 +3184,7 @@ export default function FairBounty() {
         if (Array.isArray(prof.skills)) skills = prof.skills;
         else if (typeof prof.skills === "string") { try { skills = JSON.parse(prof.skills); } catch(e) { skills = []; } }
         return { wallet: p.wallet || "", displayName: prof.displayName || "", bio: prof.bio || "", xHandle: prof.xHandle || "", pfpUrl: prof.pfpUrl || "", worksAt: prof.worksAt || "", location: prof.location || "", skills, updatedAt: p.updated_at };
-      }).filter(p => p.displayName);
+      }).filter(p => p.displayName && !ADMIN_WALLETS.includes(p.wallet));
     } catch(e) { profileCards = []; }
 
     const filteredProfiles = profileCards;
@@ -3369,42 +3369,87 @@ export default function FairBounty() {
   }
 
   if (view === "leaderboard") {
-    const leaders = [
-      { rank: 1, name: "CryptoBuilder.sol", tier: 5, xp: 2450, bounties: 18, earned: "$45,200" },
-      { rank: 2, name: "SolDev42.sol", tier: 4, xp: 1820, bounties: 12, earned: "$28,400" },
-      { rank: 3, name: "RustWizard.sol", tier: 4, xp: 1650, bounties: 10, earned: "$21,000" },
-      { rank: 4, name: "DeFiHacker.sol", tier: 3, xp: 980, bounties: 7, earned: "$9,100" },
-      { rank: 5, name: "NFTArtisan.sol", tier: 3, xp: 750, bounties: 5, earned: "$4,800" },
-      ...(wallet ? [{ rank: "?", name: profile?.displayName || wallet, tier: fairScore, xp, bounties: 0, earned: "$0" }] : []),
-    ];
+    // Build real leaderboard from loaded profiles + BXP
+    // We need profiles with BXP — use communityProfiles + fetch BXP from admin or local
+    const leaderEntries = communityProfiles.map(p => {
+      let prof = p.profile || {};
+      if (typeof prof === "string") { try { prof = JSON.parse(prof); } catch(e) { prof = {}; } }
+      return { wallet: p.wallet, displayName: prof.displayName || "", xHandle: prof.xHandle || "", pfpUrl: prof.pfpUrl || "" };
+    }).filter(p => p.displayName && !ADMIN_WALLETS.includes(p.wallet));
+
+    // Sort by BXP if we have it (we don't have individual BXP from public endpoint yet, so show profiles for now)
+    // Add current user
+    const yourEntry = wallet && profile ? { wallet: fullAddress, displayName: profile.displayName, xHandle: profile.xHandle || "", pfpUrl: profile.pfpUrl || "", xp, isYou: true } : null;
+
     return (
       <div style={pageStyle}>
         <div style={gridOverlay} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto", padding: "20px" }}>
           <NavBar showBack backTo="dashboard" backLabel={t.backBounties} />
+          {demoModalJsx}
+          <Notification />
           <div style={fadeIn}>
             <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "8px" }}>🏆 Leaderboard</h2>
-            <p style={{ fontSize: "12px", color: "#888", marginBottom: "24px" }}>Live leaderboard launching with full bounty system. Preview below.</p>
+            <p style={{ fontSize: "12px", color: "#888", marginBottom: "24px" }}>Top contributors ranked by BXP. Earn BXP from referrals, submissions, and winning bounties.</p>
+
+            {leaderEntries.length === 0 && !yourEntry && (
+              <div style={{ ...cardStyle, padding: "40px", textAlign: "center", color: "#666" }}>
+                <div style={{ fontSize: "32px", marginBottom: "12px" }}>🏆</div>
+                <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>Leaderboard coming soon</div>
+                <div style={{ fontSize: "12px", color: "#888" }}>Connect your wallet and earn BXP to appear here</div>
+              </div>
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {leaders.map((l) => {
-                const t = TIER_CONFIG[l.tier] || TIER_CONFIG[1];
-                const isYou = l.name === (profile?.displayName || wallet);
-                return (
-                  <div key={l.rank} style={{ ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px", border: isYou ? `1px solid ${theme.primary}60` : cardStyle.border, background: isYou ? `${theme.primary}10` : cardStyle.background }}>
-                    <div style={{ width: "32px", textAlign: "center", fontWeight: "900", fontSize: "16px", color: typeof l.rank === "number" && l.rank <= 3 ? "#FFD700" : "#666" }}>
-                      {typeof l.rank === "number" && l.rank <= 3 ? ["🥇", "🥈", "🥉"][l.rank - 1] : `#${l.rank}`}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: "600", fontSize: "14px" }}>{l.name} {isYou && <span style={{ color: theme.primary, fontSize: "11px" }}>(you)</span>}</div>
-                      <div style={{ fontSize: "11px", color: t.color }}>{t.emoji} {t.label} · {l.bounties} bounties · {l.earned} earned</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontWeight: "700", fontSize: "14px", color: theme.primary }}>{l.xp} BXP</div>
-                      <div style={{ fontSize: "10px", color: "#666" }}>{t.xpMultiplier}x multiplier</div>
-                    </div>
+              {/* Your position */}
+              {yourEntry && !ADMIN_WALLETS.includes(fullAddress) && (
+                <div style={{ ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px", border: `1px solid ${theme.primary}60`, background: `${theme.primary}10` }}>
+                  <div style={{ width: "32px", textAlign: "center", fontWeight: "900", fontSize: "14px", color: theme.primary }}>You</div>
+                  <div style={{
+                    width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0,
+                    background: yourEntry.pfpUrl ? `url(${yourEntry.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
+                    border: `2px solid ${theme.primary}40`,
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px",
+                  }}>
+                    {!yourEntry.pfpUrl && TIER_CONFIG[fairScore]?.emoji}
                   </div>
-                );
-              })}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: "600", fontSize: "14px" }}>{yourEntry.displayName}</div>
+                    <div style={{ fontSize: "11px", color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji} {TIER_CONFIG[fairScore]?.label} · {TIER_CONFIG[fairScore]?.xpMultiplier}x multiplier</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontWeight: "700", fontSize: "16px", color: theme.primary }}>{xp} BXP</div>
+                  </div>
+                </div>
+              )}
+
+              {/* All contributors */}
+              {leaderEntries.map((l, i) => (
+                <div key={l.wallet} style={{ ...cardStyle, padding: "14px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={{ width: "28px", textAlign: "center", fontWeight: "900", fontSize: "14px", color: i < 3 ? "#FFD700" : "#666" }}>
+                    {i < 3 ? ["🥇", "🥈", "🥉"][i] : `#${i + 1}`}
+                  </div>
+                  <div style={{
+                    width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0,
+                    background: l.pfpUrl ? `url(${l.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
+                    border: `2px solid ${theme.primary}20`,
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px",
+                  }}>
+                    {!l.pfpUrl && "👤"}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: "600", fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.displayName}</div>
+                    {l.xHandle && <div style={{ fontSize: "11px", color: theme.primary }}>@{l.xHandle}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: "24px", ...cardStyle, padding: "20px", textAlign: "center", background: `${theme.primary}05` }}>
+              <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "6px" }}>How to climb the leaderboard</div>
+              <div style={{ fontSize: "11px", color: "#888", lineHeight: "1.8" }}>
+                Refer friends (+50 BXP each) · Submit work on bounties (+25 BXP) · Win bounties (+100 BXP) · Higher tiers earn multiplied BXP
+              </div>
             </div>
           </div>
           <Footer />
