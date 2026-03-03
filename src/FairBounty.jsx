@@ -302,7 +302,12 @@ const DbAPI = {
   async getPublicProfiles() {
     try {
       const res = await fetch("/api/db?action=get-public-profiles");
-      return await res.json();
+      const data = await res.json();
+      // Profile column may come back as string — parse it
+      return (Array.isArray(data) ? data : []).map(p => ({
+        ...p,
+        profile: typeof p.profile === "string" ? JSON.parse(p.profile) : (p.profile || {}),
+      }));
     } catch (e) { return []; }
   },
   async getCompletedBounties() {
