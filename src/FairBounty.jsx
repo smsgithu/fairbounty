@@ -366,6 +366,8 @@ export default function FairBounty() {
   const [adminData, setAdminData] = useState(null);
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminTab, setAdminTab] = useState("bounties");
+  const [adminProfileSearch, setAdminProfileSearch] = useState("");
+  const [adminProfileTierFilter, setAdminProfileTierFilter] = useState(0);
   const [betaInputWallet, setBetaInputWallet] = useState("");
   const [betaInputNote, setBetaInputNote] = useState("");
   const [lang, setLang] = useState("en");
@@ -3833,32 +3835,141 @@ export default function FairBounty() {
             </div>
           )}
 
-          {!adminLoading && adminTab === "profiles" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {(adminData?.profiles || []).map(p => {
-                const prof = p.profile || {};
-                const bxpRow = adminData.bxpRows?.find(b => b.wallet === p.wallet);
-                const totalBxp = bxpRow ? Object.values(bxpRow.bxp || {}).reduce((a, b) => a + b, 0) : 0;
-                return (
-                  <div key={p.wallet} style={{ ...cardStyle, padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: "600", fontSize: "13px" }}>{prof.displayName || "—"}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <div style={{ fontSize: "10px", color: "#666", fontFamily: "monospace" }}>{p.wallet?.slice(0, 16)}...{p.wallet?.slice(-8)}</div>
-                        <button onClick={() => navigator.clipboard.writeText(p.wallet).then(() => notify("Address copied!"))} style={{ background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "4px", color: theme.primary, fontSize: "9px", padding: "2px 6px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>📋 Copy</button>
-                        <button onClick={() => { setBetaInputWallet(p.wallet); setAdminTab("beta"); }} style={{ background: "#22C55E15", border: "1px solid #22C55E30", borderRadius: "4px", color: "#22C55E", fontSize: "9px", padding: "2px 6px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>⚡ Beta</button>
-                      </div>
-                      {prof.xHandle && <div style={{ fontSize: "11px", color: theme.primary }}>@{prof.xHandle}</div>}
-                    </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontSize: "13px", fontWeight: "700", color: theme.primary }}>{totalBxp} BXP</div>
-                      <div style={{ fontSize: "10px", color: "#555" }}>{new Date(p.updated_at).toLocaleDateString()}</div>
-                    </div>
+          {!adminLoading && adminTab === "profiles" && (() => {
+            const allProfiles = (adminData?.profiles || []).map(p => {
+              let prof = p.profile || {};
+              if (typeof prof === "string") { try { prof = JSON.parse(prof); } catch(e) { prof = {}; } }
+              const bxpRow = adminData.bxpRows?.find(b => b.wallet === p.wallet);
+              const totalBxp = bxpRow ? Object.values(bxpRow.bxp || {}).reduce((a, b) => a + b, 0) : 0;
+              // Check beta status
+              const hasBeta = (adminData?.betaRows || []).some(r => r.wallet === p.wallet && r.active);
+              // Check if they requested group chat
+              const app = (adminData?.apps || []).find(a => a.wallet === p.wallet && a.form_data?.type === "beta_request");
+              const wantsGroupChat = app?.form_data?.wantsGroupChat || false;
+              return { wallet: p.wallet, prof, totalBxp, hasBeta, wantsGroupChat, updatedAt: p.updated_at };
+            });
+
+            // Filter
+            const searchLower = adminProfileSearch.toLowerCase();
+            const filtered = allProfiles.filter(p => {
+              if (adminProfileSearch && !(
+                (p.prof.displayName || "").toLowerCase().includes(searchLower) ||
+                (p.prof.xHandle || "").toLowerCase().includes(searchLower) ||
+                (p.wallet || "").toLowerCase().includes(searchLower)
+              )) return false;
+              return true;
+            });
+
+            // Tier counts (from FairScore data if available, otherwise show all)
+            const tierCounts = { 0: allProfiles.length };
+            
+            return (
+              <div>
+                {/* Search + Filter bar */}
+                <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center" }}>
+                  <input
+                    value={adminProfileSearch}
+                    onChange={e => setAdminProfileSearch(e.target.value)}
+                    placeholder="Search name, handle, or wallet..."
+                    style={{ ...inputStyle, flex: 1, minWidth: "200px", fontSize: "12px" }}
+                  />
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {[
+                      { label: `All (${allProfiles.length})`, value: 0 },
+                      { label: `Beta (${allProfiles.filter(p => p.hasBeta).length})`, value: "beta" },
+                      { label: `Group Chat (${allProfiles.filter(p => p.wantsGroupChat).length})`, value: "gc" },
+                    ].map(f => (
+                      <button key={f.value} onClick={() => setAdminProfileTierFilter(f.value)} style={{
+                        padding: "6px 12px", fontSize: "11px", fontWeight: "600",
+                        background: adminProfileTierFilter === f.value ? `${theme.primary}20` : "transparent",
+                        border: adminProfileTierFilter === f.value ? `1px solid ${theme.primary}40` : "1px solid #333",
+                        borderRadius: "6px", color: adminProfileTierFilter === f.value ? theme.primary : "#888",
+                        cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+                      }}>{f.label}</button>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </div>
+
+                {/* Profile list */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {filtered
+                    .filter(p => {
+                      if (adminProfileTierFilter === "beta") return p.hasBeta;
+                      if (adminProfileTierFilter === "gc") return p.wantsGroupChat;
+                      return true;
+                    })
+                    .map(p => {
+                    const prof = p.prof;
+                    let skills = [];
+                    if (Array.isArray(prof.skills)) skills = prof.skills;
+                    else if (typeof prof.skills === "string") { try { skills = JSON.parse(prof.skills); } catch(e) {} }
+                    return (
+                      <div key={p.wallet} style={{ ...cardStyle, padding: "16px", display: "flex", gap: "14px", alignItems: "flex-start" }}>
+                        {/* PFP */}
+                        <div style={{
+                          width: "44px", height: "44px", borderRadius: "50%", flexShrink: 0,
+                          background: prof.pfpUrl ? `url(${prof.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
+                          border: `2px solid ${p.hasBeta ? "#22C55E40" : theme.primary + "30"}`,
+                          display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px",
+                        }}>
+                          {!prof.pfpUrl && "👤"}
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" }}>
+                            <span style={{ fontWeight: "700", fontSize: "14px" }}>{prof.displayName || "—"}</span>
+                            {p.hasBeta && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px", border: "1px solid #22C55E30" }}>⚡ Beta</span>}
+                            {p.wantsGroupChat && <span style={{ fontSize: "9px", fontWeight: "700", color: "#8B5CF6", background: "#8B5CF615", padding: "1px 6px", borderRadius: "4px", border: "1px solid #8B5CF630" }}>💬 GC</span>}
+                            {PLATFORM_BADGES_CONFIG[p.wallet] && PLATFORM_BADGES_CONFIG[p.wallet].map(badge => (
+                              <span key={badge.id} style={{ fontSize: "9px", fontWeight: "700", color: badge.color, background: badge.bg, padding: "1px 6px", borderRadius: "4px", border: `1px solid ${badge.border}` }}>★ {badge.label}</span>
+                            ))}
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                            {prof.xHandle && <a href={`https://x.com/${prof.xHandle}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: theme.primary, textDecoration: "none" }}>@{prof.xHandle}</a>}
+                            {prof.location && <span style={{ fontSize: "10px", color: "#666" }}>📍 {prof.location}</span>}
+                            {prof.worksAt && <span style={{ fontSize: "10px", color: "#666" }}>🏢 {prof.worksAt}</span>}
+                          </div>
+
+                          {prof.bio && <div style={{ fontSize: "11px", color: "#888", lineHeight: "1.4", marginBottom: "6px", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{prof.bio}</div>}
+
+                          {skills.length > 0 && (
+                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "6px" }}>
+                              {skills.slice(0, 5).map(s => (
+                                <span key={s} style={{ padding: "2px 8px", background: `${theme.primary}10`, borderRadius: "100px", fontSize: "9px", color: `${theme.primary}BB` }}>{s}</span>
+                              ))}
+                              {skills.length > 5 && <span style={{ fontSize: "9px", color: "#555" }}>+{skills.length - 5}</span>}
+                            </div>
+                          )}
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                            <span style={{ fontSize: "10px", color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>{p.wallet?.slice(0, 12)}...{p.wallet?.slice(-6)}</span>
+                            <button onClick={() => navigator.clipboard.writeText(p.wallet).then(() => notify("Copied!"))} style={{ background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "4px", color: theme.primary, fontSize: "9px", padding: "2px 6px", cursor: "pointer", fontFamily: "inherit" }}>📋</button>
+                            {!p.hasBeta && <button onClick={() => { setBetaInputWallet(p.wallet); setAdminTab("beta"); }} style={{ background: "#22C55E15", border: "1px solid #22C55E30", borderRadius: "4px", color: "#22C55E", fontSize: "9px", padding: "2px 6px", cursor: "pointer", fontFamily: "inherit" }}>⚡ Grant Beta</button>}
+                          </div>
+                        </div>
+
+                        {/* Right side stats */}
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <div style={{ fontSize: "14px", fontWeight: "800", color: theme.primary }}>{p.totalBxp}</div>
+                          <div style={{ fontSize: "9px", color: "#555", textTransform: "uppercase" }}>BXP</div>
+                          <div style={{ fontSize: "10px", color: "#444", marginTop: "4px" }}>{new Date(p.updatedAt).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {filtered.length === 0 && (
+                  <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>
+                    <div style={{ fontSize: "24px", marginBottom: "8px" }}>🔍</div>
+                    No profiles match "{adminProfileSearch}"
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {!adminLoading && adminTab === "beta" && (() => {
             const betaRows = adminData?.betaRows || [];
