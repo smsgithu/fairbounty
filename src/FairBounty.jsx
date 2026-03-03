@@ -1604,8 +1604,8 @@ export default function FairBounty() {
             { label: t.postBounty, icon: "📋", view: "post-bounty" },
             { label: t.howItWorks, icon: "📖", view: "how-it-works" },
             { label: t.about, icon: "ℹ️", view: "about" },
-            { label: "👥", icon: "👥", view: "community" },
-            { label: "🏆", icon: "🏆", view: "leaderboard" },
+            { label: "Community", icon: "👥", view: "community" },
+            { label: "Leaderboard", icon: "🏆", view: "leaderboard" },
           ].map((tab) => (
             <button key={tab.view} className="nav-btn" style={{ ...tabStyle(tab.view) }} onClick={() => {
               if (tab.view === "post-bounty" && wallet && !betaAccess) { setShowDemoModal(true); return; }
@@ -3173,10 +3173,17 @@ export default function FairBounty() {
   // COMMUNITY — Public profiles by tier + completed bounties
   // ============================================================
   if (view === "community") {
-    const profileCards = communityProfiles.map(p => {
-      const prof = p.profile || {};
-      return { wallet: p.wallet, ...prof, updatedAt: p.updated_at };
-    }).filter(p => p.displayName);
+    let profileCards = [];
+    try {
+      profileCards = communityProfiles.map(p => {
+        let prof = p.profile || {};
+        if (typeof prof === "string") { try { prof = JSON.parse(prof); } catch(e) { prof = {}; } }
+        let skills = [];
+        if (Array.isArray(prof.skills)) skills = prof.skills;
+        else if (typeof prof.skills === "string") { try { skills = JSON.parse(prof.skills); } catch(e) { skills = []; } }
+        return { wallet: p.wallet || "", displayName: prof.displayName || "", bio: prof.bio || "", xHandle: prof.xHandle || "", pfpUrl: prof.pfpUrl || "", worksAt: prof.worksAt || "", location: prof.location || "", skills, updatedAt: p.updated_at };
+      }).filter(p => p.displayName);
+    } catch(e) { profileCards = []; }
 
     const filteredProfiles = profileCards;
 
