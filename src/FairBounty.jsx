@@ -299,6 +299,18 @@ const DbAPI = {
       return data.hasAccess || false;
     } catch (e) { return false; }
   },
+  async getPublicProfiles() {
+    try {
+      const res = await fetch("/api/db?action=get-public-profiles");
+      return await res.json();
+    } catch (e) { return []; }
+  },
+  async getCompletedBounties() {
+    try {
+      const res = await fetch("/api/db?action=get-completed-bounties");
+      return await res.json();
+    } catch (e) { return []; }
+  },
 };
 
 const FairScoreAPI = {
@@ -658,7 +670,7 @@ export default function FairBounty() {
 
   useEffect(() => {
     registerMwa({
-      appIdentity: { name: "FairBounty", uri: "https://fairbounty.vercel.app", icon: "/logo.png" },
+      appIdentity: { name: "FairBounty", uri: "https://fairbounty.fun", icon: "/logo.png" },
       authorizationCache: createDefaultAuthorizationCache(),
       chains: ["solana:mainnet"],
       chainSelector: createDefaultChainSelector(),
@@ -684,23 +696,23 @@ export default function FairBounty() {
     {
       id: "jupiter", name: "Jupiter", useStandard: true,
       mobileLink: isIOS
-        ? "jupiter://browse/https://fairbounty.vercel.app"
-        : "intent://browse/https://fairbounty.vercel.app#Intent;scheme=jupiter;package=ag.jup.jupiter.android;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dag.jup.jupiter.android;end",
+        ? "jupiter://browse/https://fairbounty.fun"
+        : "intent://browse/https://fairbounty.fun#Intent;scheme=jupiter;package=ag.jup.jupiter.android;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dag.jup.jupiter.android;end",
       downloadUrl: "https://chromewebstore.google.com/detail/jupiter-wallet/iledlaeogohbilgbfhmbgkgmpplbfboh",
     },
     {
       id: "phantom", name: "Phantom", window: "solana", check: (w) => w?.isPhantom,
-      mobileLink: `https://phantom.app/ul/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      mobileLink: `https://phantom.app/ul/browse/${encodeURIComponent("https://fairbounty.fun")}?ref=${encodeURIComponent("https://fairbounty.fun")}`,
       downloadUrl: "https://phantom.app/",
     },
     {
       id: "solflare", name: "Solflare", window: "solflare", check: (w) => !!w,
-      mobileLink: `https://solflare.com/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      mobileLink: `https://solflare.com/ul/v1/browse/${encodeURIComponent("https://fairbounty.fun")}?ref=${encodeURIComponent("https://fairbounty.fun")}`,
       downloadUrl: "https://solflare.com/",
     },
     {
       id: "backpack", name: "Backpack", window: "backpack", check: (w) => w?.isBackpack || (w && typeof w.connect === "function"),
-      mobileLink: `https://backpack.app/ul/v1/browse/${encodeURIComponent("https://fairbounty.vercel.app")}?ref=${encodeURIComponent("https://fairbounty.vercel.app")}`,
+      mobileLink: `https://backpack.app/ul/v1/browse/${encodeURIComponent("https://fairbounty.fun")}?ref=${encodeURIComponent("https://fairbounty.fun")}`,
       downloadUrl: "https://backpack.app/",
     },
     { id: "glow", name: "Glow", window: "glow", check: (w) => !!w, downloadUrl: "https://glow.app/" },
@@ -1173,8 +1185,8 @@ export default function FairBounty() {
   }, [allBounties, filterTier, filterType]);
 
   const referralLink = referralCode
-    ? `https://fairbounty.vercel.app?ref=${referralCode}`
-    : fullAddress ? `https://fairbounty.vercel.app?ref=${fullAddress.slice(0,8)}` : "";
+    ? `https://fairbounty.fun?ref=${referralCode}`
+    : fullAddress ? `https://fairbounty.fun?ref=${fullAddress.slice(0,8)}` : "";
   const riskData = FairScoreAPI.assessRisk(scoreData);
   const rewardBonus = FairScoreAPI.getRewardBonus(fairScore);
 
@@ -1328,6 +1340,7 @@ export default function FairBounty() {
   const [betaSignupWallet, setBetaSignupWallet] = useState(fullAddress || "");
   const [betaSignupSent, setBetaSignupSent] = useState(false);
   const [betaSignupSending, setBetaSignupSending] = useState(false);
+  const [betaSignupGroupChat, setBetaSignupGroupChat] = useState(false);
 
   const handleBetaSignup = async () => {
     if (!betaSignupHandle.trim()) { notify("Please enter your X handle."); return; }
@@ -1335,14 +1348,22 @@ export default function FairBounty() {
     if (!w) { notify("Please enter your wallet address."); return; }
     setBetaSignupSending(true);
     try {
+      // Check for duplicate submission
+      const existingApps = await fetch(`/api/db?action=check-beta-app&wallet=${encodeURIComponent(w)}`).then(r => r.json()).catch(() => ({ exists: false }));
+      if (existingApps.exists) {
+        notify("You've already submitted a request! I'll get to it ASAP — please be patient.");
+        setBetaSignupSending(false);
+        return;
+      }
       await DbAPI.submitBountyApp(w, betaSignupHandle.replace(/^@/, ""), 0, {
         type: "beta_request",
         xHandle: betaSignupHandle.replace(/^@/, ""),
         wallet: w,
+        wantsGroupChat: betaSignupGroupChat,
         requestedAt: new Date().toISOString(),
       });
       setBetaSignupSent(true);
-      notify("✅ Beta request submitted! We'll review it soon.");
+      notify("✅ Request submitted! I'll get to it ASAP.");
     } catch (e) {
       notify("Failed to submit — try again.");
     }
@@ -1361,7 +1382,7 @@ export default function FairBounty() {
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
             <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "8px", letterSpacing: "-0.03em" }}>Request Received!</h3>
             <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", marginBottom: "20px" }}>
-              We'll review your request and get back to you on X. Follow <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>@smsonx</a> for updates.
+              I'll get to it ASAP — please be patient! Follow <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>@smsonx</a> on X for updates.
             </p>
             <button style={btnPrimary} onClick={() => { setShowDemoModal(false); setBetaSignupSent(false); }}>Done</button>
           </div>
@@ -1399,13 +1420,23 @@ export default function FairBounty() {
                 />
               </div>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", padding: "12px 14px", background: `${theme.primary}08`, borderRadius: "10px", border: `1px solid ${theme.primary}15`, cursor: "pointer" }} onClick={() => setBetaSignupGroupChat(!betaSignupGroupChat)}>
+              <div style={{ width: "20px", height: "20px", borderRadius: "6px", border: betaSignupGroupChat ? `2px solid ${theme.primary}` : "2px solid #444", background: betaSignupGroupChat ? `${theme.primary}30` : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", flexShrink: 0, transition: "all 0.2s" }}>
+                {betaSignupGroupChat && <span style={{ color: theme.primary }}>✓</span>}
+              </div>
+              <div>
+                <div style={{ fontSize: "13px", fontWeight: "600", color: "rgba(255,255,255,0.8)" }}>Add me to the group chat</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>Join other beta testers for updates, feedback, and bounty alerts</div>
+              </div>
+            </div>
             <div style={{ display: "flex", gap: "12px" }}>
               <button style={{ ...btnPrimary, flex: 1 }} disabled={betaSignupSending} onClick={handleBetaSignup}>
                 {betaSignupSending ? "Submitting..." : "⚡ Request Access"}
               </button>
               <button style={btnOutline} onClick={() => setShowDemoModal(false)}>Cancel</button>
             </div>
-            <div style={{ marginTop: "16px", textAlign: "center", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+            <div style={{ marginTop: "12px", textAlign: "center", fontSize: "11px", color: "rgba(255,255,255,0.4)", lineHeight: "1.6" }}>
+              ⏳ I review every request personally — please be patient!<br />
               Or DM <a href="https://x.com/smsonx" target="_blank" rel="noopener noreferrer" style={{ color: theme.primary, textDecoration: "none" }}>@smsonx</a> on X directly
             </div>
           </>
@@ -1560,6 +1591,7 @@ export default function FairBounty() {
             { label: t.postBounty, icon: "📋", view: "post-bounty" },
             { label: t.howItWorks, icon: "📖", view: "how-it-works" },
             { label: t.about, icon: "ℹ️", view: "about" },
+            { label: "👥", icon: "👥", view: "community" },
             { label: "🏆", icon: "🏆", view: "leaderboard" },
           ].map((tab) => (
             <button key={tab.view} className="nav-btn" style={{ ...tabStyle(tab.view) }} onClick={() => {
@@ -2416,7 +2448,7 @@ export default function FairBounty() {
                     <div style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Your link slug</div>
                     {slugEditing ? (
                       <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        <span style={{ fontSize: "11px", color: "#555", whiteSpace: "nowrap" }}>fairbounty.vercel.app?ref=</span>
+                        <span style={{ fontSize: "11px", color: "#555", whiteSpace: "nowrap" }}>fairbounty.fun?ref=</span>
                         <input
                           value={slugInput}
                           onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
@@ -3060,6 +3092,215 @@ export default function FairBounty() {
   // ============================================================
   // LEADERBOARD
   // ============================================================
+  // ============================================================
+  // COMMUNITY — Public profiles by tier + completed bounties
+  // ============================================================
+  if (view === "community") {
+    const [communityProfiles, setCommunityProfiles] = useState([]);
+    const [completedBountiesList, setCompletedBountiesList] = useState([]);
+    const [communityLoading, setCommunityLoading] = useState(true);
+    const [communityTab, setCommunityTab] = useState("profiles");
+    const [tierFilter, setTierFilter] = useState(0);
+
+    useEffect(() => {
+      setCommunityLoading(true);
+      Promise.all([
+        DbAPI.getPublicProfiles(),
+        DbAPI.getCompletedBounties(),
+      ]).then(([profiles, bounties]) => {
+        setCommunityProfiles(Array.isArray(profiles) ? profiles : []);
+        setCompletedBountiesList(Array.isArray(bounties) ? bounties : []);
+        setCommunityLoading(false);
+      });
+    }, []);
+
+    // Group profiles by tier (best guess from FairScore — we'll show all and let people explore)
+    const profileCards = communityProfiles.map(p => {
+      const prof = p.profile || {};
+      return { wallet: p.wallet, ...prof, updatedAt: p.updated_at };
+    }).filter(p => p.displayName);
+
+    const filteredProfiles = tierFilter > 0 ? profileCards : profileCards;
+
+    return (
+      <div style={pageStyle}>
+        <div style={gridOverlay} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+          <NavBar showBack backTo="dashboard" backLabel={t.backBounties} />
+          {demoModalJsx}
+          <Notification />
+          <div style={fadeIn}>
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              <div style={{ display: "inline-block", padding: "6px 16px", background: `${theme.primary}15`, border: `1px solid ${theme.primary}30`, borderRadius: "100px", fontSize: "11px", color: theme.primary, marginBottom: "16px", letterSpacing: "1.5px", textTransform: "uppercase" }}>Community</div>
+              <h1 style={{ fontSize: "clamp(28px, 5vw, 42px)", fontWeight: "900", lineHeight: "1.1", marginBottom: "10px", letterSpacing: "-1px" }}>
+                Our <span style={{ color: theme.primary }}>Contributors</span>
+              </h1>
+              <p style={{ fontSize: "14px", color: "#888", maxWidth: "500px", margin: "0 auto" }}>
+                {communityProfiles.length} profiles · {completedBountiesList.length} completed bounties
+              </p>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "#0c0c14", borderRadius: "10px", padding: "4px", justifyContent: "center" }}>
+              {[
+                { id: "profiles", label: `👤 Contributors (${profileCards.length})` },
+                { id: "completed", label: `🏆 Completed Bounties (${completedBountiesList.length})` },
+              ].map(tab => (
+                <button key={tab.id} onClick={() => setCommunityTab(tab.id)} style={{
+                  padding: "10px 20px", fontSize: "12px", fontWeight: "600",
+                  background: communityTab === tab.id ? `${theme.primary}20` : "transparent",
+                  border: communityTab === tab.id ? `1px solid ${theme.primary}30` : "1px solid transparent",
+                  borderRadius: "8px", color: communityTab === tab.id ? theme.primary : "#888",
+                  cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s ease",
+                }}>{tab.label}</button>
+              ))}
+            </div>
+
+            {communityLoading && (
+              <div style={{ textAlign: "center", padding: "60px", color: "#666" }}>
+                <div style={{ width: "32px", height: "32px", border: `3px solid ${theme.primary}30`, borderTop: `3px solid ${theme.primary}`, borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 12px" }} />
+                Loading community data...
+              </div>
+            )}
+
+            {/* PROFILES TAB */}
+            {!communityLoading && communityTab === "profiles" && (
+              <div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+                  {profileCards.map((p) => {
+                    const isYou = p.wallet === fullAddress;
+                    return (
+                      <div key={p.wallet} style={{
+                        ...cardStyle, padding: "20px",
+                        border: isYou ? `1px solid ${theme.primary}50` : cardStyle.border,
+                        background: isYou ? `${theme.primary}08` : cardStyle.background,
+                      }}>
+                        <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+                          <div style={{
+                            width: "48px", height: "48px", borderRadius: "50%", flexShrink: 0,
+                            background: p.pfpUrl ? `url(${p.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
+                            border: `2px solid ${theme.primary}30`,
+                            display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px",
+                          }}>
+                            {!p.pfpUrl && "👤"}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+                              <span style={{ fontSize: "14px", fontWeight: "700", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.displayName}</span>
+                              {isYou && <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}20`, padding: "1px 6px", borderRadius: "4px" }}>You</span>}
+                              {PLATFORM_BADGES_CONFIG[p.wallet] && PLATFORM_BADGES_CONFIG[p.wallet].map(badge => (
+                                <span key={badge.id} style={{ fontSize: "9px", fontWeight: "700", color: badge.color, background: badge.bg, padding: "1px 6px", borderRadius: "4px", border: `1px solid ${badge.border}` }}>★ {badge.label}</span>
+                              ))}
+                            </div>
+                            {p.xHandle && <a href={`https://x.com/${p.xHandle}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: theme.primary, textDecoration: "none" }}>@{p.xHandle}</a>}
+                            {p.bio && <div style={{ fontSize: "11px", color: "#888", marginTop: "4px", lineHeight: "1.4", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.bio}</div>}
+                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "8px", fontSize: "10px", color: "#666" }}>
+                              {p.worksAt && <span>🏢 {p.worksAt}</span>}
+                              {p.location && <span>📍 {p.location}</span>}
+                            </div>
+                            {p.skills?.length > 0 && (
+                              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "8px" }}>
+                                {p.skills.slice(0, 4).map(s => (
+                                  <span key={s} style={{ padding: "2px 8px", background: `${theme.primary}10`, borderRadius: "100px", fontSize: "10px", color: `${theme.primary}BB` }}>{s}</span>
+                                ))}
+                                {p.skills.length > 4 && <span style={{ fontSize: "10px", color: "#555" }}>+{p.skills.length - 4}</span>}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {profileCards.length === 0 && (
+                  <div style={{ ...cardStyle, textAlign: "center", padding: "40px", color: "#666" }}>
+                    <div style={{ fontSize: "32px", marginBottom: "12px" }}>👥</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600" }}>No profiles yet</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* COMPLETED BOUNTIES TAB */}
+            {!communityLoading && communityTab === "completed" && (
+              <div>
+                {completedBountiesList.length === 0 ? (
+                  <div style={{ ...cardStyle, textAlign: "center", padding: "40px", color: "#666" }}>
+                    <div style={{ fontSize: "32px", marginBottom: "12px" }}>🏆</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>No completed bounties yet</div>
+                    <div style={{ fontSize: "12px", color: "#888" }}>Winners will appear here when bounties are completed</div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {completedBountiesList.map(b => {
+                      const pt = PRIZE_TYPES[b.prize_type] || PRIZE_TYPES.USDC;
+                      const winnerTier = TIER_CONFIG[b.winner_tier] || TIER_CONFIG[1];
+                      return (
+                        <div key={b.id} style={{ ...cardStyle, padding: "24px", border: `1px solid #22C55E25` }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap", marginBottom: "16px" }}>
+                            <div>
+                              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px" }}>
+                                <span style={{ fontSize: "11px", color: "#888" }}>{b.project_name}</span>
+                                <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "2px 8px", borderRadius: "100px" }}>🏆 COMPLETED</span>
+                              </div>
+                              <div style={{ fontSize: "18px", fontWeight: "800" }}>{b.title}</div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <div style={{ fontSize: "18px", fontWeight: "900", color: pt.color }}>
+                                <PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward} {b.currency || ""}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Winner card */}
+                          {b.winner_name && (
+                            <div style={{ padding: "16px", background: "#22C55E08", borderRadius: "12px", border: "1px solid #22C55E20" }}>
+                              <div style={{ fontSize: "10px", color: "#22C55E", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>🏆 Winner</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
+                                <span style={{ fontSize: "24px" }}>{winnerTier.emoji}</span>
+                                <div>
+                                  <div style={{ fontSize: "16px", fontWeight: "700" }}>{b.winner_name}</div>
+                                  <div style={{ fontSize: "11px", color: "#888" }}>Tier {b.winner_tier} · Score: {b.winner_score || 0}</div>
+                                </div>
+                              </div>
+                              {b.winner_content && (
+                                <div style={{ fontSize: "13px", color: "#aaa", lineHeight: "1.6", marginBottom: b.winner_links ? "10px" : "0" }}>
+                                  {b.winner_content.slice(0, 300)}{b.winner_content.length > 300 ? "..." : ""}
+                                </div>
+                              )}
+                              {b.winner_links && (
+                                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                  {b.winner_links.split(",").map(l => l.trim()).filter(Boolean).map((link, i) => (
+                                    <a key={i} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: theme.primary, textDecoration: "none", padding: "4px 10px", background: `${theme.primary}10`, borderRadius: "6px", border: `1px solid ${theme.primary}20` }}>🔗 {link.slice(0, 40)}{link.length > 40 ? "..." : ""}</a>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Tags */}
+                          {Array.isArray(b.tags) && b.tags.length > 0 && (
+                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "12px" }}>
+                              {b.tags.map(tag => (
+                                <span key={tag} style={{ padding: "2px 8px", background: `${theme.primary}10`, borderRadius: "4px", fontSize: "10px", color: `${theme.primary}BB` }}>{tag}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <Footer />
+        </div>
+        <style>{globalStyles}</style>
+      </div>
+    );
+  }
+
   if (view === "leaderboard") {
     const leaders = [
       { rank: 1, name: "CryptoBuilder.sol", tier: 5, xp: 2450, bounties: 18, earned: "$45,200" },
@@ -3281,7 +3522,7 @@ export default function FairBounty() {
               <h1 style={{ fontSize: "22px", fontWeight: "900" }}>⚡ Admin Panel</h1>
               <span style={{ fontSize: "10px", fontWeight: "700", color: "#FFD700", background: "rgba(255,215,0,0.1)", padding: "3px 10px", borderRadius: "100px", border: "1px solid rgba(255,215,0,0.2)" }}>★ Founder</span>
             </div>
-            <p style={{ fontSize: "12px", color: "#666" }}>fairbounty.vercel.app · {adminData ? `${adminData.bounties?.length || 0} bounties · ${adminData.profiles?.length || 0} profiles` : "Loading..."}</p>
+            <p style={{ fontSize: "12px", color: "#666" }}>fairbounty.fun · {adminData ? `${adminData.bounties?.length || 0} bounties · ${adminData.profiles?.length || 0} profiles` : "Loading..."}</p>
           </div>
 
           {/* Stats row */}
