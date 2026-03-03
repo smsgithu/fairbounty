@@ -610,6 +610,12 @@ export default function FairBounty() {
     try { return JSON.parse(localStorage.getItem("fb_bounty_applications") || "[]"); } catch { return []; }
   });
   const [bountyForm, setBountyForm] = useState({ projectName: "", title: "", description: "", reward: "", currency: "USDC", minTier: 1, deadline: "", category: "", contactMethod: "", contactValue: "" });
+
+  // Community page state
+  const [communityProfiles, setCommunityProfiles] = useState([]);
+  const [completedBountiesList, setCompletedBountiesList] = useState([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [communityTab, setCommunityTab] = useState("profiles");
   const [connectedWallets, setConnectedWallets] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fb_connected_wallets") || "[]"); } catch { return []; }
   });
@@ -3096,13 +3102,8 @@ export default function FairBounty() {
   // COMMUNITY — Public profiles by tier + completed bounties
   // ============================================================
   if (view === "community") {
-    const [communityProfiles, setCommunityProfiles] = useState([]);
-    const [completedBountiesList, setCompletedBountiesList] = useState([]);
-    const [communityLoading, setCommunityLoading] = useState(true);
-    const [communityTab, setCommunityTab] = useState("profiles");
-    const [tierFilter, setTierFilter] = useState(0);
-
-    useEffect(() => {
+    // Load community data on first render of this view
+    if (!communityLoading && communityProfiles.length === 0 && completedBountiesList.length === 0) {
       setCommunityLoading(true);
       Promise.all([
         DbAPI.getPublicProfiles(),
@@ -3112,7 +3113,7 @@ export default function FairBounty() {
         setCompletedBountiesList(Array.isArray(bounties) ? bounties : []);
         setCommunityLoading(false);
       });
-    }, []);
+    }
 
     // Group profiles by tier (best guess from FairScore — we'll show all and let people explore)
     const profileCards = communityProfiles.map(p => {
@@ -3120,7 +3121,7 @@ export default function FairBounty() {
       return { wallet: p.wallet, ...prof, updatedAt: p.updated_at };
     }).filter(p => p.displayName);
 
-    const filteredProfiles = tierFilter > 0 ? profileCards : profileCards;
+    const filteredProfiles = profileCards;
 
     return (
       <div style={pageStyle}>
