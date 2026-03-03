@@ -316,6 +316,12 @@ const DbAPI = {
       return await res.json();
     } catch (e) { return []; }
   },
+  async getLeaderboard() {
+    try {
+      const res = await fetch("/api/db?action=get-leaderboard");
+      return await res.json();
+    } catch (e) { return []; }
+  },
 };
 
 const FairScoreAPI = {
@@ -621,7 +627,7 @@ export default function FairBounty() {
   // Community page state
   const [communityProfiles, setCommunityProfiles] = useState([]);
   const [completedBountiesList, setCompletedBountiesList] = useState([]);
-  
+  const [leaderboardData, setLeaderboardData] = useState([]);
   const [communityTab, setCommunityTab] = useState("profiles");
   const [connectedWallets, setConnectedWallets] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fb_connected_wallets") || "[]"); } catch { return []; }
@@ -653,6 +659,7 @@ export default function FairBounty() {
     DbAPI.getBounties().then((bounties) => { if (Array.isArray(bounties)) setLiveBounties(bounties); });
     DbAPI.getCompletedBounties().then((b) => { if (Array.isArray(b)) setCompletedBountiesList(b); });
     DbAPI.getPublicProfiles().then((p) => { if (Array.isArray(p)) setCommunityProfiles(p); });
+    DbAPI.getLeaderboard().then((l) => { if (Array.isArray(l)) setLeaderboardData(l); });
   }, []);
 
   // Referral detection
@@ -3369,17 +3376,16 @@ export default function FairBounty() {
   }
 
   if (view === "leaderboard") {
-    // Build real leaderboard from loaded profiles + BXP
-    // We need profiles with BXP — use communityProfiles + fetch BXP from admin or local
-    const leaderEntries = communityProfiles.map(p => {
-      let prof = p.profile || {};
-      if (typeof prof === "string") { try { prof = JSON.parse(prof); } catch(e) { prof = {}; } }
-      return { wallet: p.wallet, displayName: prof.displayName || "", xHandle: prof.xHandle || "", pfpUrl: prof.pfpUrl || "" };
-    }).filter(p => p.displayName && !ADMIN_WALLETS.includes(p.wallet));
-
-    // Sort by BXP if we have it (we don't have individual BXP from public endpoint yet, so show profiles for now)
-    // Add current user
-    const yourEntry = wallet && profile ? { wallet: fullAddress, displayName: profile.displayName, xHandle: profile.xHandle || "", pfpUrl: profile.pfpUrl || "", xp, isYou: true } : null;
+    const leaders = leaderboardData
+      .filter(l => !ADMIN_WALLETS.includes(l.wallet))
+      .slice(0, 10)
+      .map((l, i) => {
+        let prof = l.profile || {};
+        if (typeof prof === "string") { try { prof = JSON.parse(prof); } catch(e) { prof = {}; } }
+        const totalBxp = parseInt(l.total_bxp) || 0;
+        const bxp = l.bxp || {};
+        return { rank: i + 1, wallet: l.wallet, name: prof.displayName || "Anonymous", xHandle: prof.xHandle || "", pfpUrl: prof.pfpUrl || "", totalBxp, bxp };
+      });
 
     return (
       <div style={pageStyle}>
@@ -3390,56 +3396,42 @@ export default function FairBounty() {
           <Notification />
           <div style={fadeIn}>
             <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "8px" }}>🏆 Leaderboard</h2>
-            <p style={{ fontSize: "12px", color: "#888", marginBottom: "24px" }}>Top contributors ranked by BXP. Earn BXP from referrals, submissions, and winning bounties.</p>
+            <p style={{ fontSize: "12px", color: "#888", marginBottom: "24px" }}>Top 10 contributors ranked by BXP</p>
 
-            {leaderEntries.length === 0 && !yourEntry && (
+            {leaders.length === 0 && (
               <div style={{ ...cardStyle, padding: "40px", textAlign: "center", color: "#666" }}>
                 <div style={{ fontSize: "32px", marginBottom: "12px" }}>🏆</div>
-                <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "6px" }}>Leaderboard coming soon</div>
-                <div style={{ fontSize: "12px", color: "#888" }}>Connect your wallet and earn BXP to appear here</div>
+                <div style={{ fontSize: "14px", fontWeight: "600" }}>No leaderboard data yet</div>
               </div>
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {/* Your position */}
-              {yourEntry && !ADMIN_WALLETS.includes(fullAddress) && (
-                <div style={{ ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px", border: `1px solid ${theme.primary}60`, background: `${theme.primary}10` }}>
-                  <div style={{ width: "32px", textAlign: "center", fontWeight: "900", fontSize: "14px", color: theme.primary }}>You</div>
-                  <div style={{
-                    width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0,
-                    background: yourEntry.pfpUrl ? `url(${yourEntry.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}30, ${theme.accent}30)`,
-                    border: `2px solid ${theme.primary}40`,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px",
-                  }}>
-                    {!yourEntry.pfpUrl && TIER_CONFIG[fairScore]?.emoji}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: "600", fontSize: "14px" }}>{yourEntry.displayName}</div>
-                    <div style={{ fontSize: "11px", color: TIER_CONFIG[fairScore]?.color }}>{TIER_CONFIG[fairScore]?.emoji} {TIER_CONFIG[fairScore]?.label} · {TIER_CONFIG[fairScore]?.xpMultiplier}x multiplier</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: "700", fontSize: "16px", color: theme.primary }}>{xp} BXP</div>
-                  </div>
-                </div>
-              )}
-
-              {/* All contributors */}
-              {leaderEntries.map((l, i) => (
-                <div key={l.wallet} style={{ ...cardStyle, padding: "14px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
-                  <div style={{ width: "28px", textAlign: "center", fontWeight: "900", fontSize: "14px", color: i < 3 ? "#FFD700" : "#666" }}>
-                    {i < 3 ? ["🥇", "🥈", "🥉"][i] : `#${i + 1}`}
+              {leaders.map((l) => (
+                <div key={l.wallet} style={{
+                  ...cardStyle, padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px",
+                  border: l.rank <= 3 ? `1px solid ${["#FFD700", "#C0C0C0", "#CD7F32"][l.rank - 1]}30` : cardStyle.border,
+                  background: l.rank <= 3 ? `${["#FFD700", "#C0C0C0", "#CD7F32"][l.rank - 1]}08` : cardStyle.background,
+                }}>
+                  <div style={{ width: "32px", textAlign: "center", fontWeight: "900", fontSize: "16px", color: l.rank <= 3 ? ["#FFD700", "#C0C0C0", "#CD7F32"][l.rank - 1] : "#666" }}>
+                    {l.rank <= 3 ? ["🥇", "🥈", "🥉"][l.rank - 1] : `#${l.rank}`}
                   </div>
                   <div style={{
-                    width: "36px", height: "36px", borderRadius: "50%", flexShrink: 0,
+                    width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
                     background: l.pfpUrl ? `url(${l.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
-                    border: `2px solid ${theme.primary}20`,
+                    border: `2px solid ${l.rank <= 3 ? ["#FFD700", "#C0C0C0", "#CD7F32"][l.rank - 1] + "40" : theme.primary + "20"}`,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px",
                   }}>
                     {!l.pfpUrl && "👤"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: "600", fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.displayName}</div>
-                    {l.xHandle && <div style={{ fontSize: "11px", color: theme.primary }}>@{l.xHandle}</div>}
+                    <div style={{ fontWeight: "700", fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.name}</div>
+                    <div style={{ fontSize: "11px", color: "#888" }}>
+                      {l.xHandle ? `@${l.xHandle}` : l.wallet?.slice(0, 8) + "..."}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontWeight: "800", fontSize: "16px", color: theme.primary }}>{l.totalBxp}</div>
+                    <div style={{ fontSize: "9px", color: "#555", textTransform: "uppercase" }}>BXP</div>
                   </div>
                 </div>
               ))}
