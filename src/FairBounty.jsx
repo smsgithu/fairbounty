@@ -644,6 +644,7 @@ export default function FairBounty() {
   useEffect(() => {
     DbAPI.getStats().then((stats) => { if (stats) setGlobalStats(stats); });
     DbAPI.getBounties().then((bounties) => { if (Array.isArray(bounties)) setLiveBounties(bounties); });
+    DbAPI.getCompletedBounties().then((b) => { if (Array.isArray(b)) setCompletedBountiesList(b); });
   }, []);
 
   // Referral detection
@@ -1798,6 +1799,70 @@ export default function FairBounty() {
                 </div>
               ))}
             </div>
+
+            {/* Recent Winners */}
+            {completedBountiesList.length > 0 && (
+              <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.5s" }}>
+                <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                  <h2 style={{ fontSize: "24px", fontWeight: "800", marginBottom: "8px" }}>
+                    Recent <span style={{ color: "#22C55E" }}>Winners</span>
+                  </h2>
+                  <p style={{ fontSize: "13px", color: "#888" }}>Real contributors earning real prizes on FairBounty</p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {completedBountiesList.slice(0, 5).map(b => {
+                    const pt = PRIZE_TYPES[b.prize_type] || PRIZE_TYPES.USDC;
+                    const winnerTier = TIER_CONFIG[b.winner_tier] || TIER_CONFIG[1];
+                    return (
+                      <div key={b.id} style={{
+                        ...cardStyle, padding: "20px",
+                        border: "1px solid #22C55E18",
+                        background: "linear-gradient(135deg, #22C55E06, #22C55E02)",
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
+                          <div style={{ flex: 1, minWidth: "200px" }}>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "6px" }}>
+                              <span style={{ fontSize: "11px", color: "#888" }}>{b.project_name}</span>
+                              <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "2px 8px", borderRadius: "100px" }}>COMPLETED</span>
+                            </div>
+                            <div style={{ fontSize: "16px", fontWeight: "800", marginBottom: "10px" }}>{b.title}</div>
+
+                            {/* Winner info */}
+                            {b.winner_name && (
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px", background: "#22C55E08", borderRadius: "10px", border: "1px solid #22C55E15" }}>
+                                <span style={{ fontSize: "22px" }}>{winnerTier.emoji}</span>
+                                <div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <span style={{ fontSize: "14px", fontWeight: "700", color: "#22C55E" }}>{b.winner_name}</span>
+                                    <span style={{ fontSize: "10px", color: "#888" }}>Tier {b.winner_tier}</span>
+                                  </div>
+                                  <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>
+                                    Score: {b.winner_score || 0}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: "20px", fontWeight: "900", color: pt.color }}>
+                              <PrizeIcon pt={pt} size={16} style={{verticalAlign:"middle",marginRight:4}} />{b.reward}
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#888" }}>{b.currency || ""}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {completedBountiesList.length > 5 && (
+                  <div style={{ textAlign: "center", marginTop: "16px" }}>
+                    <button onClick={() => { setView("community"); setCommunityTab("completed"); }} style={{ ...btnOutline, fontSize: "12px", padding: "8px 20px" }}>
+                      View all {completedBountiesList.length} completed bounties
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Prize types */}
             <div style={{ marginTop: "60px", ...fadeIn, transitionDelay: "0.55s" }}>
