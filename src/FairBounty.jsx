@@ -1359,7 +1359,6 @@ export default function FairBounty() {
   const [betaSignupWallet, setBetaSignupWallet] = useState(fullAddress || "");
   const [betaSignupSent, setBetaSignupSent] = useState(false);
   const [betaSignupSending, setBetaSignupSending] = useState(false);
-  const [betaSignupGroupChat, setBetaSignupGroupChat] = useState(false);
 
   const handleBetaSignup = async () => {
     if (!betaSignupHandle.trim()) { notify("Please enter your X handle."); return; }
@@ -1378,7 +1377,7 @@ export default function FairBounty() {
         type: "beta_request",
         xHandle: betaSignupHandle.replace(/^@/, ""),
         wallet: w,
-        wantsGroupChat: betaSignupGroupChat,
+        
         requestedAt: new Date().toISOString(),
       });
       setBetaSignupSent(true);
@@ -1437,15 +1436,6 @@ export default function FairBounty() {
                   value={betaSignupWallet || fullAddress || ""}
                   onChange={(e) => setBetaSignupWallet(e.target.value)}
                 />
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", padding: "12px 14px", background: `${theme.primary}08`, borderRadius: "10px", border: `1px solid ${theme.primary}15`, cursor: "pointer" }} onClick={() => setBetaSignupGroupChat(!betaSignupGroupChat)}>
-              <div style={{ width: "20px", height: "20px", borderRadius: "6px", border: betaSignupGroupChat ? `2px solid ${theme.primary}` : "2px solid #444", background: betaSignupGroupChat ? `${theme.primary}30` : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", flexShrink: 0, transition: "all 0.2s" }}>
-                {betaSignupGroupChat && <span style={{ color: theme.primary }}>✓</span>}
-              </div>
-              <div>
-                <div style={{ fontSize: "13px", fontWeight: "600", color: "rgba(255,255,255,0.8)" }}>Add me to the group chat</div>
-                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>Join other beta testers for updates, feedback, and bounty alerts</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: "12px" }}>
@@ -3829,7 +3819,6 @@ export default function FairBounty() {
                           <>
                             <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "6px" }}>
                               <span style={{ fontSize: "9px", fontWeight: "700", color: theme.primary, background: `${theme.primary}20`, padding: "2px 8px", borderRadius: "4px" }}>⚡ BETA REQUEST</span>
-                              {app.form_data?.wantsGroupChat && <span style={{ fontSize: "9px", fontWeight: "700", color: "#8B5CF6", background: "#8B5CF615", padding: "2px 8px", borderRadius: "4px", border: "1px solid #8B5CF630" }}>💬 Wants Group Chat</span>}
                             </div>
                             <div style={{ fontWeight: "700", fontSize: "14px", marginBottom: "4px" }}>@{xHandle}</div>
                             <div style={{ fontSize: "11px", color: "#888", marginBottom: "4px", fontFamily: "'JetBrains Mono', monospace", wordBreak: "break-all" }}>
@@ -3895,8 +3884,8 @@ export default function FairBounty() {
               const hasBeta = (adminData?.betaRows || []).some(r => r.wallet === p.wallet && r.active);
               // Check if they requested group chat
               const app = (adminData?.apps || []).find(a => a.wallet === p.wallet && a.form_data?.type === "beta_request");
-              const wantsGroupChat = app?.form_data?.wantsGroupChat || false;
-              return { wallet: p.wallet, prof, totalBxp, hasBeta, wantsGroupChat, updatedAt: p.updated_at };
+              
+              return { wallet: p.wallet, prof, totalBxp, hasBeta, updatedAt: p.updated_at };
             });
 
             // Filter
@@ -3927,7 +3916,6 @@ export default function FairBounty() {
                     {[
                       { label: `All (${allProfiles.length})`, value: 0 },
                       { label: `Beta (${allProfiles.filter(p => p.hasBeta).length})`, value: "beta" },
-                      { label: `Group Chat (${allProfiles.filter(p => p.wantsGroupChat).length})`, value: "gc" },
                     ].map(f => (
                       <button key={f.value} onClick={() => setAdminProfileTierFilter(f.value)} style={{
                         padding: "6px 12px", fontSize: "11px", fontWeight: "600",
@@ -3945,7 +3933,6 @@ export default function FairBounty() {
                   {filtered
                     .filter(p => {
                       if (adminProfileTierFilter === "beta") return p.hasBeta;
-                      if (adminProfileTierFilter === "gc") return p.wantsGroupChat;
                       return true;
                     })
                     .map(p => {
@@ -3970,7 +3957,6 @@ export default function FairBounty() {
                           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" }}>
                             <span style={{ fontWeight: "700", fontSize: "14px" }}>{prof.displayName || "—"}</span>
                             {p.hasBeta && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px", border: "1px solid #22C55E30" }}>⚡ Beta</span>}
-                            {p.wantsGroupChat && <span style={{ fontSize: "9px", fontWeight: "700", color: "#8B5CF6", background: "#8B5CF615", padding: "1px 6px", borderRadius: "4px", border: "1px solid #8B5CF630" }}>💬 GC</span>}
                             {PLATFORM_BADGES_CONFIG[p.wallet] && PLATFORM_BADGES_CONFIG[p.wallet].map(badge => (
                               <span key={badge.id} style={{ fontSize: "9px", fontWeight: "700", color: badge.color, background: badge.bg, padding: "1px 6px", borderRadius: "4px", border: `1px solid ${badge.border}` }}>★ {badge.label}</span>
                             ))}
@@ -4040,9 +4026,7 @@ export default function FairBounty() {
               const isActive = hasProfile && (totalBxp > 100 || hasSubmissions || hasReferrals);
               // Check group chat from intake form or note
               const app = (adminData?.apps || []).find(a => a.wallet === r.wallet && a.form_data?.type === "beta_request");
-              const wantsGroupChat = app?.form_data?.wantsGroupChat || false;
-              const addedToGC = (r.note || "").includes("[GC]");
-              return { ...r, prof, totalBxp, bxp, hasProfile, hasSubmissions, hasReferrals, isActive, wantsGroupChat, addedToGC };
+              
             });
 
             const [betaFilter, setBetaFilter] = [adminProfileTierFilter, setAdminProfileTierFilter];
@@ -4050,8 +4034,6 @@ export default function FairBounty() {
             const filtered = enriched.filter(r => {
               if (betaFilter === "active") return r.isActive;
               if (betaFilter === "profile") return r.hasProfile;
-              if (betaFilter === "gc-wants") return r.wantsGroupChat && !r.addedToGC;
-              if (betaFilter === "gc-added") return r.addedToGC;
               return true;
             });
 
@@ -4098,8 +4080,6 @@ export default function FairBounty() {
                     { label: `All (${active.length})`, value: 0 },
                     { label: `Active (${enriched.filter(r => r.isActive).length})`, value: "active" },
                     { label: `Has Profile (${enriched.filter(r => r.hasProfile).length})`, value: "profile" },
-                    { label: `💬 Wants GC (${enriched.filter(r => r.wantsGroupChat && !r.addedToGC).length})`, value: "gc-wants" },
-                    { label: `✅ In GC (${enriched.filter(r => r.addedToGC).length})`, value: "gc-added" },
                   ].map(f => (
                     <button key={f.value} onClick={() => setAdminProfileTierFilter(f.value)} style={{
                       padding: "6px 12px", fontSize: "11px", fontWeight: "600",
@@ -4139,8 +4119,6 @@ export default function FairBounty() {
                           {r.isActive && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px" }}>🟢 Active</span>}
                           {!r.isActive && r.hasProfile && <span style={{ fontSize: "9px", fontWeight: "700", color: "#F59E0B", background: "#F59E0B15", padding: "1px 6px", borderRadius: "4px" }}>🟡 Idle</span>}
                           {!r.hasProfile && <span style={{ fontSize: "9px", fontWeight: "700", color: "#EF4444", background: "#EF444415", padding: "1px 6px", borderRadius: "4px" }}>🔴 No Profile</span>}
-                          {r.wantsGroupChat && !r.addedToGC && <span style={{ fontSize: "9px", fontWeight: "700", color: "#8B5CF6", background: "#8B5CF615", padding: "1px 6px", borderRadius: "4px" }}>💬 Wants GC</span>}
-                          {r.addedToGC && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px" }}>✅ In GC</span>}
                         </div>
 
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px", flexWrap: "wrap" }}>
@@ -4164,32 +4142,6 @@ export default function FairBounty() {
 
                       {/* Actions */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "4px", flexShrink: 0 }}>
-                        {r.wantsGroupChat && !r.addedToGC && (
-                          <button onClick={async () => {
-                            const newNote = (r.note || "").replace("[GC]", "").trim();
-                            await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
-                              method: "POST", headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ targetWallet: r.wallet, note: `[GC] ${newNote}`.trim() }),
-                            });
-                            notify("✅ Marked as added to group chat");
-                            loadAdmin();
-                          }} style={{ background: "#8B5CF615", border: "1px solid #8B5CF630", borderRadius: "6px", color: "#8B5CF6", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                            💬 Mark GC Added
-                          </button>
-                        )}
-                        {r.addedToGC && (
-                          <button onClick={async () => {
-                            const newNote = (r.note || "").replace("[GC]", "").trim();
-                            await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
-                              method: "POST", headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ targetWallet: r.wallet, note: newNote }),
-                            });
-                            notify("Removed from group chat");
-                            loadAdmin();
-                          }} style={{ background: "#EF444410", border: "1px solid #EF444425", borderRadius: "6px", color: "#EF4444", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                            ❌ Remove GC
-                          </button>
-                        )}
                         <button onClick={async () => {
                           await fetch(`/api/db?action=admin-remove-beta&wallet=${fullAddress}`, {
                             method: "POST", headers: { "Content-Type": "application/json" },
