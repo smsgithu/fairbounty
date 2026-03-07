@@ -2835,21 +2835,14 @@ export default function FairBounty() {
               <div style={{ fontSize: "12px", fontWeight: "700", color: theme.primary, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>📤 Share this bounty</div>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <button onClick={() => {
-                  const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
-                  const text = `Check out this bounty on @fairbounty: "${b.title}" — ${b.reward} ${b.currency || ""} prize! ${shareUrl}`;
+                  const bountyUrl = `https://fairbounty.fun${referralCode ? `?ref=${referralCode}` : ""}#bounty-${b.id}`;
+                  const text = `Check out this bounty on @fairbounty: "${b.title}" — ${b.reward} ${b.currency || ""} prize!\n\n${bountyUrl}`;
                   window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
                 }} style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px" }}>
                   Share on X
                 </button>
-                <button onClick={() => {
-                  const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
-                  navigator.clipboard.writeText(shareUrl);
-                  notify("Referral link copied!");
-                }} style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px" }}>
-                  📋 Copy Link
-                </button>
               </div>
-              {referralCode && <div style={{ fontSize: "10px", color: "#555", marginTop: "8px" }}>Sharing with your referral code — you'll earn BXP for signups!</div>}
+              {referralCode && <div style={{ fontSize: "10px", color: "#555", marginTop: "8px" }}>Your referral code is included in the link</div>}
             </div>
           </div>
 
@@ -4425,19 +4418,11 @@ export default function FairBounty() {
                   <span>⏰ {b.deadline || "Open"}</span>
                   <button onClick={(e) => {
                     e.stopPropagation();
-                    const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
-                    const text = `Check out this bounty on @fairbounty: "${b.title}" — ${b.reward} ${b.currency || ""} prize! ${shareUrl}`;
+                    const bountyUrl = `https://fairbounty.fun${referralCode ? `?ref=${referralCode}` : ""}#bounty-${b.id}`;
+                    const text = `Check out this bounty on @fairbounty: "${b.title}" — ${b.reward} ${b.currency || ""} prize!\n\n${bountyUrl}`;
                     window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
                   }} style={{ marginLeft: "auto", background: `${theme.primary}10`, border: `1px solid ${theme.primary}20`, borderRadius: "6px", color: theme.primary, cursor: "pointer", fontSize: "11px", padding: "4px 10px", fontFamily: "inherit", fontWeight: "600" }}>
                     Share on X
-                  </button>
-                  <button onClick={(e) => {
-                    e.stopPropagation();
-                    const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
-                    navigator.clipboard.writeText(shareUrl);
-                    notify("Referral link copied!");
-                  }} style={{ background: `${theme.primary}10`, border: `1px solid ${theme.primary}20`, borderRadius: "6px", color: theme.primary, cursor: "pointer", fontSize: "11px", padding: "4px 10px", fontFamily: "inherit" }}>
-                    📋
                   </button>
                   {wallet && (
                     <button onClick={(e) => { e.stopPropagation(); toggleBookmark(b.id); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "0", fontFamily: "inherit" }} title={bookmarks.includes(b.id) ? "Remove bookmark" : "Bookmark"}>
