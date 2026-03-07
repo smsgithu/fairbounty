@@ -1342,10 +1342,10 @@ export default function FairBounty() {
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "6px" }}>
           <span style={{ color: "#22C55E", fontWeight: "600" }}>✅ Live:</span>
-          <span>FairScore · BXP · Referrals · Wallet Count</span>
+          <span>FairScore · BXP · Referrals · Bounties · Voting</span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
-          <span style={{ color: "#F59E0B", fontWeight: "600" }}>⏳ Beta only:</span>
-          <span>Test bounties · Test submissions · Voting · Vibes (no live rewards yet)</span>
+          <span style={{ color: "#F59E0B", fontWeight: "600" }}>⚡ Beta testers:</span>
+          <span>Post bounties · Submit work · Earn rewards</span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
           <span style={{ color: "#F59E0B", cursor: "pointer" }} onClick={() => setShowDemoModal(true)}>⚡ <span style={{ textDecoration: "underline" }}>Request beta access</span></span>
           <span style={{ color: "rgba(255,255,255,0.15)" }}>|</span>
@@ -2808,13 +2808,6 @@ export default function FairBounty() {
                 </button>
                 <button onClick={() => {
                   const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
-                  const text = `Check out this bounty on FairBounty: "${b.title}" — ${b.reward} ${b.currency || ""} prize! ${shareUrl}`;
-                  window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`, "_blank");
-                }} style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px" }}>
-                  Telegram
-                </button>
-                <button onClick={() => {
-                  const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
                   navigator.clipboard.writeText(shareUrl);
                   notify("Referral link copied!");
                 }} style={{ ...btnOutline, fontSize: "12px", padding: "8px 16px" }}>
@@ -4032,17 +4025,47 @@ export default function FairBounty() {
             const betaRows = adminData?.betaRows || [];
             const active = betaRows.filter(r => r.active);
             const inactive = betaRows.filter(r => !r.active);
+            
+            // Enrich beta users with profile + activity data
+            const enriched = active.map(r => {
+              const profileRow = (adminData?.profiles || []).find(p => p.wallet === r.wallet);
+              let prof = profileRow?.profile || {};
+              if (typeof prof === "string") { try { prof = JSON.parse(prof); } catch(e) { prof = {}; } }
+              const bxpRow = (adminData?.bxpRows || []).find(b => b.wallet === r.wallet);
+              const bxp = bxpRow?.bxp || {};
+              const totalBxp = Object.values(bxp).reduce((a, b) => a + (typeof b === "number" ? b : 0), 0);
+              const hasProfile = !!(prof.displayName);
+              const hasSubmissions = (bxp.submissions || 0) > 0 || (bxp.wins || 0) > 0;
+              const hasReferrals = (bxp.referrals || 0) > 0;
+              const isActive = hasProfile && (totalBxp > 100 || hasSubmissions || hasReferrals);
+              // Check group chat from intake form or note
+              const app = (adminData?.apps || []).find(a => a.wallet === r.wallet && a.form_data?.type === "beta_request");
+              const wantsGroupChat = app?.form_data?.wantsGroupChat || false;
+              const addedToGC = (r.note || "").includes("[GC]");
+              return { ...r, prof, totalBxp, bxp, hasProfile, hasSubmissions, hasReferrals, isActive, wantsGroupChat, addedToGC };
+            });
+
+            const [betaFilter, setBetaFilter] = [adminProfileTierFilter, setAdminProfileTierFilter];
+
+            const filtered = enriched.filter(r => {
+              if (betaFilter === "active") return r.isActive;
+              if (betaFilter === "profile") return r.hasProfile;
+              if (betaFilter === "gc-wants") return r.wantsGroupChat && !r.addedToGC;
+              if (betaFilter === "gc-added") return r.addedToGC;
+              return true;
+            });
+
             return (
               <div>
                 {/* Add new wallet */}
                 <div style={{ ...glassCard, padding: "20px", marginBottom: "16px" }}>
                   <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px" }}>⚡ Grant Beta Access</h3>
-                  <div className="beta-grant-row" style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                  <div className="beta-grant-row" style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
                     <input
                       value={betaInputWallet}
                       onChange={e => setBetaInputWallet(e.target.value.trim())}
                       placeholder="Wallet address (44 chars)"
-                      style={{ ...inputStyle, flex: 1, fontSize: "12px", fontFamily: "monospace" }}
+                      style={{ ...inputStyle, flex: 1, minWidth: "200px", fontSize: "12px", fontFamily: "monospace" }}
                     />
                     <input
                       value={betaInputNote}
@@ -4067,34 +4090,120 @@ export default function FairBounty() {
                       }
                     }}>Grant</button>
                   </div>
-                  <p style={{ fontSize: "11px", color: "#555" }}>{t.grantsAccess}</p>
                 </div>
 
-                {/* Active list */}
-                <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
-                  Active ({active.length})
+                {/* Filter bar */}
+                <div style={{ display: "flex", gap: "4px", marginBottom: "16px", flexWrap: "wrap" }}>
+                  {[
+                    { label: `All (${active.length})`, value: 0 },
+                    { label: `Active (${enriched.filter(r => r.isActive).length})`, value: "active" },
+                    { label: `Has Profile (${enriched.filter(r => r.hasProfile).length})`, value: "profile" },
+                    { label: `💬 Wants GC (${enriched.filter(r => r.wantsGroupChat && !r.addedToGC).length})`, value: "gc-wants" },
+                    { label: `✅ In GC (${enriched.filter(r => r.addedToGC).length})`, value: "gc-added" },
+                  ].map(f => (
+                    <button key={f.value} onClick={() => setAdminProfileTierFilter(f.value)} style={{
+                      padding: "6px 12px", fontSize: "11px", fontWeight: "600",
+                      background: betaFilter === f.value ? `${theme.primary}20` : "transparent",
+                      border: betaFilter === f.value ? `1px solid ${theme.primary}40` : "1px solid #333",
+                      borderRadius: "6px", color: betaFilter === f.value ? theme.primary : "#888",
+                      cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+                    }}>{f.label}</button>
+                  ))}
                 </div>
-                {active.length === 0
-                  ? <div style={{ ...cardStyle, padding: "20px", textAlign: "center", color: "#555", marginBottom: "16px" }}>{t.noBetaUsers}</div>
-                  : active.map(r => (
-                    <div key={r.wallet} style={{ ...cardStyle, padding: "12px 16px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "12px" }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "monospace", fontSize: "12px", color: theme.primary }}>{r.wallet?.slice(0, 20)}...{r.wallet?.slice(-8)}</div>
-                        <div style={{ fontSize: "10px", color: "#555" }}>{r.note || "—"} · Added {new Date(r.added_at).toLocaleDateString()}</div>
+
+                {/* Beta user list */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {filtered.length === 0 && (
+                    <div style={{ ...cardStyle, padding: "24px", textAlign: "center", color: "#666" }}>No users match this filter</div>
+                  )}
+                  {filtered.map(r => (
+                    <div key={r.wallet} style={{
+                      ...cardStyle, padding: "14px 16px", display: "flex", gap: "12px", alignItems: "flex-start",
+                      border: r.isActive ? "1px solid #22C55E25" : cardStyle.border,
+                      background: r.isActive ? "#22C55E05" : cardStyle.background,
+                    }}>
+                      {/* PFP */}
+                      <div style={{
+                        width: "40px", height: "40px", borderRadius: "50%", flexShrink: 0,
+                        background: r.prof.pfpUrl ? `url(${r.prof.pfpUrl}) center/cover` : `linear-gradient(135deg, ${theme.primary}20, ${theme.accent}20)`,
+                        border: `2px solid ${r.isActive ? "#22C55E40" : "#333"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px",
+                      }}>
+                        {!r.prof.pfpUrl && (r.hasProfile ? "👤" : "❓")}
                       </div>
-                      <button onClick={async () => {
-                        await fetch(`/api/db?action=admin-remove-beta&wallet=${fullAddress}`, {
-                          method: "POST", headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ targetWallet: r.wallet }),
-                        });
-                        notify("Removed beta access");
-                        loadAdmin();
-                      }} style={{ background: "#EF444415", border: "1px solid #EF444430", borderRadius: "8px", color: "#EF4444", fontSize: "11px", padding: "5px 12px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                        Revoke
-                      </button>
+
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px", flexWrap: "wrap" }}>
+                          <span style={{ fontWeight: "700", fontSize: "13px" }}>{r.prof.displayName || "No profile"}</span>
+                          {r.isActive && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px" }}>🟢 Active</span>}
+                          {!r.isActive && r.hasProfile && <span style={{ fontSize: "9px", fontWeight: "700", color: "#F59E0B", background: "#F59E0B15", padding: "1px 6px", borderRadius: "4px" }}>🟡 Idle</span>}
+                          {!r.hasProfile && <span style={{ fontSize: "9px", fontWeight: "700", color: "#EF4444", background: "#EF444415", padding: "1px 6px", borderRadius: "4px" }}>🔴 No Profile</span>}
+                          {r.wantsGroupChat && !r.addedToGC && <span style={{ fontSize: "9px", fontWeight: "700", color: "#8B5CF6", background: "#8B5CF615", padding: "1px 6px", borderRadius: "4px" }}>💬 Wants GC</span>}
+                          {r.addedToGC && <span style={{ fontSize: "9px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "1px 6px", borderRadius: "4px" }}>✅ In GC</span>}
+                        </div>
+
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "4px", flexWrap: "wrap" }}>
+                          {r.prof.xHandle && <a href={`https://x.com/${r.prof.xHandle}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11px", color: theme.primary, textDecoration: "none" }}>@{r.prof.xHandle}</a>}
+                          <span style={{ fontSize: "10px", color: "#555", fontFamily: "'JetBrains Mono', monospace" }}>{r.wallet?.slice(0, 10)}...{r.wallet?.slice(-6)}</span>
+                          <button onClick={() => { navigator.clipboard.writeText(r.wallet); notify("Copied!"); }} style={{ background: "none", border: "none", color: theme.primary, cursor: "pointer", fontSize: "10px", fontFamily: "inherit" }}>📋</button>
+                        </div>
+
+                        {/* Activity stats */}
+                        <div style={{ display: "flex", gap: "12px", fontSize: "10px", color: "#666" }}>
+                          <span style={{ color: r.totalBxp > 0 ? theme.primary : "#555" }}>{r.totalBxp} BXP</span>
+                          {r.bxp.referrals > 0 && <span>🔗 {r.bxp.referrals} referral BXP</span>}
+                          {r.bxp.submissions > 0 && <span>📝 {r.bxp.submissions} submission BXP</span>}
+                          {r.bxp.wins > 0 && <span>🏆 {r.bxp.wins} win BXP</span>}
+                        </div>
+
+                        <div style={{ fontSize: "10px", color: "#444", marginTop: "2px" }}>
+                          {r.note && !r.note.startsWith("[") ? `${r.note} · ` : ""}Added {new Date(r.added_at).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", flexShrink: 0 }}>
+                        {r.wantsGroupChat && !r.addedToGC && (
+                          <button onClick={async () => {
+                            const newNote = (r.note || "").replace("[GC]", "").trim();
+                            await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
+                              method: "POST", headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ targetWallet: r.wallet, note: `[GC] ${newNote}`.trim() }),
+                            });
+                            notify("✅ Marked as added to group chat");
+                            loadAdmin();
+                          }} style={{ background: "#8B5CF615", border: "1px solid #8B5CF630", borderRadius: "6px", color: "#8B5CF6", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                            💬 Mark GC Added
+                          </button>
+                        )}
+                        {r.addedToGC && (
+                          <button onClick={async () => {
+                            const newNote = (r.note || "").replace("[GC]", "").trim();
+                            await fetch(`/api/db?action=admin-add-beta&wallet=${fullAddress}`, {
+                              method: "POST", headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ targetWallet: r.wallet, note: newNote }),
+                            });
+                            notify("Removed from group chat");
+                            loadAdmin();
+                          }} style={{ background: "#EF444410", border: "1px solid #EF444425", borderRadius: "6px", color: "#EF4444", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                            ❌ Remove GC
+                          </button>
+                        )}
+                        <button onClick={async () => {
+                          await fetch(`/api/db?action=admin-remove-beta&wallet=${fullAddress}`, {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ targetWallet: r.wallet }),
+                          });
+                          notify("Revoked beta access");
+                          loadAdmin();
+                        }} style={{ background: "#EF444410", border: "1px solid #EF444420", borderRadius: "6px", color: "#EF4444", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                          Revoke
+                        </button>
+                      </div>
                     </div>
-                  ))
-                }
+                  ))}
+                </div>
 
                 {/* Inactive */}
                 {inactive.length > 0 && (
@@ -4260,6 +4369,22 @@ export default function FairBounty() {
                 <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "11px", color: "#666", alignItems: "center" }}>
                   <span>📝 {(b.submissionCount || 0)} submissions</span>
                   <span>⏰ {b.deadline || "Open"}</span>
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
+                    const text = `Check out this bounty on @fairbounty: "${b.title}" — ${b.reward} ${b.currency || ""} prize! ${shareUrl}`;
+                    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+                  }} style={{ marginLeft: "auto", background: `${theme.primary}10`, border: `1px solid ${theme.primary}20`, borderRadius: "6px", color: theme.primary, cursor: "pointer", fontSize: "11px", padding: "4px 10px", fontFamily: "inherit", fontWeight: "600" }}>
+                    Share on X
+                  </button>
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    const shareUrl = referralCode ? `https://fairbounty.fun?ref=${referralCode}` : `https://fairbounty.fun`;
+                    navigator.clipboard.writeText(shareUrl);
+                    notify("Referral link copied!");
+                  }} style={{ background: `${theme.primary}10`, border: `1px solid ${theme.primary}20`, borderRadius: "6px", color: theme.primary, cursor: "pointer", fontSize: "11px", padding: "4px 10px", fontFamily: "inherit" }}>
+                    📋
+                  </button>
                   {wallet && (
                     <button onClick={(e) => { e.stopPropagation(); toggleBookmark(b.id); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: "0", fontFamily: "inherit" }} title={bookmarks.includes(b.id) ? "Remove bookmark" : "Bookmark"}>
                       {bookmarks.includes(b.id) ? "📌" : "🔖"}
