@@ -198,11 +198,18 @@ const DbAPI = {
   },
   async trackWallet(wallet) {
     try {
-      await fetch("/api/db?action=track-wallet", {
+      const res = await fetch("/api/db?action=track-wallet", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
       });
-    } catch (e) {}
+      return await res.json();
+    } catch (e) { return { success: false }; }
+  },
+  async getStreak(wallet) {
+    try {
+      const res = await fetch(`/api/db?action=get-streak&wallet=${wallet}`);
+      return await res.json();
+    } catch (e) { return { streak: 0, totalLogins: 0, airdropEligible: false, longestStreak: 0 }; }
   },
   async getStats() {
     try {
@@ -374,6 +381,8 @@ export default function FairBounty() {
   const [adminTab, setAdminTab] = useState("bounties");
   const [adminProfileSearch, setAdminProfileSearch] = useState("");
   const [adminProfileTierFilter, setAdminProfileTierFilter] = useState(0);
+  const [airdropList, setAirdropList] = useState(null);
+  const [airdropLoading, setAirdropLoading] = useState(false);
   const [betaInputWallet, setBetaInputWallet] = useState("");
   const [betaInputNote, setBetaInputNote] = useState("");
   const [lang, setLang] = useState("en");
@@ -588,6 +597,7 @@ export default function FairBounty() {
   const [fairScore, setFairScore] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [xp, setXp] = useState(0);
+  const [streakData, setStreakData] = useState({ streak: 0, totalLogins: 0, airdropEligible: false, longestStreak: 0 });
   const [liveBounties, setLiveBounties] = useState([]); // real bounties from DB
   const [selectedBounty, setSelectedBounty] = useState(null);
   const [selectedBountySubmissions, setSelectedBountySubmissions] = useState([]);
@@ -909,7 +919,9 @@ export default function FairBounty() {
           notify(`Connected! FairScore: Tier ${data.tier} (${TIER_CONFIG[data.tier].label})`);
         }
 
-        DbAPI.trackWallet(pubkey);
+        DbAPI.trackWallet(pubkey).then(data => {
+          if (data?.streak !== undefined) setStreakData({ streak: data.streak, totalLogins: data.totalLogins || 0, airdropEligible: data.airdropEligible || false, longestStreak: data.longestStreak || 0 });
+        }).catch(() => {});
 
         // Load bookmarks
         try {
@@ -3659,6 +3671,7 @@ export default function FairBounty() {
             {tabBtn("apps", "Intake Forms", pendingApps.length)}
             {tabBtn("profiles", "Profiles", adminData?.profiles?.length || 0)}
             {tabBtn("beta", "⚡ Beta Access", adminData?.betaRows?.filter(r => r.active)?.length || 0)}
+            {tabBtn("airdrop", "🎁 Airdrop", 0)}
           </div>
 
           {adminLoading && <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>Loading...</div>}
@@ -4182,6 +4195,64 @@ export default function FairBounty() {
             );
           })()}
 
+          {!adminLoading && adminTab === "airdrop" && (() => {
+            return (
+              <div>
+                <div style={{ ...cardStyle, padding: "20px", marginBottom: "16px", textAlign: "center" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: "800", marginBottom: "8px" }}>🎁 Airdrop Eligible Wallets</h3>
+                  <p style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>Users with 7+ day login streaks qualify for the airdrop</p>
+                  <button onClick={async () => {
+                    setAirdropLoading(true);
+                    try {
+                      const res = await fetch(`/api/db?action=get-airdrop-eligible&wallet=${fullAddress}`);
+                      const data = await res.json();
+                      setAirdropList(Array.isArray(data) ? data : []);
+                    } catch(e) { setAirdropList([]); }
+                    setAirdropLoading(false);
+                  }} style={{ ...btnPrimary, fontSize: "12px", padding: "10px 24px" }} disabled={airdropLoading}>
+                    {airdropLoading ? "Loading..." : "Load Eligible Wallets"}
+                  </button>
+                </div>
+                {airdropList !== null && (
+                  <div>
+                    <div style={{ fontSize: "12px", color: "#888", marginBottom: "12px" }}>
+                      {airdropList.length} wallet{airdropList.length !== 1 ? "s" : ""} eligible
+                      {airdropList.length > 0 && (
+                        <button onClick={() => {
+                          const wallets = airdropList.map(r => r.wallet).join("\n");
+                          navigator.clipboard.writeText(wallets);
+                          notify(`Copied ${airdropList.length} wallet addresses!`);
+                        }} style={{ ...btnOutline, fontSize: "10px", padding: "4px 10px", marginLeft: "12px" }}>📋 Copy All Wallets</button>
+                      )}
+                    </div>
+                    {airdropList.map(r => (
+                      <div key={r.wallet} style={{ ...cardStyle, padding: "12px 16px", marginBottom: "6px", display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{ fontSize: "20px" }}>🔥</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: "700", fontSize: "13px" }}>{r.display_name || "Anonymous"}</div>
+                          <div style={{ fontSize: "10px", color: "#888" }}>
+                            {r.x_handle ? `@${r.x_handle} · ` : ""}{r.current_streak} day streak · {r.total_logins} total logins
+                          </div>
+                          <div style={{ fontSize: "10px", color: "#555", fontFamily: "'JetBrains Mono', monospace", marginTop: "2px" }}>
+                            {r.wallet}
+                            <button onClick={() => { navigator.clipboard.writeText(r.wallet); notify("Copied!"); }} style={{ background: "none", border: "none", color: theme.primary, cursor: "pointer", fontSize: "10px", marginLeft: "6px" }}>📋</button>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <div style={{ fontSize: "16px", fontWeight: "800", color: "#22C55E" }}>{r.current_streak}</div>
+                          <div style={{ fontSize: "9px", color: "#555" }}>day streak</div>
+                        </div>
+                      </div>
+                    ))}
+                    {airdropList.length === 0 && (
+                      <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No wallets have 7+ day streaks yet</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           <div style={{ marginTop: "16px", textAlign: "right" }}>
             <button onClick={loadAdmin} style={{ ...btnOutline, fontSize: "11px", padding: "6px 14px" }}>🔄 Refresh</button>
           </div>
@@ -4253,6 +4324,36 @@ export default function FairBounty() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Daily Streak */}
+        {wallet && streakData.streak > 0 && (
+          <div style={{ ...cardStyle, padding: "16px 20px", marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", background: streakData.airdropEligible ? "linear-gradient(135deg, #22C55E08, #22C55E03)" : cardStyle.background, border: streakData.airdropEligible ? "1px solid #22C55E30" : cardStyle.border, ...fadeIn, transitionDelay: "0.15s" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <div style={{ fontSize: "28px" }}>🔥</div>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: "800" }}>
+                  {streakData.streak} Day Streak
+                  {streakData.airdropEligible && <span style={{ marginLeft: "8px", fontSize: "11px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "2px 8px", borderRadius: "100px" }}>🎁 Airdrop Eligible!</span>}
+                </div>
+                <div style={{ fontSize: "11px", color: "#888" }}>
+                  {streakData.totalLogins} total logins · Best: {streakData.longestStreak} days
+                  {!streakData.airdropEligible && ` · ${7 - streakData.streak} more days for airdrop`}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "3px" }}>
+              {[1,2,3,4,5,6,7].map(d => (
+                <div key={d} style={{
+                  width: "28px", height: "28px", borderRadius: "6px",
+                  background: d <= streakData.streak ? (d === 7 ? "#22C55E" : `${theme.primary}30`) : "#1a1a2e",
+                  border: d <= streakData.streak ? `1px solid ${d === 7 ? "#22C55E60" : theme.primary + "50"}` : "1px solid #333",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "11px", fontWeight: "700", color: d <= streakData.streak ? (d === 7 ? "#22C55E" : theme.primary) : "#555",
+                }}>{d <= streakData.streak ? "✓" : d}</div>
+              ))}
+            </div>
           </div>
         )}
 
