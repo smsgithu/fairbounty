@@ -958,6 +958,10 @@ export default function FairBounty() {
               }
             } catch (e) { console.warn("BXP load failed:", e); }
             try {
+              const sData = await DbAPI.getStreak(pubkey);
+              if (sData) setStreakData(sData);
+            } catch (e) {}
+            try {
               const refData = await DbAPI.getReferrals(pubkey);
               setReferralCount(refData?.count || 0);
               setReferralList(refData?.referrals || []);
@@ -2047,10 +2051,10 @@ export default function FairBounty() {
               <h3 style={{ fontSize: "15px", fontWeight: "700", marginBottom: "12px" }}>💰 Business Model</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {[
-                  { phase: "Now", item: "50 USDC listing fee per bounty posted", color: theme.primary },
-                  { phase: "Now", item: "5% platform commission on bounty completion", color: theme.primary },
-                  { phase: "Soon", item: "Enterprise data insights for DAOs sourcing talent", color: theme.accent },
+                  { phase: "Now", item: "Listing fees for bounty posts", color: theme.primary },
+                  { phase: "Now", item: "Platform commission on bounty completion", color: theme.primary },
                   { phase: "Soon", item: "Featured listings for high-value bounties", color: theme.accent },
+                  { phase: "Soon", item: "Premium tools for bounty posters", color: theme.accent },
                   { phase: "Future", item: "Full talent marketplace as FairScale becomes Solana's trust standard", color: "#888" },
                 ].map((row, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 14px", background: "#0c0c14", borderRadius: "8px" }}>
@@ -2431,7 +2435,8 @@ export default function FairBounty() {
                   { value: `Tier ${fairScore}`, label: tier?.label, color: tier?.color },
                   { value: `${xp}`, label: "BXP", color: theme.primary },
                   { value: betaAccess ? "⚡ Active" : "—", label: "Beta", color: betaAccess ? theme.primary : "#666" },
-                  { value: "0", label: "Won", color: "#888" },
+                  { value: `🔥 ${streakData.streak}`, label: "Streak", color: streakData.streak >= 7 ? "#22C55E" : streakData.streak > 0 ? "#F59E0B" : "#666" },
+                  { value: streakData.airdropEligible ? "🎁 Yes" : `${Math.max(7 - streakData.streak, 0)}d`, label: "Fairdrop", color: streakData.airdropEligible ? "#22C55E" : "#888" },
                 ].map((s) => (
                   <div key={s.label} style={{ textAlign: "center" }}>
                     <div style={{ fontSize: "16px", fontWeight: "800", color: s.color }}>{s.value}</div>
@@ -2511,6 +2516,44 @@ export default function FairBounty() {
                     <span style={{ fontSize: "12px", color: "#888" }}>Total: </span>
                     <span style={{ fontSize: "16px", fontWeight: "800", color: theme.primary }}>{xp} BXP</span>
                     <span style={{ fontSize: "11px", color: "#666", marginLeft: "8px" }}>({tier?.xpMultiplier}x multiplier)</span>
+                  </div>
+                </div>
+                {/* Login Streak / Fairdrop */}
+                <div style={{ ...cardStyle, marginTop: "12px" }}>
+                  <h3 style={{ fontSize: "13px", fontWeight: "700", marginBottom: "12px" }}>🔥 Login Streak</h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
+                    <div style={{ fontSize: "36px", fontWeight: "900", color: streakData.streak >= 7 ? "#22C55E" : theme.primary }}>{streakData.streak}</div>
+                    <div>
+                      <div style={{ fontSize: "13px", fontWeight: "700" }}>
+                        {streakData.streak >= 7 ? "🎁 Fairdrop Eligible!" : `${streakData.streak} Day${streakData.streak !== 1 ? "s" : ""} Streak`}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#888" }}>
+                        {streakData.totalLogins} total logins · Best: {streakData.longestStreak} days
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "4px", marginBottom: "12px" }}>
+                    {[1,2,3,4,5,6,7].map(d => (
+                      <div key={d} style={{
+                        flex: 1, height: "32px", borderRadius: "6px",
+                        background: d <= streakData.streak ? (d === 7 ? "#22C55E20" : `${theme.primary}20`) : "#1a1a2e",
+                        border: d <= streakData.streak ? `1px solid ${d === 7 ? "#22C55E50" : theme.primary + "40"}` : "1px solid #333",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "11px", fontWeight: "700",
+                        color: d <= streakData.streak ? (d === 7 ? "#22C55E" : theme.primary) : "#555",
+                      }}>
+                        {d <= streakData.streak ? "✓" : d}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: "10px", background: streakData.streak >= 7 ? "#22C55E08" : `${theme.primary}05`, borderRadius: "8px", border: streakData.streak >= 7 ? "1px solid #22C55E20" : `1px solid ${theme.primary}10`, textAlign: "center" }}>
+                    {streakData.streak >= 7 ? (
+                      <div style={{ fontSize: "12px", color: "#22C55E", fontWeight: "600" }}>🎁 You're eligible for the Loyalty Fairdrop! Keep your streak alive.</div>
+                    ) : streakData.streak > 0 ? (
+                      <div style={{ fontSize: "12px", color: "#888" }}>Log in {7 - streakData.streak} more day{7 - streakData.streak !== 1 ? "s" : ""} in a row to qualify for the Loyalty Fairdrop 🎁</div>
+                    ) : (
+                      <div style={{ fontSize: "12px", color: "#888" }}>Log in daily to build your streak and qualify for the Loyalty Fairdrop 🎁</div>
+                    )}
                   </div>
                 </div>
                 <div style={{ ...glassCard, padding: "24px" }}>
@@ -3671,7 +3714,7 @@ export default function FairBounty() {
             {tabBtn("apps", "Intake Forms", pendingApps.length)}
             {tabBtn("profiles", "Profiles", adminData?.profiles?.length || 0)}
             {tabBtn("beta", "⚡ Beta Access", adminData?.betaRows?.filter(r => r.active)?.length || 0)}
-            {tabBtn("airdrop", "🎁 Airdrop", 0)}
+            {tabBtn("airdrop", "🎁 Fairdrop", 0)}
           </div>
 
           {adminLoading && <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>Loading...</div>}
@@ -4037,9 +4080,7 @@ export default function FairBounty() {
               const hasSubmissions = (bxp.submissions || 0) > 0 || (bxp.wins || 0) > 0;
               const hasReferrals = (bxp.referrals || 0) > 0;
               const isActive = hasProfile && (totalBxp > 100 || hasSubmissions || hasReferrals);
-              // Check group chat from intake form or note
-              const app = (adminData?.apps || []).find(a => a.wallet === r.wallet && a.form_data?.type === "beta_request");
-              
+              return { ...r, prof, totalBxp, bxp, hasProfile, hasSubmissions, hasReferrals, isActive };
             });
 
             const [betaFilter, setBetaFilter] = [adminProfileTierFilter, setAdminProfileTierFilter];
@@ -4199,8 +4240,8 @@ export default function FairBounty() {
             return (
               <div>
                 <div style={{ ...cardStyle, padding: "20px", marginBottom: "16px", textAlign: "center" }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: "800", marginBottom: "8px" }}>🎁 Airdrop Eligible Wallets</h3>
-                  <p style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>Users with 7+ day login streaks qualify for the airdrop</p>
+                  <h3 style={{ fontSize: "16px", fontWeight: "800", marginBottom: "8px" }}>🎁 Fairdrop Eligible Wallets</h3>
+                  <p style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>Users with 7+ day login streaks qualify for the Loyalty Fairdrop</p>
                   <button onClick={async () => {
                     setAirdropLoading(true);
                     try {
@@ -4245,7 +4286,7 @@ export default function FairBounty() {
                       </div>
                     ))}
                     {airdropList.length === 0 && (
-                      <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No wallets have 7+ day streaks yet</div>
+                      <div style={{ ...cardStyle, padding: "32px", textAlign: "center", color: "#666" }}>No wallets have 7+ day streaks yet — Fairdrop coming soon!</div>
                     )}
                   </div>
                 )}
@@ -4335,11 +4376,11 @@ export default function FairBounty() {
               <div>
                 <div style={{ fontSize: "16px", fontWeight: "800" }}>
                   {streakData.streak} Day Streak
-                  {streakData.airdropEligible && <span style={{ marginLeft: "8px", fontSize: "11px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "2px 8px", borderRadius: "100px" }}>🎁 Airdrop Eligible!</span>}
+                  {streakData.airdropEligible && <span style={{ marginLeft: "8px", fontSize: "11px", fontWeight: "700", color: "#22C55E", background: "#22C55E15", padding: "2px 8px", borderRadius: "100px" }}>🎁 Fairdrop Eligible!</span>}
                 </div>
                 <div style={{ fontSize: "11px", color: "#888" }}>
                   {streakData.totalLogins} total logins · Best: {streakData.longestStreak} days
-                  {!streakData.airdropEligible && ` · ${7 - streakData.streak} more days for airdrop`}
+                  {!streakData.airdropEligible && ` · ${7 - streakData.streak} more days for Fairdrop`}
                 </div>
               </div>
             </div>
