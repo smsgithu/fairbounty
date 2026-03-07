@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     "get-profile", "save-profile", "get-bxp", "claim-welcome",
     "process-referral", "get-referrals", "track-wallet", "get-stats",
     "submit-bounty-app", "set-referral-code", "get-referral-code",
-    "resolve-referral", "create-bounty", "get-bounties", "submit-work",
+    "resolve-referral", "get-streak", "get-airdrop-eligible", "create-bounty", "get-bounties", "submit-work",
     "get-submissions", "vote", "get-votes", "select-winner", "check-beta",
     "check-beta-app", "get-public-profiles", "get-completed-bounties", "get-leaderboard",
     "admin-get-beta", "admin-add-beta", "admin-remove-beta",
@@ -180,12 +180,120 @@ export default async function handler(req, res) {
 
     if (action === "track-wallet") {
       const { wallet } = req.body;
+      if (!wallet) return res.status(400).json({ error: "Missing wallet" });
+      
+      // Update wallet last_seen
       await sql`
         INSERT INTO fb_wallets (wallet, first_seen, last_seen)
         VALUES (${wallet}, NOW(), NOW())
         ON CONFLICT (wallet) DO UPDATE SET last_seen = NOW()
       `;
-      return res.json({ success: true });
+
+      // Track daily login for streaks
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_logins (
+          id SERIAL PRIMARY KEY,
+          wallet TEXT NOT NULL,
+          login_date DATE NOT NULL DEFAULT CURRENT_DATE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(wallet, login_date)
+        )
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS fb_streaks (
+          wallet TEXT PRIMARY KEY,
+          current_streak INTEGER DEFAULT 1,
+          longest_streak INTEGER DEFAULT 1,
+          last_login_date DATE DEFAULT CURRENT_DATE,
+          total_logins INTEGER DEFAULT 1,
+          airdrop_eligible BOOLEAN DEFAULT false,
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
+      // Record today's login (ignore if already logged in today)
+      await sql`
+        INSERT INTO fb_logins (wallet, login_date) VALUES (${wallet}, CURRENT_DATE)
+        ON CONFLICT (wallet, login_date) DO NOTHING
+      `;
+
+      // Calculate streak
+      const streakRow = await sql`SELECT * FROM fb_streaks WHERE wallet = ${wallet} LIMIT 1`;
+      const today = new Date(); today.setHours(0,0,0,0);
+      
+      if (streakRow.length === 0) {
+        // First ever login
+        await sql`INSERT INTO fb_streaks (wallet, current_streak, longest_streak, last_login_date, total_logins, airdrop_eligible) VALUES (${wallet}, 1, 1, CURRENT_DATE, 1, false)`;
+        return res.json({ success: true, streak: 1, totalLogins: 1, airdropEligible: false });
+      }
+
+      const s = streakRow[0];
+      const lastLogin = new Date(s.last_login_date); lastLogin.setHours(0,0,0,0);
+      const diffDays = Math.round((today - lastLogin) / 86400000);
+
+      let newStreak = s.current_streak;
+      let newTotal = s.total_logins;
+
+      if (diffDays === 0) {
+        // Already logged in today — no change
+        return res.json({ success: true, streak: s.current_streak, totalLogins: s.total_logins, airdropEligible: s.airdrop_eligible, longestStreak: s.longest_streak });
+      } else if (diffDays === 1) {
+        // Consecutive day — increment streak
+        newStreak = s.current_streak + 1;
+        newTotal = s.total_logins + 1;
+      } else {
+        // Streak broken — reset to 1
+        newStreak = 1;
+        newTotal = s.total_logins + 1;
+      }
+
+      const newLongest = Math.max(newStreak, s.longest_streak);
+      const eligible = newStreak >= 7;
+
+      await sql`
+        UPDATE fb_streaks SET
+          current_streak = ${newStreak},
+          longest_streak = ${newLongest},
+          last_login_date = CURRENT_DATE,
+          total_logins = ${newTotal},
+          airdrop_eligible = ${eligible},
+          updated_at = NOW()
+        WHERE wallet = ${wallet}
+      `;
+
+      return res.json({ success: true, streak: newStreak, totalLogins: newTotal, airdropEligible: eligible, longestStreak: newLongest });
+    }
+
+    if (action === "get-streak") {
+      const { wallet } = req.query;
+      if (!wallet) return res.json({ streak: 0, totalLogins: 0, airdropEligible: false, longestStreak: 0 });
+      try {
+        const rows = await sql`SELECT * FROM fb_streaks WHERE wallet = ${wallet} LIMIT 1`;
+        if (rows.length === 0) return res.json({ streak: 0, totalLogins: 0, airdropEligible: false, longestStreak: 0 });
+        const s = rows[0];
+        // Check if streak is still valid (last login was today or yesterday)
+        const lastLogin = new Date(s.last_login_date); lastLogin.setHours(0,0,0,0);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diff = Math.round((today - lastLogin) / 86400000);
+        const activeStreak = diff <= 1 ? s.current_streak : 0;
+        return res.json({ streak: activeStreak, totalLogins: s.total_logins, airdropEligible: s.airdrop_eligible, longestStreak: s.longest_streak });
+      } catch (e) { return res.json({ streak: 0, totalLogins: 0, airdropEligible: false, longestStreak: 0 }); }
+    }
+
+    if (action === "get-airdrop-eligible") {
+      const { wallet } = req.query;
+      if (wallet !== FOUNDER_WALLET) return res.status(403).json({ error: "Unauthorized" });
+      try {
+        const rows = await sql`
+          SELECT s.wallet, s.current_streak, s.longest_streak, s.total_logins, s.last_login_date,
+            p.display_name, p.x_handle
+          FROM fb_streaks s
+          LEFT JOIN fb_profiles p ON p.wallet = s.wallet
+          WHERE s.airdrop_eligible = true
+          ORDER BY s.current_streak DESC
+        `;
+        return res.json(rows);
+      } catch (e) { return res.json([]); }
     }
 
     if (action === "get-stats") {
